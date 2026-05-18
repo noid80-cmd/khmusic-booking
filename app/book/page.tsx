@@ -88,7 +88,10 @@ export default function BookPage() {
 
     if (!isToday) return false
     const currentHour = now.getHours()
-    return hour === currentHour || hour === currentHour + 1
+    const currentMin = now.getMinutes()
+    // :50분 이후엔 다음 시간대로 창 이동
+    const base = currentMin >= 50 ? currentHour + 1 : currentHour
+    return hour === base || hour === base + 1
   }
 
   function getBooking(roomId: string, hour: number) {
@@ -201,7 +204,7 @@ export default function BookPage() {
         {isExam && (
           <div className={`px-4 py-3 rounded-2xl border text-xs flex items-center gap-2 ${theme.bannerBg}`}>
             <span className="text-base">⏰</span>
-            <span>현재 시간({currentHour}:00)과 다음 1시간만 예약할 수 있어요</span>
+            <span>{now.getMinutes() >= 50 ? `${currentHour + 1}:00 ~ ${currentHour + 3}:00 예약 가능 (:50 넘어서 다음 창으로)` : `${currentHour}:00 ~ ${currentHour + 2}:00 예약 가능`}</span>
           </div>
         )}
         {account.student_type === 'hobby' && (
