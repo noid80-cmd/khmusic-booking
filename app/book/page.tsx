@@ -269,9 +269,9 @@ export default function BookPage() {
                                 </div>
                               ) : isMine ? (
                                 <button onClick={() => handleCancel(bk!.id)}
-                                  className="w-full rounded-lg text-[9px] py-1.5 font-bold text-center border transition"
-                                  style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.3))', borderColor: 'rgba(99,102,241,0.3)', color: '#a5b4fc' }}>
-                                  나
+                                  className="w-full rounded-lg text-[9px] py-1.5 font-bold text-center border transition truncate px-0.5"
+                                  style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(5,150,105,0.25))', borderColor: 'rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
+                                  {account.name}
                                 </button>
                               ) : bk ? (
                                 <div className="rounded-lg text-[9px] py-1.5 text-center bg-white/5 text-white/15 border border-white/5">
@@ -305,7 +305,7 @@ export default function BookPage() {
                 <span className="text-[10px] text-white/30">예약 가능</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.3))', border: '1px solid rgba(99,102,241,0.3)' }} />
+                <div className="w-3 h-3 rounded" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(5,150,105,0.25))', border: '1px solid rgba(16,185,129,0.3)' }} />
                 <span className="text-[10px] text-white/30">내 예약</span>
               </div>
               <div className="flex items-center gap-1.5">
