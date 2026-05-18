@@ -5,24 +5,20 @@ import { supabase } from '@/lib/supabase'
 
 export default function AuthCallback() {
   useEffect(() => {
-    const run = async () => {
-      const code = new URLSearchParams(window.location.search).get('code')
-      if (code) {
-        await supabase.auth.exchangeCodeForSession(code)
-      }
-      // onAuthStateChange가 세션 감지할 때까지 잠깐 대기
-      const { data: { session } } = await supabase.auth.getSession()
+    // implicit flow: 토큰이 URL hash에 자동으로 들어옴
+    // onAuthStateChange로 세션 감지 후 이동
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         window.location.href = '/'
-      } else {
-        // 세션이 없으면 1초 후 재시도
-        setTimeout(async () => {
-          const { data: { session: s2 } } = await supabase.auth.getSession()
-          window.location.href = s2 ? '/' : '/login'
-        }, 1000)
       }
-    }
-    run()
+    })
+
+    // 이미 세션이 있으면 바로 이동
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) window.location.href = '/'
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   return (
