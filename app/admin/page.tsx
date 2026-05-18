@@ -81,8 +81,10 @@ export default function AdminPage() {
   }
 
   async function addClass() {
-    if (!selRoom || !instructor) return
-    await supabase.from('class_schedules').insert({ room_id: selRoom, date, start_hour: selStart, end_hour: selEnd, instructor })
+    if (!selRoom) { alert('연습실을 선택해주세요.'); return }
+    if (!instructor) { alert('강사명을 입력해주세요.'); return }
+    const { error } = await supabase.from('class_schedules').insert({ room_id: selRoom, date, start_hour: selStart, end_hour: selEnd, instructor })
+    if (error) { alert('오류: ' + error.message); return }
     setInstructor('')
     await loadSchedule()
   }
