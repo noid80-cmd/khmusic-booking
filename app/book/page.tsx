@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import React from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Account, Room, Booking } from '@/lib/supabase'
 
@@ -89,7 +90,6 @@ export default function BookPage() {
     if (!isToday) return false
     const currentHour = now.getHours()
     const currentMin = now.getMinutes()
-    // :50분 이후엔 다음 시간대로 창 이동
     const base = currentMin >= 50 ? currentHour + 1 : currentHour
     return hour === base || hour === base + 1
   }
@@ -138,10 +138,10 @@ export default function BookPage() {
   const isExam = account?.student_type === 'exam' || account?.student_type === 'professional'
   const currentHour = now.getHours()
 
-  // 본관: indigo/purple, 별관: emerald/teal
-  const theme = building === 'main'
-    ? { active: 'linear-gradient(135deg, #6366f1, #8b5cf6)', tab: 'shadow-indigo-500/20', bookable: 'bg-indigo-500/10 border-indigo-500/15 hover:bg-indigo-500/20', bookableCurrent: 'bg-indigo-500/20 border-indigo-500/35 hover:bg-indigo-500/30', bookableText: 'text-indigo-300/60', currentRowBorder: 'border-indigo-500/20', currentHourText: 'text-indigo-400', bannerBg: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300' }
-    : { active: 'linear-gradient(135deg, #10b981, #0d9488)', tab: 'shadow-emerald-500/20', bookable: 'bg-emerald-500/10 border-emerald-500/15 hover:bg-emerald-500/20', bookableCurrent: 'bg-emerald-500/20 border-emerald-500/35 hover:bg-emerald-500/30', bookableText: 'text-emerald-300/60', currentRowBorder: 'border-emerald-500/20', currentHourText: 'text-emerald-400', bannerBg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300' }
+  const isMain = building === 'main'
+  const accent = isMain
+    ? { grad: 'linear-gradient(135deg, #6366f1, #8b5cf6)', glow: 'rgba(99,102,241,0.3)', cell: 'rgba(99,102,241,0.10)', cellHot: 'rgba(99,102,241,0.20)', border: 'rgba(99,102,241,0.18)', borderHot: 'rgba(99,102,241,0.40)', text: 'rgba(165,180,252,0.85)', hourText: '#818cf8', banner: { bg: 'rgba(99,102,241,0.08)', border: 'rgba(99,102,241,0.2)', color: '#a5b4fc' } }
+    : { grad: 'linear-gradient(135deg, #10b981, #0d9488)', glow: 'rgba(16,185,129,0.3)', cell: 'rgba(16,185,129,0.10)', cellHot: 'rgba(16,185,129,0.20)', border: 'rgba(16,185,129,0.18)', borderHot: 'rgba(16,185,129,0.40)', text: 'rgba(110,231,183,0.85)', hourText: '#34d399', banner: { bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.2)', color: '#6ee7b7' } }
 
   const mainRoomTypes = [
     { key: 'piano', label: '피아노', filter: (r: Room) => r.name.startsWith('PIANO') },
@@ -154,80 +154,91 @@ export default function BookPage() {
     mainRoomTypes.find(t => t.key === roomType)?.filter ?? (() => true)
   )
 
-  if (!account) return <div className="min-h-screen bg-[#0a0a0a]" />
+  if (!account) return <div className="min-h-screen" style={{ background: '#0a0a0f' }} />
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] pb-24">
+    <div className="min-h-screen pb-24" style={{ background: '#0a0a0f' }}>
 
-      {/* 헤더 */}
-      <div className="sticky top-0 z-20 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/8">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-black">
-              {account.name[0]}
-            </div>
-            <div>
-              <p className="text-white text-sm font-semibold leading-none">{account.name}</p>
-              <p className="text-white/40 text-[11px] mt-0.5">{typeLabel(account.student_type)}</p>
-            </div>
-          </div>
-          <p className="text-white font-black text-base tracking-tight">KH 연습실</p>
-          <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
-            className="text-white/25 text-xs hover:text-white/50 transition">로그아웃</button>
-        </div>
+      {/* ── 헤더 ── */}
+      <div className="sticky top-0 z-20 border-b border-white/[0.07]" style={{ background: 'rgba(10,10,15,0.96)', backdropFilter: 'blur(24px)' }}>
+        <div className="px-5 pt-4 pb-4 space-y-3">
 
-        {/* 건물 탭 */}
-        <div className="px-4 pb-3 flex gap-2">
-          {(['main', 'annex'] as const).map(b => (
-            <button key={b} onClick={() => setBuilding(b)}
-              className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${
-                building === b
-                  ? 'text-white shadow-lg shadow-indigo-500/20'
-                  : 'bg-white/5 text-white/35 hover:bg-white/8'
-              }`}
-              style={building === b ? { background: theme.active } : {}}>
-              {b === 'main' ? '본관' : '별관'}
+          {/* 브랜드 + 유저 */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-[22px] leading-none"
+                style={{ background: accent.grad, boxShadow: `0 6px 20px ${accent.glow}` }}>
+                ♪
+              </div>
+              <div>
+                <p className="text-white font-black text-[15px] leading-none tracking-tight">KH Music</p>
+                <p className="text-white/40 text-[11px] mt-[3px]">{account.name} · {typeLabel(account.student_type)}</p>
+              </div>
+            </div>
+            <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
+              className="text-white/20 text-xs hover:text-white/50 transition">
+              로그아웃
             </button>
-          ))}
+          </div>
+
+          {/* 건물 탭 */}
+          <div className="flex p-1 rounded-2xl gap-1" style={{ background: 'rgba(255,255,255,0.05)' }}>
+            {(['main', 'annex'] as const).map(b => {
+              const on = building === b
+              const g = b === 'main' ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : 'linear-gradient(135deg,#10b981,#0d9488)'
+              const gl = b === 'main' ? 'rgba(99,102,241,0.3)' : 'rgba(16,185,129,0.3)'
+              return (
+                <button key={b} onClick={() => setBuilding(b)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${on ? 'text-white' : 'text-white/30 hover:text-white/50'}`}
+                  style={on ? { background: g, boxShadow: `0 4px 14px ${gl}` } : {}}>
+                  {b === 'main' ? '본관' : '별관'}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
-      <div className="px-4 pt-4 space-y-3">
+      <div className="px-4 pt-4 space-y-4">
 
         {/* 날짜 */}
-        <input type="date" value={date} onChange={e => setDate(e.target.value)}
-          min={todayStr()}
-          className="w-full bg-white/5 border border-white/8 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500/60 focus:bg-white/8 transition"
-          style={{ colorScheme: 'dark' }} />
+        <input type="date" value={date} onChange={e => setDate(e.target.value)} min={todayStr()}
+          className="w-full rounded-2xl px-4 py-3.5 text-white text-sm font-medium focus:outline-none transition"
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', colorScheme: 'dark' }} />
 
         {/* 안내 배너 */}
         {isExam && (
-          <div className={`px-4 py-3 rounded-2xl border text-xs flex items-center gap-2 ${theme.bannerBg}`}>
-            <span className="text-base">⏰</span>
-            <span>{now.getMinutes() >= 50 ? `${currentHour + 1}:00 ~ ${currentHour + 3}:00 예약 가능 (:50 넘어서 다음 창으로)` : `${currentHour}:00 ~ ${currentHour + 2}:00 예약 가능`}</span>
+          <div className="px-4 py-3 rounded-2xl border text-xs flex items-center gap-2.5"
+            style={{ background: accent.banner.bg, borderColor: accent.banner.border, color: accent.banner.color }}>
+            <span className="text-[15px]">⏰</span>
+            <span className="font-medium">
+              {now.getMinutes() >= 50
+                ? `${currentHour + 1}:00 ~ ${currentHour + 3}:00 예약 가능 (:50 넘어서 다음 창으로)`
+                : `${currentHour}:00 ~ ${currentHour + 2}:00 예약 가능`}
+            </span>
           </div>
         )}
         {account.student_type === 'hobby' && (
-          <div className="px-4 py-3 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs flex items-center gap-2">
-            <span className="text-base">🎵</span>
-            <span>하루 1시간 · 언제든 미리 예약 가능해요</span>
+          <div className="px-4 py-3 rounded-2xl border text-xs flex items-center gap-2.5"
+            style={{ background: 'rgba(168,85,247,0.08)', borderColor: 'rgba(168,85,247,0.2)', color: '#d8b4fe' }}>
+            <span className="text-[15px]">🎵</span>
+            <span className="font-medium">하루 1시간 · 언제든 미리 예약 가능해요</span>
           </div>
         )}
         {building === 'annex' && account.student_type !== 'exam' && (
-          <div className="px-4 py-3 rounded-2xl bg-white/5 border border-white/8 text-white/35 text-xs text-center">
+          <div className="px-4 py-3 rounded-2xl border text-xs text-center font-medium"
+            style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.25)' }}>
             별관은 입시반만 이용 가능해요
           </div>
         )}
 
-        {/* 본관 방 종류 탭 */}
+        {/* 방 종류 탭 */}
         {building === 'main' && (
-          <div className="flex gap-1.5">
+          <div className="flex gap-2">
             {mainRoomTypes.map(t => (
               <button key={t.key} onClick={() => setRoomType(t.key)}
-                className={`flex-1 py-2 rounded-xl text-[11px] font-medium transition ${
-                  roomType === t.key ? 'text-white' : 'bg-white/5 text-white/35'
-                }`}
-                style={roomType === t.key ? { background: theme.active } : {}}>
+                className={`flex-1 py-2 rounded-xl text-[11px] font-bold transition-all ${roomType === t.key ? 'text-white' : 'text-white/30'}`}
+                style={roomType === t.key ? { background: accent.grad } : { background: 'rgba(255,255,255,0.05)' }}>
                 {t.label}
               </button>
             ))}
@@ -237,19 +248,20 @@ export default function BookPage() {
         {/* 내 예약 */}
         {myBookings.length > 0 && (
           <div>
-            <p className="text-white/30 text-xs font-medium mb-2 px-1">내 예약</p>
+            <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest mb-2.5 px-0.5">내 예약</p>
             <div className="space-y-2">
               {myBookings.map(b => (
-                <div key={b.id} className="flex items-center justify-between px-4 py-3 rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/15">
+                <div key={b.id} className="flex items-center justify-between px-4 py-3.5 rounded-2xl border"
+                  style={{ background: 'rgba(99,102,241,0.07)', borderColor: 'rgba(99,102,241,0.15)' }}>
                   <div className="flex items-center gap-3">
-                    <div className="w-1 h-8 rounded-full bg-gradient-to-b from-indigo-400 to-purple-500" />
+                    <div className="w-[3px] h-9 rounded-full" style={{ background: accent.grad }} />
                     <div>
-                      <p className="text-white text-sm font-semibold">{(b.room as Room).name}</p>
-                      <p className="text-white/40 text-xs">{b.date} · {fmt(b.start_hour)} ~ {fmt(b.end_hour)}</p>
+                      <p className="text-white text-sm font-bold leading-none">{(b.room as Room).name}</p>
+                      <p className="text-white/40 text-[11px] mt-1">{b.date} · {fmt(b.start_hour)} ~ {fmt(b.end_hour)}</p>
                     </div>
                   </div>
                   <button onClick={() => handleCancel(b.id)}
-                    className="text-xs text-red-400/70 hover:text-red-400 transition px-2 py-1 rounded-lg hover:bg-red-500/10">
+                    className="text-[11px] text-red-400/50 hover:text-red-400 transition px-2 py-1 rounded-lg hover:bg-red-500/10 font-medium">
                     취소
                   </button>
                 </div>
@@ -258,96 +270,105 @@ export default function BookPage() {
           </div>
         )}
 
-        {/* 시간표 — 시간(행) × 방(열) */}
+        {/* 예약 현황 그리드 */}
         {loading ? (
-          <div className="text-center text-white/20 py-16 text-sm">불러오는 중...</div>
+          <div className="text-center py-16 text-sm" style={{ color: 'rgba(255,255,255,0.15)' }}>불러오는 중...</div>
         ) : (
           <div>
-            <p className="text-white/30 text-xs font-medium mb-2 px-1">예약 현황</p>
+            <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest mb-3 px-0.5">예약 현황</p>
             <div className="overflow-x-auto -mx-4 px-4">
-              <table className="w-full text-xs border-collapse" style={{ minWidth: `${filteredRooms.length * 58 + 46}px` }}>
-                <thead>
-                  <tr>
-                    <th className="sticky left-0 bg-[#0a0a0a] text-white/25 text-left py-2 pr-2 w-11 text-[11px]">시간</th>
-                    {filteredRooms.map(r => (
-                      <th key={r.id} className="text-white/40 text-center py-2 px-1 font-medium text-[11px]" style={{ minWidth: 50 }}>
-                        {shortName(r.name)}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {HOURS.map(h => {
-                    const isCurrentHour = h === currentHour && date === todayStr()
-                    return (
-                      <tr key={h} className={`border-t ${isCurrentHour ? theme.currentRowBorder : 'border-white/5'}`}>
-                        <td className="sticky left-0 bg-[#0a0a0a] py-1 pr-2 whitespace-nowrap">
-                          <span className={`text-[11px] font-semibold ${isCurrentHour ? theme.currentHourText : 'text-white/25'}`}>
-                            {fmt(h)}
-                          </span>
-                        </td>
-                        {filteredRooms.map(r => {
-                          const cls = getClass(r.id, h)
-                          const bk = getBooking(r.id, h)
-                          const isMine = bk?.account_id === account.id
-                          const isBookableHour = canBook(h)
-                          const annexRestricted = building === 'annex' && account.student_type !== 'exam'
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: `38px repeat(${filteredRooms.length}, minmax(50px, 1fr))`,
+                  gap: '4px',
+                  minWidth: `${filteredRooms.length * 54 + 42}px`,
+                }}>
 
-                          return (
-                            <td key={r.id} className="py-1 px-0.5 text-center">
-                              {cls ? (
-                                <div className="rounded-lg h-10 bg-pink-500/15 border border-pink-500/10 flex items-center justify-center">
-                                  <span className="text-[9px] text-pink-300/70 truncate px-1">{cls.instructor}</span>
-                                </div>
-                              ) : isMine ? (
-                                <button onClick={() => handleCancel(bk!.id)}
-                                  className="w-full rounded-lg h-10 text-[9px] font-bold truncate px-1 transition active:scale-95 border"
-                                  style={{ background: 'rgba(16,185,129,0.2)', borderColor: 'rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
-                                  {account.name}
-                                </button>
-                              ) : bk ? (
-                                <div className="rounded-lg h-10 bg-white/6 border border-white/5" />
-                              ) : annexRestricted ? (
-                                <div className="rounded-lg h-7" />
-                              ) : isBookableHour ? (
-                                <button onClick={() => handleBook(r.id, h)}
-                                  disabled={booking}
-                                  className={`w-full rounded-lg h-10 transition-all active:scale-95 border disabled:opacity-40 ${
-                                    isCurrentHour ? theme.bookableCurrent : theme.bookable
-                                  }`}>
-                                  <span className={`text-[9px] ${theme.bookableText}`}>예약</span>
-                                </button>
-                              ) : (
-                                <div className="rounded-lg h-10 bg-white/2" />
-                              )}
-                            </td>
-                          )
-                        })}
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+                {/* 헤더 행 */}
+                <div />
+                {filteredRooms.map(r => (
+                  <div key={`hdr-${r.id}`} className="flex items-center justify-center py-2 rounded-xl"
+                    style={{ background: 'rgba(255,255,255,0.04)' }}>
+                    <span className="text-[11px] font-bold text-white/55">{shortName(r.name)}</span>
+                  </div>
+                ))}
+
+                {/* 시간 × 방 셀 */}
+                {HOURS.flatMap(h => {
+                  const isCurrentHour = h === currentHour && date === todayStr()
+                  return [
+                    <div key={`t-${h}`} className="flex items-center justify-end pr-2">
+                      <span className="text-[12px] font-black" style={{ color: isCurrentHour ? accent.hourText : 'rgba(255,255,255,0.18)' }}>
+                        {h}
+                      </span>
+                    </div>,
+                    ...filteredRooms.map(r => {
+                      const cls = getClass(r.id, h)
+                      const bk = getBooking(r.id, h)
+                      const isMine = bk?.account_id === account.id
+                      const isBookableHour = canBook(h)
+                      const annexRestricted = building === 'annex' && account.student_type !== 'exam'
+
+                      if (cls) return (
+                        <div key={`${h}-${r.id}`} className="h-12 rounded-xl flex items-center justify-center"
+                          style={{ background: 'rgba(244,63,94,0.11)', border: '1px solid rgba(244,63,94,0.18)' }}>
+                          <span className="text-[9px] font-semibold truncate px-1" style={{ color: 'rgba(251,113,133,0.8)' }}>{cls.instructor}</span>
+                        </div>
+                      )
+
+                      if (isMine) return (
+                        <button key={`${h}-${r.id}`} onClick={() => handleCancel(bk!.id)}
+                          className="h-12 rounded-xl flex items-center justify-center transition active:scale-95"
+                          style={{ background: 'rgba(16,185,129,0.18)', border: '1px solid rgba(16,185,129,0.35)' }}>
+                          <span className="text-[9px] font-black truncate px-1" style={{ color: '#6ee7b7' }}>{account.name}</span>
+                        </button>
+                      )
+
+                      if (bk) return (
+                        <div key={`${h}-${r.id}`} className="h-12 rounded-xl"
+                          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }} />
+                      )
+
+                      if (annexRestricted) return (
+                        <div key={`${h}-${r.id}`} className="h-12 rounded-xl"
+                          style={{ background: 'rgba(255,255,255,0.02)' }} />
+                      )
+
+                      if (isBookableHour) return (
+                        <button key={`${h}-${r.id}`} onClick={() => handleBook(r.id, h)} disabled={booking}
+                          className="h-12 rounded-xl flex items-center justify-center transition active:scale-95 disabled:opacity-40"
+                          style={{
+                            background: isCurrentHour ? accent.cellHot : accent.cell,
+                            border: `1px solid ${isCurrentHour ? accent.borderHot : accent.border}`,
+                          }}>
+                          <span className="text-[13px] font-black" style={{ color: accent.text }}>+</span>
+                        </button>
+                      )
+
+                      return (
+                        <div key={`${h}-${r.id}`} className="h-12 rounded-xl"
+                          style={{ background: 'rgba(255,255,255,0.015)' }} />
+                      )
+                    }),
+                  ]
+                })}
+              </div>
             </div>
 
             {/* 범례 */}
-            <div className="flex gap-3 mt-4 px-1 flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded bg-indigo-500/15 border border-indigo-500/20" />
-                <span className="text-[10px] text-white/30">예약 가능</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded" style={{ background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.3)' }} />
-                <span className="text-[10px] text-white/30">내 예약</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded bg-white/6 border border-white/5" />
-                <span className="text-[10px] text-white/30">예약됨</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded bg-pink-500/15 border border-pink-500/10" />
-                <span className="text-[10px] text-white/30">수업</span>
-              </div>
+            <div className="flex gap-4 mt-5 px-0.5 flex-wrap">
+              {[
+                { bg: accent.cell, border: accent.border, label: '예약 가능' },
+                { bg: 'rgba(16,185,129,0.18)', border: 'rgba(16,185,129,0.35)', label: '내 예약' },
+                { bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.08)', label: '예약됨' },
+                { bg: 'rgba(244,63,94,0.11)', border: 'rgba(244,63,94,0.2)', label: '수업' },
+              ].map(item => (
+                <div key={item.label} className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-[4px]" style={{ background: item.bg, border: `1px solid ${item.border}` }} />
+                  <span className="text-[10px] font-medium" style={{ color: 'rgba(255,255,255,0.22)' }}>{item.label}</span>
+                </div>
+              ))}
             </div>
           </div>
         )}
