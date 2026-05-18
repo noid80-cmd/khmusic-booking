@@ -27,6 +27,7 @@ function typeLabel(t: string | null) {
 export default function BookPage() {
   const [account, setAccount] = useState<Account | null>(null)
   const [building, setBuilding] = useState<'main' | 'annex'>('main')
+  const [roomType, setRoomType] = useState<'piano' | 'midi' | 'guitar' | 'etc'>('piano')
   const [date, setDate] = useState(todayStr())
   const [rooms, setRooms] = useState<Room[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])
@@ -134,6 +135,17 @@ export default function BookPage() {
   const isExam = account?.student_type === 'exam' || account?.student_type === 'professional'
   const currentHour = now.getHours()
 
+  const mainRoomTypes = [
+    { key: 'piano', label: '피아노', filter: (r: Room) => r.name.startsWith('PIANO') },
+    { key: 'midi', label: 'MIDI', filter: (r: Room) => r.name.startsWith('MIDI') },
+    { key: 'guitar', label: '기타&베이스', filter: (r: Room) => r.name.startsWith('GUITAR') },
+    { key: 'etc', label: '드럼/기타', filter: (r: Room) => r.name.startsWith('DRUMS') || r.name === '소극장' || r.name === '녹음실' || r.name.startsWith('ENSEMBLE') },
+  ] as const
+
+  const filteredRooms = building === 'annex' ? rooms : rooms.filter(
+    mainRoomTypes.find(t => t.key === roomType)?.filter ?? (() => true)
+  )
+
   if (!account) return <div className="min-h-screen bg-[#0a0a0a]" />
 
   return (
@@ -199,6 +211,20 @@ export default function BookPage() {
           </div>
         )}
 
+        {/* 본관 방 종류 탭 */}
+        {building === 'main' && (
+          <div className="flex gap-1.5">
+            {mainRoomTypes.map(t => (
+              <button key={t.key} onClick={() => setRoomType(t.key)}
+                className={`flex-1 py-2 rounded-xl text-[11px] font-medium transition ${
+                  roomType === t.key ? 'bg-white/15 text-white' : 'bg-white/5 text-white/35'
+                }`}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* 내 예약 */}
         {myBookings.length > 0 && (
           <div>
@@ -223,75 +249,76 @@ export default function BookPage() {
           </div>
         )}
 
-        {/* 시간표 — 방(행) × 시간(열) */}
+        {/* 시간표 — 시간(행) × 방(열) */}
         {loading ? (
           <div className="text-center text-white/20 py-16 text-sm">불러오는 중...</div>
         ) : (
           <div>
             <p className="text-white/30 text-xs font-medium mb-2 px-1">예약 현황</p>
-            <div className="-mx-4">
-              <table className="w-full border-collapse table-fixed">
-                <colgroup>
-                  <col style={{ width: 44 }} />
-                  {HOURS.map(h => <col key={h} />)}
-                </colgroup>
+            <div className="overflow-x-auto -mx-4 px-4">
+              <table className="w-full text-xs border-collapse" style={{ minWidth: `${filteredRooms.length * 58 + 46}px` }}>
                 <thead>
                   <tr>
-                    <th className="sticky left-0 bg-[#0a0a0a] pb-1.5" />
-                    {HOURS.map(h => (
-                      <th key={h} className="pb-1.5 text-center">
-                        <span className={`text-[10px] font-semibold ${h === currentHour && date === todayStr() ? 'text-indigo-400' : 'text-white/25'}`}>
-                          {h}
-                        </span>
+                    <th className="sticky left-0 bg-[#0a0a0a] text-white/25 text-left py-2 pr-2 w-11 text-[11px]">시간</th>
+                    {filteredRooms.map(r => (
+                      <th key={r.id} className="text-white/40 text-center py-2 px-1 font-medium text-[11px]" style={{ minWidth: 50 }}>
+                        {shortName(r.name)}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {rooms.map(r => (
-                    <tr key={r.id}>
-                      <td className="sticky left-0 bg-[#0a0a0a] pl-4 pr-1 py-0.5">
-                        <span className="text-[10px] text-white/40 font-medium whitespace-nowrap">{shortName(r.name)}</span>
-                      </td>
-                      {HOURS.map(h => {
-                        const cls = getClass(r.id, h)
-                        const bk = getBooking(r.id, h)
-                        const isMine = bk?.account_id === account.id
-                        const isBookableHour = canBook(h)
-                        const annexRestricted = building === 'annex' && account.student_type !== 'exam'
-                        const isCurrentHour = h === currentHour && date === todayStr()
+                  {HOURS.map(h => {
+                    const isCurrentHour = h === currentHour && date === todayStr()
+                    return (
+                      <tr key={h} className={`border-t ${isCurrentHour ? 'border-indigo-500/20' : 'border-white/5'}`}>
+                        <td className="sticky left-0 bg-[#0a0a0a] py-1 pr-2 whitespace-nowrap">
+                          <span className={`text-[11px] font-semibold ${isCurrentHour ? 'text-indigo-400' : 'text-white/25'}`}>
+                            {fmt(h)}
+                          </span>
+                        </td>
+                        {filteredRooms.map(r => {
+                          const cls = getClass(r.id, h)
+                          const bk = getBooking(r.id, h)
+                          const isMine = bk?.account_id === account.id
+                          const isBookableHour = canBook(h)
+                          const annexRestricted = building === 'annex' && account.student_type !== 'exam'
 
-                        return (
-                          <td key={h} className="py-0.5 px-0.5">
-                            {cls ? (
-                              <div className="rounded-md h-7 bg-pink-500/15 border border-pink-500/10" />
-                            ) : isMine ? (
-                              <button onClick={() => handleCancel(bk!.id)}
-                                className="w-full rounded-md h-7 text-[8px] font-bold truncate px-0.5 transition active:scale-95 border"
-                                style={{ background: 'rgba(16,185,129,0.2)', borderColor: 'rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
-                                {account.name}
-                              </button>
-                            ) : bk ? (
-                              <div className="rounded-md h-7 bg-white/6 border border-white/5" />
-                            ) : annexRestricted ? (
-                              <div className="rounded-md h-7" />
-                            ) : isBookableHour ? (
-                              <button onClick={() => handleBook(r.id, h)}
-                                disabled={booking}
-                                className={`w-full rounded-md h-7 transition-all active:scale-95 border disabled:opacity-40 ${
-                                  isCurrentHour
-                                    ? 'bg-indigo-500/20 border-indigo-500/40'
-                                    : 'bg-indigo-500/10 border-indigo-500/15 hover:bg-indigo-500/20'
-                                }`}
-                              />
-                            ) : (
-                              <div className="rounded-md h-7 bg-white/2" />
-                            )}
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  ))}
+                          return (
+                            <td key={r.id} className="py-1 px-0.5 text-center">
+                              {cls ? (
+                                <div className="rounded-lg h-7 bg-pink-500/15 border border-pink-500/10 flex items-center justify-center">
+                                  <span className="text-[9px] text-pink-300/70 truncate px-1">{cls.instructor}</span>
+                                </div>
+                              ) : isMine ? (
+                                <button onClick={() => handleCancel(bk!.id)}
+                                  className="w-full rounded-lg h-7 text-[9px] font-bold truncate px-1 transition active:scale-95 border"
+                                  style={{ background: 'rgba(16,185,129,0.2)', borderColor: 'rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
+                                  {account.name}
+                                </button>
+                              ) : bk ? (
+                                <div className="rounded-lg h-7 bg-white/6 border border-white/5" />
+                              ) : annexRestricted ? (
+                                <div className="rounded-lg h-7" />
+                              ) : isBookableHour ? (
+                                <button onClick={() => handleBook(r.id, h)}
+                                  disabled={booking}
+                                  className={`w-full rounded-lg h-7 transition-all active:scale-95 border disabled:opacity-40 ${
+                                    isCurrentHour
+                                      ? 'bg-indigo-500/20 border-indigo-500/35 hover:bg-indigo-500/30'
+                                      : 'bg-indigo-500/10 border-indigo-500/15 hover:bg-indigo-500/20'
+                                  }`}>
+                                  <span className="text-[9px] text-indigo-300/60">예약</span>
+                                </button>
+                              ) : (
+                                <div className="rounded-lg h-7 bg-white/2" />
+                              )}
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
