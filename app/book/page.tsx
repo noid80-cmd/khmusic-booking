@@ -135,11 +135,16 @@ export default function BookPage() {
   const isExam = account?.student_type === 'exam' || account?.student_type === 'professional'
   const currentHour = now.getHours()
 
+  // 본관: indigo/purple, 별관: emerald/teal
+  const theme = building === 'main'
+    ? { active: 'linear-gradient(135deg, #6366f1, #8b5cf6)', tab: 'shadow-indigo-500/20', bookable: 'bg-indigo-500/10 border-indigo-500/15 hover:bg-indigo-500/20', bookableCurrent: 'bg-indigo-500/20 border-indigo-500/35 hover:bg-indigo-500/30', bookableText: 'text-indigo-300/60', currentRowBorder: 'border-indigo-500/20', currentHourText: 'text-indigo-400', bannerBg: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300' }
+    : { active: 'linear-gradient(135deg, #10b981, #0d9488)', tab: 'shadow-emerald-500/20', bookable: 'bg-emerald-500/10 border-emerald-500/15 hover:bg-emerald-500/20', bookableCurrent: 'bg-emerald-500/20 border-emerald-500/35 hover:bg-emerald-500/30', bookableText: 'text-emerald-300/60', currentRowBorder: 'border-emerald-500/20', currentHourText: 'text-emerald-400', bannerBg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300' }
+
   const mainRoomTypes = [
     { key: 'piano', label: '피아노', filter: (r: Room) => r.name.startsWith('PIANO') },
     { key: 'midi', label: 'MIDI', filter: (r: Room) => r.name.startsWith('MIDI') },
     { key: 'guitar', label: '기타&베이스', filter: (r: Room) => r.name.startsWith('GUITAR') },
-    { key: 'etc', label: '드럼/기타', filter: (r: Room) => r.name.startsWith('DRUMS') || r.name === '소극장' || r.name === '녹음실' || r.name.startsWith('ENSEMBLE') },
+    { key: 'etc', label: '드럼&그외', filter: (r: Room) => r.name.startsWith('DRUMS') || r.name === '소극장' || r.name === '녹음실' || r.name.startsWith('ENSEMBLE') },
   ] as const
 
   const filteredRooms = building === 'annex' ? rooms : rooms.filter(
@@ -177,7 +182,7 @@ export default function BookPage() {
                   ? 'text-white shadow-lg shadow-indigo-500/20'
                   : 'bg-white/5 text-white/35 hover:bg-white/8'
               }`}
-              style={building === b ? { background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' } : {}}>
+              style={building === b ? { background: theme.active } : {}}>
               {b === 'main' ? '본관' : '별관'}
             </button>
           ))}
@@ -194,7 +199,7 @@ export default function BookPage() {
 
         {/* 안내 배너 */}
         {isExam && (
-          <div className="px-4 py-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs flex items-center gap-2">
+          <div className={`px-4 py-3 rounded-2xl border text-xs flex items-center gap-2 ${theme.bannerBg}`}>
             <span className="text-base">⏰</span>
             <span>현재 시간({currentHour}:00)과 다음 1시간만 예약할 수 있어요</span>
           </div>
@@ -217,8 +222,9 @@ export default function BookPage() {
             {mainRoomTypes.map(t => (
               <button key={t.key} onClick={() => setRoomType(t.key)}
                 className={`flex-1 py-2 rounded-xl text-[11px] font-medium transition ${
-                  roomType === t.key ? 'bg-white/15 text-white' : 'bg-white/5 text-white/35'
-                }`}>
+                  roomType === t.key ? 'text-white' : 'bg-white/5 text-white/35'
+                }`}
+                style={roomType === t.key ? { background: theme.active } : {}}>
                 {t.label}
               </button>
             ))}
@@ -271,9 +277,9 @@ export default function BookPage() {
                   {HOURS.map(h => {
                     const isCurrentHour = h === currentHour && date === todayStr()
                     return (
-                      <tr key={h} className={`border-t ${isCurrentHour ? 'border-indigo-500/20' : 'border-white/5'}`}>
+                      <tr key={h} className={`border-t ${isCurrentHour ? theme.currentRowBorder : 'border-white/5'}`}>
                         <td className="sticky left-0 bg-[#0a0a0a] py-1 pr-2 whitespace-nowrap">
-                          <span className={`text-[11px] font-semibold ${isCurrentHour ? 'text-indigo-400' : 'text-white/25'}`}>
+                          <span className={`text-[11px] font-semibold ${isCurrentHour ? theme.currentHourText : 'text-white/25'}`}>
                             {fmt(h)}
                           </span>
                         </td>
@@ -287,31 +293,29 @@ export default function BookPage() {
                           return (
                             <td key={r.id} className="py-1 px-0.5 text-center">
                               {cls ? (
-                                <div className="rounded-lg h-7 bg-pink-500/15 border border-pink-500/10 flex items-center justify-center">
+                                <div className="rounded-lg h-10 bg-pink-500/15 border border-pink-500/10 flex items-center justify-center">
                                   <span className="text-[9px] text-pink-300/70 truncate px-1">{cls.instructor}</span>
                                 </div>
                               ) : isMine ? (
                                 <button onClick={() => handleCancel(bk!.id)}
-                                  className="w-full rounded-lg h-7 text-[9px] font-bold truncate px-1 transition active:scale-95 border"
+                                  className="w-full rounded-lg h-10 text-[9px] font-bold truncate px-1 transition active:scale-95 border"
                                   style={{ background: 'rgba(16,185,129,0.2)', borderColor: 'rgba(16,185,129,0.3)', color: '#6ee7b7' }}>
                                   {account.name}
                                 </button>
                               ) : bk ? (
-                                <div className="rounded-lg h-7 bg-white/6 border border-white/5" />
+                                <div className="rounded-lg h-10 bg-white/6 border border-white/5" />
                               ) : annexRestricted ? (
                                 <div className="rounded-lg h-7" />
                               ) : isBookableHour ? (
                                 <button onClick={() => handleBook(r.id, h)}
                                   disabled={booking}
-                                  className={`w-full rounded-lg h-7 transition-all active:scale-95 border disabled:opacity-40 ${
-                                    isCurrentHour
-                                      ? 'bg-indigo-500/20 border-indigo-500/35 hover:bg-indigo-500/30'
-                                      : 'bg-indigo-500/10 border-indigo-500/15 hover:bg-indigo-500/20'
+                                  className={`w-full rounded-lg h-10 transition-all active:scale-95 border disabled:opacity-40 ${
+                                    isCurrentHour ? theme.bookableCurrent : theme.bookable
                                   }`}>
-                                  <span className="text-[9px] text-indigo-300/60">예약</span>
+                                  <span className={`text-[9px] ${theme.bookableText}`}>예약</span>
                                 </button>
                               ) : (
-                                <div className="rounded-lg h-7 bg-white/2" />
+                                <div className="rounded-lg h-10 bg-white/2" />
                               )}
                             </td>
                           )
