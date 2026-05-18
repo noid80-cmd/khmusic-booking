@@ -145,14 +145,14 @@ export default function AdminPage() {
                     <p className="text-white/30 text-xs">{new Date(u.created_at).toLocaleDateString('ko')}</p>
                     <div className="flex gap-2 mt-3">
                       <select onChange={e => approveUser(u.id, e.target.value as Account['student_type'])}
-                        className="flex-1 bg-indigo-500/20 border border-indigo-500/30 rounded-lg px-2 py-2 text-indigo-300 text-sm focus:outline-none"
+                        className="flex-1 bg-indigo-500/20 border border-indigo-500/30 rounded-xl px-3 py-4 text-indigo-300 text-sm focus:outline-none"
                         style={{ colorScheme: 'dark' }} defaultValue="">
                         <option value="" disabled>반 선택 후 승인</option>
                         <option value="exam">입시반</option>
                         <option value="professional">전문반</option>
                         <option value="hobby">취미반</option>
                       </select>
-                      <button onClick={() => rejectUser(u.id)} className="px-3 py-2 rounded-lg bg-red-500/10 text-red-400 text-sm">거절</button>
+                      <button onClick={() => rejectUser(u.id)} className="px-4 py-4 rounded-xl bg-red-500/10 text-red-400 text-sm">거절</button>
                     </div>
                   </div>
                 ))}
@@ -188,28 +188,28 @@ export default function AdminPage() {
             <div className="mb-4 p-4 rounded-xl bg-white/5 border border-white/10">
               <p className="text-white/60 text-xs mb-3">수업 추가</p>
               <select value={selRoom} onChange={e => setSelRoom(e.target.value)}
-                className="w-full mb-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none"
+                className="w-full mb-3 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:outline-none"
                 style={{ colorScheme: 'dark' }}>
                 <option value="">연습실 선택</option>
                 {mainRooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
               <div className="flex gap-2 mb-2">
                 <select value={selStart} onChange={e => setSelStart(Number(e.target.value))}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white text-sm focus:outline-none"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-4 text-white text-sm focus:outline-none"
                   style={{ colorScheme: 'dark' }}>
                   {HOURS.map(h => <option key={h} value={h}>{h}:00</option>)}
                 </select>
                 <span className="text-white/30 self-center">~</span>
                 <select value={selEnd} onChange={e => setSelEnd(Number(e.target.value))}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white text-sm focus:outline-none"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-4 text-white text-sm focus:outline-none"
                   style={{ colorScheme: 'dark' }}>
                   {HOURS.filter(h => h > selStart).concat([22]).map(h => <option key={h} value={h}>{h}:00</option>)}
                 </select>
               </div>
               <input value={instructor} onChange={e => setInstructor(e.target.value)}
-                placeholder="강사명" className="w-full mb-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-white/20 focus:outline-none" />
+                placeholder="강사명" className="w-full mb-3 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-sm placeholder-white/20 focus:outline-none" />
               <button onClick={addClass}
-                className="w-full py-2 rounded-lg text-white text-sm font-medium"
+                className="w-full py-4 rounded-xl text-white text-sm font-medium"
                 style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>추가</button>
             </div>
 
@@ -236,23 +236,23 @@ export default function AdminPage() {
             <div className="mb-4 p-4 rounded-xl bg-white/5 border border-white/10">
               <p className="text-white/60 text-xs mb-3">외부 예약 추가</p>
               <input type="date" value={annexDate} onChange={e => setAnnexDate(e.target.value)}
-                className="w-full mb-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none"
+                className="w-full mb-3 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:outline-none"
                 style={{ colorScheme: 'dark' }} />
               <select value={annexRoom} onChange={e => setAnnexRoom(e.target.value)}
-                className="w-full mb-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none"
+                className="w-full mb-3 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:outline-none"
                 style={{ colorScheme: 'dark' }}>
                 <option value="">연습실 선택</option>
                 {annexRooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
               <div className="flex gap-2 mb-2">
                 <select value={annexStart} onChange={e => setAnnexStart(Number(e.target.value))}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white text-sm focus:outline-none"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-4 text-white text-sm focus:outline-none"
                   style={{ colorScheme: 'dark' }}>
                   {HOURS.map(h => <option key={h} value={h}>{h}:00</option>)}
                 </select>
                 <span className="text-white/30 self-center">~</span>
                 <select value={annexEnd} onChange={e => setAnnexEnd(Number(e.target.value))}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white text-sm focus:outline-none"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-4 text-white text-sm focus:outline-none"
                   style={{ colorScheme: 'dark' }}>
                   {HOURS.filter(h => h > annexStart).concat([22]).map(h => <option key={h} value={h}>{h}:00</option>)}
                 </select>
@@ -268,11 +268,11 @@ export default function AdminPage() {
                 </button>
               </div>
               <input value={annexName} onChange={e => setAnnexName(e.target.value)}
-                placeholder="예약자명" className="w-full mb-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-white/20 focus:outline-none" />
+                placeholder="예약자명" className="w-full mb-3 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-sm placeholder-white/20 focus:outline-none" />
               <input value={annexNote} onChange={e => setAnnexNote(e.target.value)}
-                placeholder="메모 (선택)" className="w-full mb-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-white/20 focus:outline-none" />
+                placeholder="메모 (선택)" className="w-full mb-3 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-sm placeholder-white/20 focus:outline-none" />
               <button onClick={addAnnexBooking}
-                className="w-full py-2 rounded-lg text-white text-sm font-medium"
+                className="w-full py-4 rounded-xl text-white text-sm font-medium"
                 style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>추가</button>
             </div>
 
