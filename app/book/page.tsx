@@ -72,12 +72,10 @@ export default function BookPage() {
       return true
     }
 
-    // 입시반/전문반: :50~:00 사이에만 예약 가능 (오늘만)
-    if (isToday) {
-      const min = now.getMinutes()
-      if (min < 50) return false
-    }
-    return true
+    // 입시반/전문반: 오늘만, 현재 시간 또는 다음 시간만 예약 가능
+    if (!isToday) return false
+    const currentHour = now.getHours()
+    return hour === currentHour || hour === currentHour + 1
   }
 
   function isBlocked(roomId: string, hour: number): boolean {
@@ -135,7 +133,7 @@ export default function BookPage() {
   const isExam = account?.student_type === 'exam' || account?.student_type === 'professional'
   const isToday = date === todayStr()
   const now = new Date()
-  const canBookNow = account?.student_type === 'hobby' || (isToday && now.getMinutes() >= 50)
+  const canBookNow = account?.student_type === 'hobby' || isToday
 
   if (!account) return <div className="min-h-screen bg-[#0a0a0a]" />
 
@@ -156,7 +154,7 @@ export default function BookPage() {
         {/* 예약 안내 */}
         {isExam && (
           <div className={`mb-4 px-4 py-3 rounded-xl text-xs ${canBookNow ? 'bg-indigo-500/20 border border-indigo-500/40 text-indigo-300' : 'bg-white/5 border border-white/10 text-white/40'}`}>
-            {canBookNow ? '⏰ 지금 예약 가능 시간이에요 (:50~:00)' : '⏳ 매시간 :50분~정각 사이에만 예약할 수 있어요'}
+            {'⏰ 현재 시간과 다음 1시간만 예약할 수 있어요'}
           </div>
         )}
         {account.student_type === 'hobby' && (
