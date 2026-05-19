@@ -4,10 +4,26 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Account, Room, Booking } from '@/lib/supabase'
 
-const HOURS = Array.from({ length: 11 }, (_, i) => i + 11)
-
 function fmt(h: number) { return `${h}:00` }
 function todayStr() { return new Date().toISOString().slice(0, 10) }
+
+// 본관 휴무일 (신정·구정연휴·추석연휴·크리스마스)
+const MAIN_CLOSED = new Set([
+  '2025-01-01','2026-01-01','2027-01-01',
+  '2025-01-28','2025-01-29','2025-01-30',
+  '2026-02-16','2026-02-17','2026-02-18',
+  '2025-10-05','2025-10-06','2025-10-07',
+  '2026-09-24','2026-09-25','2026-09-26',
+  '2025-12-25','2026-12-25','2027-12-25',
+])
+
+function getHours(date: string, building: 'main' | 'annex'): number[] | null {
+  if (building === 'annex') return Array.from({ length: 11 }, (_, i) => i + 11)
+  const day = new Date(date + 'T00:00:00').getDay()
+  if (day === 0 || MAIN_CLOSED.has(date)) return null          // 휴무
+  if (day === 6) return Array.from({ length: 8 }, (_, i) => i + 11) // 토: 11~18
+  return Array.from({ length: 11 }, (_, i) => i + 11)          // 평일: 11~21
+}
 
 function shortName(name: string) {
   return name
@@ -122,6 +138,7 @@ export default function BookPage() {
   const isExam = account?.student_type === 'exam' || account?.student_type === 'professional'
   const currentHour = now.getHours()
   const isMain = building === 'main'
+  const operatingHours = getHours(date, building) // null = 휴무
 
   // 색은 최소화: 포인트 컬러만 정의
   const color = isMain
@@ -280,6 +297,16 @@ export default function BookPage() {
         {/* 예약 그리드 */}
         {loading ? (
           <div className="text-center py-20 text-sm" style={{ color: 'rgba(255,255,255,0.12)' }}>불러오는 중...</div>
+        ) : operatingHours === null ? (
+          <div className="py-16 text-center rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <p className="text-2xl mb-3">🔒</p>
+            <p className="text-sm font-semibold text-white/50">
+              {building === 'main' ? '본관' : '별관'} 휴무일이에요
+            </p>
+            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
+              {new Date(date + 'T00:00:00').getDay() === 0 ? '일요일은 본관이 운영하지 않아요' : '해당일은 휴무예요'}
+            </p>
+          </div>
         ) : (
           <div>
             <p className="text-[11px] font-semibold mb-3" style={{ color: 'rgba(255,255,255,0.25)', letterSpacing: '0.08em' }}>
@@ -305,7 +332,7 @@ export default function BookPage() {
                 ))}
 
                 {/* 셀 */}
-                {HOURS.flatMap(h => {
+                {operatingHours.flatMap(h => {
                   const isCurrent = h === currentHour && date === todayStr()
                   return [
                     <div key={`t-${h}`} className="flex items-center justify-end pr-2">
