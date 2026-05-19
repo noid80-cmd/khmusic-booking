@@ -16,7 +16,8 @@ export default function AuthCallback() {
       for (let i = 0; i < 10; i++) {
         const { data: { session } } = await supabase.auth.getSession()
         if (session) {
-          window.location.href = '/'
+          const { data } = await supabase.from('accounts').select('id').eq('user_id', session.user.id).maybeSingle()
+          window.location.href = data ? '/' : '/signup/complete'
           return
         }
         await new Promise(r => setTimeout(r, 500))
