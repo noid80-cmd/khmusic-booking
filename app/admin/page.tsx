@@ -24,13 +24,11 @@ export default function AdminPage() {
   const [admins, setAdmins] = useState<{ id: string, email: string }[]>([])
   const [newAdminEmail, setNewAdminEmail] = useState('')
 
-  // 수업 추가 폼
   const [selRoom, setSelRoom] = useState('')
   const [selStart, setSelStart] = useState(11)
   const [selEnd, setSelEnd] = useState(12)
   const [instructor, setInstructor] = useState('')
 
-  // 별관 예약 폼
   const [annexRoom, setAnnexRoom] = useState('')
   const [annexDate, setAnnexDate] = useState(todayStr())
   const [annexStart, setAnnexStart] = useState(11)
@@ -65,22 +63,6 @@ export default function AdminPage() {
     setRooms(roomsRes.data || [])
     setAdmins(adminsRes.data || [])
     setLoading(false)
-  }
-
-  async function addAdmin() {
-    const email = newAdminEmail.trim()
-    if (!email) return
-    const { error } = await supabase.from('admins').insert({ email })
-    if (error) { alert('오류: ' + error.message); return }
-    setNewAdminEmail('')
-    await loadAll()
-  }
-
-  async function removeAdmin(id: string, email: string) {
-    if (email === SUPER_ADMIN) { alert('최고 관리자는 삭제할 수 없어요.'); return }
-    if (!confirm(`${email} 을 관리자에서 제거할까요?`)) return
-    await supabase.from('admins').delete().eq('id', id)
-    await loadAll()
   }
 
   async function loadSchedule() {
@@ -135,69 +117,116 @@ export default function AdminPage() {
     await loadSchedule()
   }
 
+  async function addAdmin() {
+    const email = newAdminEmail.trim()
+    if (!email) return
+    const { error } = await supabase.from('admins').insert({ email })
+    if (error) { alert('오류: ' + error.message); return }
+    setNewAdminEmail('')
+    await loadAll()
+  }
+
+  async function removeAdmin(id: string, email: string) {
+    if (email === SUPER_ADMIN) { alert('최고 관리자는 삭제할 수 없어요.'); return }
+    if (!confirm(`${email} 을 관리자에서 제거할까요?`)) return
+    await supabase.from('admins').delete().eq('id', id)
+    await loadAll()
+  }
+
   const mainRooms = rooms.filter(r => r.building === 'main')
   const annexRooms = rooms.filter(r => r.building === 'annex')
 
-  if (loading) return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-white/30">로딩 중...</div>
+  const inputCls = 'w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-5 text-white text-[15px] focus:outline-none focus:border-indigo-500/50 transition'
+  const selectCls = inputCls + ' cursor-pointer'
+
+  if (loading) return <div className="min-h-screen bg-[#0c0c12] flex items-center justify-center text-white/30">로딩 중...</div>
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] pb-20">
-      <nav className="sticky top-0 z-20 bg-[#0a0a0a]/90 backdrop-blur border-b border-white/10 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-white font-black">관리자</h1>
-        <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')} className="text-white/30 text-xs">로그아웃</button>
-      </nav>
+    <div className="min-h-screen pb-24" style={{ background: '#0c0c12' }}>
 
-      {/* 탭 */}
-      <div className="flex gap-2 px-4 pt-4 mb-4 flex-wrap">
-        {([['users', '회원'], ['schedule', '본관 수업'], ['annex', '별관'], ['admins', '관리자']] as const).map(([t, label]) => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`flex-1 py-2 rounded-xl text-sm font-medium transition ${tab === t ? 'text-white' : 'bg-white/5 text-white/40'}`}
-            style={tab === t ? { background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' } : {}}>
-            {label}{t === 'users' && pending.length > 0 && <span className="ml-1 bg-red-500 text-white text-[10px] rounded-full px-1.5">{pending.length}</span>}
-          </button>
-        ))}
+      {/* 헤더 */}
+      <div className="sticky top-0 z-20 px-5 py-4 flex items-center justify-between border-b border-white/[0.07]"
+        style={{ background: 'rgba(12,12,18,0.95)', backdropFilter: 'blur(20px)' }}>
+        <div>
+          <h1 className="text-white font-black text-lg leading-none">관리자</h1>
+          <p className="text-white/30 text-xs mt-0.5">{myEmail}</p>
+        </div>
+        <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
+          className="text-[11px] font-medium px-3 py-1.5 rounded-lg"
+          style={{ color: 'rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.05)' }}>
+          로그아웃
+        </button>
       </div>
 
-      <div className="px-4">
-        {/* 회원 관리 */}
+      {/* 탭 */}
+      <div className="flex px-4 pt-5 mb-6 gap-2">
+        {([['users', '회원'], ['schedule', '본관 수업'], ['annex', '별관'], ['admins', '관리자']] as const).map(([t, label]) => {
+          const active = tab === t
+          return (
+            <button key={t} onClick={() => setTab(t)}
+              className="flex-1 py-3 rounded-2xl text-sm font-bold transition-all relative"
+              style={{
+                background: active ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : 'rgba(255,255,255,0.05)',
+                color: active ? '#fff' : 'rgba(255,255,255,0.35)',
+              }}>
+              {label}
+              {t === 'users' && pending.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center">
+                  {pending.length}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="px-4 space-y-3">
+
+        {/* ── 회원 관리 ── */}
         {tab === 'users' && (
-          <div>
+          <div className="space-y-3">
             {pending.length > 0 && (
-              <div className="mb-6">
-                <p className="text-white/40 text-xs mb-2">승인 대기 ({pending.length})</p>
+              <div>
+                <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest mb-3">승인 대기 {pending.length}명</p>
                 {pending.map(u => (
-                  <div key={u.id} className="mb-3 p-4 rounded-xl bg-white/5 border border-white/10">
-                    <p className="text-white font-medium">{u.name}</p>
-                    <p className="text-white/40 text-xs mt-0.5">{u.phone}</p>
-                    <p className="text-white/30 text-xs">{new Date(u.created_at).toLocaleDateString('ko')}</p>
-                    <div className="flex gap-2 mt-3">
+                  <div key={u.id} className="mb-3 p-5 rounded-2xl border"
+                    style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
+                    <p className="text-white font-bold text-base">{u.name}</p>
+                    <p className="text-white/40 text-sm mt-0.5">{u.phone}</p>
+                    <p className="text-white/25 text-xs mt-0.5">{new Date(u.created_at).toLocaleDateString('ko')}</p>
+                    <div className="flex gap-2 mt-4">
                       <select onChange={e => approveUser(u.id, e.target.value as Account['student_type'])}
-                        className="flex-1 bg-indigo-500/20 border border-indigo-500/30 rounded-xl px-3 py-4 text-indigo-300 text-sm focus:outline-none"
-                        style={{ colorScheme: 'dark' }} defaultValue="">
+                        className="flex-1 rounded-2xl px-4 py-4 text-sm font-semibold focus:outline-none"
+                        style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: '#a5b4fc', colorScheme: 'dark' }}
+                        defaultValue="">
                         <option value="" disabled>반 선택 후 승인</option>
                         <option value="exam">입시반</option>
                         <option value="professional">전문반</option>
                         <option value="hobby">취미반</option>
                       </select>
-                      <button onClick={() => rejectUser(u.id)} className="px-4 py-4 rounded-xl bg-red-500/10 text-red-400 text-sm">거절</button>
+                      <button onClick={() => rejectUser(u.id)}
+                        className="px-5 py-4 rounded-2xl text-sm font-semibold"
+                        style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }}>
+                        거절
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
             )}
 
-            <p className="text-white/40 text-xs mb-2">승인된 회원 ({approved.length})</p>
+            <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest mb-3">승인된 회원 {approved.length}명</p>
             {approved.map(u => (
-              <div key={u.id} className="mb-2 px-4 py-3 rounded-xl bg-white/5 flex items-center justify-between">
+              <div key={u.id} className="flex items-center justify-between px-5 py-4 rounded-2xl"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
                 <div>
-                  <p className="text-white text-sm font-medium">{u.name}</p>
-                  <p className="text-white/30 text-xs">{u.phone}</p>
+                  <p className="text-white font-semibold">{u.name}</p>
+                  <p className="text-white/35 text-sm mt-0.5">{u.phone}</p>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  u.student_type === 'exam' ? 'bg-blue-500/20 text-blue-300' :
-                  u.student_type === 'professional' ? 'bg-green-500/20 text-green-300' :
-                  'bg-purple-500/20 text-purple-300'
-                }`}>
+                <span className="text-xs font-bold px-3 py-1.5 rounded-full" style={{
+                  background: u.student_type === 'exam' ? 'rgba(99,102,241,0.15)' : u.student_type === 'professional' ? 'rgba(16,185,129,0.15)' : 'rgba(168,85,247,0.15)',
+                  color: u.student_type === 'exam' ? '#a5b4fc' : u.student_type === 'professional' ? '#6ee7b7' : '#d8b4fe',
+                }}>
                   {u.student_type === 'exam' ? '입시반' : u.student_type === 'professional' ? '전문반' : '취미반'}
                 </span>
               </div>
@@ -205,145 +234,151 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* 본관 수업 스케줄 */}
+        {/* ── 본관 수업 ── */}
         {tab === 'schedule' && (
-          <div>
+          <div className="space-y-3">
             <input type="date" value={date} onChange={e => setDate(e.target.value)}
-              className="w-full mb-4 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none"
-              style={{ colorScheme: 'dark' }} />
+              className={inputCls} style={{ colorScheme: 'dark' }} />
 
-            <div className="mb-4 p-4 rounded-xl bg-white/5 border border-white/10">
-              <p className="text-white/60 text-xs mb-3">수업 추가</p>
+            <div className="p-5 rounded-2xl space-y-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <p className="text-white/50 text-sm font-semibold">수업 추가</p>
               <select value={selRoom} onChange={e => setSelRoom(e.target.value)}
-                className="w-full mb-3 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:outline-none"
-                style={{ colorScheme: 'dark' }}>
+                className={selectCls} style={{ colorScheme: 'dark' }}>
                 <option value="">연습실 선택</option>
                 {mainRooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
-              <div className="flex gap-2 mb-2">
+              <div className="flex gap-3">
                 <select value={selStart} onChange={e => setSelStart(Number(e.target.value))}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-4 text-white text-sm focus:outline-none"
-                  style={{ colorScheme: 'dark' }}>
+                  className={selectCls} style={{ colorScheme: 'dark' }}>
                   {HOURS.map(h => <option key={h} value={h}>{h}:00</option>)}
                 </select>
-                <span className="text-white/30 self-center">~</span>
+                <span className="text-white/30 self-center text-lg">~</span>
                 <select value={selEnd} onChange={e => setSelEnd(Number(e.target.value))}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-4 text-white text-sm focus:outline-none"
-                  style={{ colorScheme: 'dark' }}>
+                  className={selectCls} style={{ colorScheme: 'dark' }}>
                   {HOURS.filter(h => h > selStart).concat([22]).map(h => <option key={h} value={h}>{h}:00</option>)}
                 </select>
               </div>
               <input value={instructor} onChange={e => setInstructor(e.target.value)}
-                placeholder="강사명" className="w-full mb-3 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-sm placeholder-white/20 focus:outline-none" />
+                placeholder="강사명" className={inputCls} />
               <button onClick={addClass}
-                className="w-full py-4 rounded-xl text-white text-sm font-medium"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>추가</button>
+                className="w-full py-5 rounded-2xl text-white font-bold text-[15px]"
+                style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
+                추가
+              </button>
             </div>
 
-            {classes.length === 0 ? (
-              <p className="text-white/20 text-sm text-center py-6">등록된 수업이 없어요</p>
-            ) : classes.map(c => {
-              const room = rooms.find(r => r.id === c.room_id)
-              return (
-                <div key={c.id} className="mb-2 px-4 py-3 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-between">
-                  <div>
-                    <p className="text-white text-sm font-medium">{room?.name} · {c.instructor}</p>
-                    <p className="text-white/40 text-xs">{c.start_hour}:00 ~ {c.end_hour}:00</p>
+            {classes.length === 0
+              ? <p className="text-white/20 text-sm text-center py-10">등록된 수업이 없어요</p>
+              : classes.map(c => {
+                const room = rooms.find(r => r.id === c.room_id)
+                return (
+                  <div key={c.id} className="flex items-center justify-between px-5 py-4 rounded-2xl"
+                    style={{ background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.15)' }}>
+                    <div>
+                      <p className="text-white font-semibold">{room?.name} · {c.instructor}</p>
+                      <p className="text-white/40 text-sm">{c.start_hour}:00 ~ {c.end_hour}:00</p>
+                    </div>
+                    <button onClick={() => deleteClass(c.id)} className="text-red-400 text-sm font-medium px-3 py-1.5 rounded-xl"
+                      style={{ background: 'rgba(239,68,68,0.1)' }}>삭제</button>
                   </div>
-                  <button onClick={() => deleteClass(c.id)} className="text-red-400 text-xs">삭제</button>
-                </div>
-              )
-            })}
+                )
+              })}
           </div>
         )}
 
-        {/* 별관 예약 */}
+        {/* ── 별관 예약 ── */}
         {tab === 'annex' && (
-          <div>
-            <div className="mb-4 p-4 rounded-xl bg-white/5 border border-white/10">
-              <p className="text-white/60 text-xs mb-3">외부 예약 추가</p>
+          <div className="space-y-3">
+            <div className="p-5 rounded-2xl space-y-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <p className="text-white/50 text-sm font-semibold">외부 예약 추가</p>
               <input type="date" value={annexDate} onChange={e => setAnnexDate(e.target.value)}
-                className="w-full mb-3 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:outline-none"
-                style={{ colorScheme: 'dark' }} />
+                className={inputCls} style={{ colorScheme: 'dark' }} />
               <select value={annexRoom} onChange={e => setAnnexRoom(e.target.value)}
-                className="w-full mb-3 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:outline-none"
-                style={{ colorScheme: 'dark' }}>
+                className={selectCls} style={{ colorScheme: 'dark' }}>
                 <option value="">연습실 선택</option>
                 {annexRooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
-              <div className="flex gap-2 mb-2">
+              <div className="flex gap-3">
                 <select value={annexStart} onChange={e => setAnnexStart(Number(e.target.value))}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-4 text-white text-sm focus:outline-none"
-                  style={{ colorScheme: 'dark' }}>
+                  className={selectCls} style={{ colorScheme: 'dark' }}>
                   {HOURS.map(h => <option key={h} value={h}>{h}:00</option>)}
                 </select>
-                <span className="text-white/30 self-center">~</span>
+                <span className="text-white/30 self-center text-lg">~</span>
                 <select value={annexEnd} onChange={e => setAnnexEnd(Number(e.target.value))}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-4 text-white text-sm focus:outline-none"
-                  style={{ colorScheme: 'dark' }}>
+                  className={selectCls} style={{ colorScheme: 'dark' }}>
                   {HOURS.filter(h => h > annexStart).concat([22]).map(h => <option key={h} value={h}>{h}:00</option>)}
                 </select>
               </div>
-              <div className="flex gap-2 mb-2">
-                <button onClick={() => setAnnexType('external')}
-                  className={`flex-1 py-2 rounded-lg text-sm transition ${annexType === 'external' ? 'bg-indigo-500/30 text-indigo-300' : 'bg-white/5 text-white/40'}`}>
-                  시간제
-                </button>
-                <button onClick={() => setAnnexType('monthly')}
-                  className={`flex-1 py-2 rounded-lg text-sm transition ${annexType === 'monthly' ? 'bg-indigo-500/30 text-indigo-300' : 'bg-white/5 text-white/40'}`}>
-                  월렌탈
-                </button>
+              <div className="flex gap-2">
+                {(['external', 'monthly'] as const).map(type => (
+                  <button key={type} onClick={() => setAnnexType(type)}
+                    className="flex-1 py-4 rounded-2xl text-sm font-bold transition"
+                    style={{
+                      background: annexType === type ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.05)',
+                      color: annexType === type ? '#a5b4fc' : 'rgba(255,255,255,0.35)',
+                      border: annexType === type ? '1px solid rgba(99,102,241,0.3)' : '1px solid transparent',
+                    }}>
+                    {type === 'external' ? '시간제' : '월렌탈'}
+                  </button>
+                ))}
               </div>
               <input value={annexName} onChange={e => setAnnexName(e.target.value)}
-                placeholder="예약자명" className="w-full mb-3 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-sm placeholder-white/20 focus:outline-none" />
+                placeholder="예약자명" className={inputCls} />
               <input value={annexNote} onChange={e => setAnnexNote(e.target.value)}
-                placeholder="메모 (선택)" className="w-full mb-3 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-sm placeholder-white/20 focus:outline-none" />
+                placeholder="메모 (선택)" className={inputCls} />
               <button onClick={addAnnexBooking}
-                className="w-full py-4 rounded-xl text-white text-sm font-medium"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>추가</button>
+                className="w-full py-5 rounded-2xl text-white font-bold text-[15px]"
+                style={{ background: 'linear-gradient(135deg,#10b981,#0d9488)' }}>
+                추가
+              </button>
             </div>
 
             <input type="date" value={date} onChange={e => setDate(e.target.value)}
-              className="w-full mb-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none"
-              style={{ colorScheme: 'dark' }} />
+              className={inputCls} style={{ colorScheme: 'dark' }} />
 
-            {annexBookings.length === 0 ? (
-              <p className="text-white/20 text-sm text-center py-6">해당 날짜 별관 예약 없음</p>
-            ) : annexBookings.map(b => {
-              const room = rooms.find(r => r.id === b.room_id)
-              return (
-                <div key={b.id} className="mb-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
-                  <div>
-                    <p className="text-white text-sm font-medium">{room?.name} · {b.external_name}</p>
-                    <p className="text-white/40 text-xs">{b.start_hour}:00~{b.end_hour}:00 · {b.booking_type === 'monthly' ? '월렌탈' : '시간제'}</p>
-                    {b.note && <p className="text-white/30 text-xs">{b.note}</p>}
+            {annexBookings.length === 0
+              ? <p className="text-white/20 text-sm text-center py-10">해당 날짜 별관 예약 없음</p>
+              : annexBookings.map(b => {
+                const room = rooms.find(r => r.id === b.room_id)
+                return (
+                  <div key={b.id} className="flex items-center justify-between px-5 py-4 rounded-2xl"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <div>
+                      <p className="text-white font-semibold">{room?.name} · {b.external_name}</p>
+                      <p className="text-white/40 text-sm">{b.start_hour}:00~{b.end_hour}:00 · {b.booking_type === 'monthly' ? '월렌탈' : '시간제'}</p>
+                      {b.note && <p className="text-white/25 text-xs mt-0.5">{b.note}</p>}
+                    </div>
+                    <button onClick={() => deleteAnnexBooking(b.id)} className="text-red-400 text-sm font-medium px-3 py-1.5 rounded-xl"
+                      style={{ background: 'rgba(239,68,68,0.1)' }}>삭제</button>
                   </div>
-                  <button onClick={() => deleteAnnexBooking(b.id)} className="text-red-400 text-xs">삭제</button>
-                </div>
-              )
-            })}
+                )
+              })}
           </div>
         )}
 
-        {/* 관리자 관리 */}
+        {/* ── 관리자 관리 ── */}
         {tab === 'admins' && (
-          <div>
-            <div className="mb-4 p-4 rounded-xl bg-white/5 border border-white/10">
-              <p className="text-white/60 text-xs mb-3">관리자 추가</p>
+          <div className="space-y-3">
+            <div className="p-5 rounded-2xl space-y-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <p className="text-white/50 text-sm font-semibold">관리자 추가</p>
               <input value={newAdminEmail} onChange={e => setNewAdminEmail(e.target.value)}
-                placeholder="이메일 주소" type="email"
-                className="w-full mb-3 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-sm placeholder-white/20 focus:outline-none" />
+                placeholder="이메일 주소" type="email" className={inputCls} />
               <button onClick={addAdmin}
-                className="w-full py-4 rounded-xl text-white text-sm font-medium"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>추가</button>
+                className="w-full py-5 rounded-2xl text-white font-bold text-[15px]"
+                style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
+                추가
+              </button>
             </div>
 
             {admins.map(a => (
-              <div key={a.id} className="mb-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
-                <p className="text-white text-sm">{a.email}</p>
+              <div key={a.id} className="flex items-center justify-between px-5 py-4 rounded-2xl"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <p className="text-white font-medium">{a.email}</p>
                 {a.email === SUPER_ADMIN
-                  ? <span className="text-white/20 text-xs">최고 관리자</span>
-                  : <button onClick={() => removeAdmin(a.id, a.email)} className="text-red-400 text-xs">삭제</button>
+                  ? <span className="text-[11px] font-bold text-white/20">최고 관리자</span>
+                  : <button onClick={() => removeAdmin(a.id, a.email)}
+                      className="text-red-400 text-sm font-medium px-3 py-1.5 rounded-xl"
+                      style={{ background: 'rgba(239,68,68,0.1)' }}>삭제</button>
                 }
               </div>
             ))}
