@@ -267,11 +267,11 @@ export default function AdminPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <select value={u.student_type ?? ''} onChange={e => changeStudentType(u.id, e.target.value as Account['student_type'])}
-                        className="text-xs font-bold px-3 py-1.5 rounded-full focus:outline-none cursor-pointer"
+                        className="text-sm font-bold px-4 py-3 rounded-2xl focus:outline-none"
                         style={{
                           background: u.student_type === 'exam' ? 'rgba(99,102,241,0.15)' : u.student_type === 'professional' ? 'rgba(16,185,129,0.15)' : u.student_type === 'admin' ? 'rgba(251,146,60,0.15)' : 'rgba(168,85,247,0.15)',
                           color: u.student_type === 'exam' ? '#a5b4fc' : u.student_type === 'professional' ? '#6ee7b7' : u.student_type === 'admin' ? '#fed7aa' : '#d8b4fe',
-                          border: 'none', colorScheme: 'dark',
+                          border: 'none', colorScheme: 'dark', minWidth: '80px',
                         }}>
                         <option value="exam">입시반</option>
                         <option value="professional">전문반</option>
