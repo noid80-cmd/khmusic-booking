@@ -162,48 +162,62 @@ export default function BookPage() {
     <div className="min-h-screen pb-28" style={{ background: '#0c0c12' }}>
 
       {/* ── 헤더 ── */}
-      <div className="sticky top-0 z-20" style={{ background: 'rgba(12,12,18,0.94)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div className="px-5 pt-5 pb-4 space-y-4">
+      <div className="sticky top-0 z-20" style={{ background: 'rgba(12,12,18,0.96)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
 
-          {/* 브랜드 + 유저 정보 */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {/* 워드마크 */}
-              <div className="flex items-center justify-center w-9 h-9 rounded-xl" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <span className="text-white font-black text-sm tracking-tight">KH</span>
+        {/* 상단: 브랜드 + 로그아웃 */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-4">
+          <div className="flex items-center gap-3.5">
+            {/* KH 로고 */}
+            <div className="relative">
+              <div className="w-11 h-11 rounded-2xl flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', boxShadow: '0 8px 24px rgba(99,102,241,0.35)' }}>
+                <span className="text-white font-black text-base tracking-tight">KH</span>
               </div>
-              <div>
-                <p className="text-white font-bold text-[15px] leading-none">연습실 예약</p>
-                <p className="text-[11px] mt-[3px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                  {account.name} · {typeLabel(account.student_type)}
-                </p>
+              {/* 온라인 도트 */}
+              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0c0c12]"
+                style={{ background: '#22c55e' }} />
+            </div>
+
+            {/* 텍스트 */}
+            <div>
+              <p className="text-white font-black text-lg leading-none tracking-tight">연습실 예약</p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <p className="text-[13px] font-semibold" style={{ color: 'rgba(255,255,255,0.6)' }}>{account.name}</p>
+                <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10 }}>·</span>
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                  style={{
+                    background: account.student_type === 'exam' ? 'rgba(99,102,241,0.18)' : account.student_type === 'professional' ? 'rgba(16,185,129,0.18)' : 'rgba(168,85,247,0.18)',
+                    color: account.student_type === 'exam' ? '#a5b4fc' : account.student_type === 'professional' ? '#6ee7b7' : '#d8b4fe',
+                  }}>
+                  {typeLabel(account.student_type)}
+                </span>
               </div>
             </div>
-            <button
-              onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
-              style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}
-              className="hover:opacity-70 transition-opacity">
-              로그아웃
-            </button>
           </div>
 
-          {/* 건물 선택 */}
-          <div className="flex gap-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-            {(['main', 'annex'] as const).map(b => {
-              const active = building === b
-              const c = b === 'main' ? '#6366f1' : '#10b981'
-              return (
-                <button key={b} onClick={() => setBuilding(b)}
-                  className="pb-3 text-sm font-semibold transition-all relative"
-                  style={{ color: active ? '#fff' : 'rgba(255,255,255,0.3)' }}>
-                  {b === 'main' ? '본관' : '별관'}
-                  {active && (
-                    <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full" style={{ background: c }} />
-                  )}
-                </button>
-              )
-            })}
-          </div>
+          <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
+            className="text-[11px] font-medium px-3 py-1.5 rounded-lg transition"
+            style={{ color: 'rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.04)' }}>
+            로그아웃
+          </button>
+        </div>
+
+        {/* 건물 탭 */}
+        <div className="flex gap-6 px-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+          {(['main', 'annex'] as const).map(b => {
+            const active = building === b
+            const c = b === 'main' ? '#818cf8' : '#34d399'
+            return (
+              <button key={b} onClick={() => setBuilding(b)}
+                className="pb-3 text-sm font-bold transition-all relative"
+                style={{ color: active ? '#fff' : 'rgba(255,255,255,0.28)' }}>
+                {b === 'main' ? '본관' : '별관'}
+                {active && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full" style={{ background: c }} />
+                )}
+              </button>
+            )
+          })}
         </div>
       </div>
 
