@@ -84,7 +84,8 @@ export default function AdminPage() {
   }
 
   async function approveUser(id: string, type: Account['student_type']) {
-    await supabase.from('accounts').update({ status: 'approved', student_type: type }).eq('id', id)
+    const { error } = await supabase.from('accounts').update({ status: 'approved', student_type: type }).eq('id', id)
+    if (error) { alert('승인 오류: ' + error.message); return }
     await loadAll()
   }
 
