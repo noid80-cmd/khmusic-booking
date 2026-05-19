@@ -104,17 +104,15 @@ export default function BookPage() {
     const curMin = now.getMinutes()
     const base = curMin >= 50 ? curHour + 1 : curHour
 
-    // 현재 진행 중인 예약 (지금 시간 슬롯에 걸린 예약)
+    // 현재 진행 중인 예약
     const active = myBookings.find(b => b.date === date && b.start_hour === curHour)
 
     if (active) {
-      // 다른 방 중복 예약 불가
-      if (active.room_id !== roomId) return false
-      // 같은 방 → :50 이후에 다음 시간 연장만 가능
+      // 예약 중이면 → :50 이후에만 다음 시간 예약 가능 (어느 방이든)
       return curMin >= 50 && hour === curHour + 1
     }
 
-    // 예약 없음 → 현재 창(base, base+1) 자유 예약
+    // 예약 없으면 → 현재 창(base, base+1) 자유 예약
     return hour === base || hour === base + 1
   }
 
