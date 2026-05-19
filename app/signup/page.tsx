@@ -18,7 +18,14 @@ export default function SignupPage() {
     setError(''); setLoading(true)
 
     const { data, error: authError } = await supabase.auth.signUp({ email, password })
-    if (authError) { setError(authError.message); setLoading(false); return }
+    if (authError) {
+      if (authError.message.toLowerCase().includes('already registered') || authError.message.toLowerCase().includes('already exists')) {
+        setError('이미 가입된 이메일이에요. 로그인 페이지에서 로그인해주세요.')
+      } else {
+        setError(authError.message)
+      }
+      setLoading(false); return
+    }
 
     if (data.user) {
       const { error: accError } = await supabase.from('accounts').insert({
