@@ -21,7 +21,7 @@ export default function AdminPage() {
   const [classes, setClasses] = useState<{ id: string, room_id: string, start_hour: number, end_hour: number, instructor: string }[]>([])
   const [annexBookings, setAnnexBookings] = useState<{ id: string, room_id: string, date: string, start_hour: number, end_hour: number, booking_type: string, external_name: string | null, note: string | null }[]>([])
   const [loading, setLoading] = useState(true)
-  const [admins, setAdmins] = useState<{ id: string, email: string }[]>([])
+  const [admins, setAdmins] = useState<{ id: string, email: string | null, user_id: string | null }[]>([])
   const [newAdminEmail, setNewAdminEmail] = useState('')
 
   const [selRoom, setSelRoom] = useState('')
@@ -44,7 +44,9 @@ export default function AdminPage() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { window.location.href = '/'; return }
       const email = session.user.email ?? ''
-      const { data } = await supabase.from('admins').select('email').eq('email', email).maybeSingle()
+      const uid = session.user.id
+      const { data } = await supabase.from('admins').select('id')
+        .or(`email.eq.${email},user_id.eq.${uid}`).maybeSingle()
       if (!data) { window.location.href = '/'; return }
       setMyEmail(email)
       loadAll()
@@ -140,15 +142,23 @@ export default function AdminPage() {
     await loadAll()
   }
 
-  async function removeAdmin(id: string, email: string) {
+  async function promoteToAdmin(account: Account) {
+    if (!confirm(`${account.name}을 관리자로 지정할까요?`)) return
+    const { error } = await supabase.from('admins').insert({ user_id: account.user_id })
+    if (error) { alert('오류: ' + error.message); return }
+    await loadAll()
+  }
+
+  async function removeAdmin(id: string, email: string | null) {
     if (email === SUPER_ADMIN) { alert('최고 관리자는 삭제할 수 없어요.'); return }
-    if (!confirm(`${email} 을 관리자에서 제거할까요?`)) return
+    if (!confirm('관리자에서 제거할까요?')) return
     await supabase.from('admins').delete().eq('id', id)
     await loadAll()
   }
 
   const mainRooms = rooms.filter(r => r.building === 'main')
   const annexRooms = rooms.filter(r => r.building === 'annex')
+  const adminUserIds = new Set(admins.map(a => a.user_id).filter(Boolean))
 
   const inputCls = 'w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-6 text-white text-[17px] focus:outline-none focus:border-indigo-500/50 transition'
   const selectCls = inputCls + ' cursor-pointer'
@@ -230,21 +240,43 @@ export default function AdminPage() {
             )}
 
             <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest mb-3">승인된 회원 {approved.length}명</p>
-            {approved.map(u => (
-              <div key={u.id} className="flex items-center justify-between px-6 py-5 rounded-2xl"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <div>
-                  <p className="text-white font-semibold">{u.name}</p>
-                  <p className="text-white/35 text-sm mt-0.5">{u.phone}</p>
+            {approved.map(u => {
+              const isAdmin = adminUserIds.has(u.user_id)
+              const adminRecord = admins.find(a => a.user_id === u.user_id)
+              return (
+                <div key={u.id} className="px-6 py-5 rounded-2xl"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${isAdmin ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.07)'}` }}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-white font-semibold">{u.name}</p>
+                        {isAdmin && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                            style={{ background: 'rgba(99,102,241,0.2)', color: '#a5b4fc' }}>관리자</span>
+                        )}
+                      </div>
+                      <p className="text-white/35 text-sm mt-0.5">{u.phone}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold px-3 py-1.5 rounded-full" style={{
+                        background: u.student_type === 'exam' ? 'rgba(99,102,241,0.15)' : u.student_type === 'professional' ? 'rgba(16,185,129,0.15)' : 'rgba(168,85,247,0.15)',
+                        color: u.student_type === 'exam' ? '#a5b4fc' : u.student_type === 'professional' ? '#6ee7b7' : '#d8b4fe',
+                      }}>
+                        {u.student_type === 'exam' ? '입시반' : u.student_type === 'professional' ? '전문반' : '취미반'}
+                      </span>
+                      {isAdmin
+                        ? <button onClick={() => adminRecord && removeAdmin(adminRecord.id, adminRecord.email ?? null)}
+                            className="text-xs font-medium px-3 py-1.5 rounded-xl"
+                            style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }}>해제</button>
+                        : <button onClick={() => promoteToAdmin(u)}
+                            className="text-xs font-medium px-3 py-1.5 rounded-xl"
+                            style={{ background: 'rgba(99,102,241,0.12)', color: '#a5b4fc' }}>관리자</button>
+                      }
+                    </div>
+                  </div>
                 </div>
-                <span className="text-xs font-bold px-3 py-1.5 rounded-full" style={{
-                  background: u.student_type === 'exam' ? 'rgba(99,102,241,0.15)' : u.student_type === 'professional' ? 'rgba(16,185,129,0.15)' : 'rgba(168,85,247,0.15)',
-                  color: u.student_type === 'exam' ? '#a5b4fc' : u.student_type === 'professional' ? '#6ee7b7' : '#d8b4fe',
-                }}>
-                  {u.student_type === 'exam' ? '입시반' : u.student_type === 'professional' ? '전문반' : '취미반'}
-                </span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
 
@@ -427,18 +459,23 @@ export default function AdminPage() {
               </button>
             </div>
 
-            {admins.map(a => (
+            {admins.map(a => {
+              const memberName = approved.find(u => u.user_id === a.user_id)?.name
+              return (
               <div key={a.id} className="flex items-center justify-between px-6 py-5 rounded-2xl"
                 style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <p className="text-white font-medium">{a.email}</p>
+                <div>
+                  <p className="text-white font-medium">{memberName ?? a.email ?? '알 수 없음'}</p>
+                  {a.email && <p className="text-white/30 text-xs mt-0.5">{a.email}</p>}
+                </div>
                 {a.email === SUPER_ADMIN
                   ? <span className="text-[11px] font-bold text-white/20">최고 관리자</span>
-                  : <button onClick={() => removeAdmin(a.id, a.email)}
+                  : <button onClick={() => removeAdmin(a.id, a.email ?? null)}
                       className="text-red-400 text-sm font-medium px-4 py-2.5 rounded-xl"
                       style={{ background: 'rgba(239,68,68,0.1)' }}>삭제</button>
                 }
               </div>
-            ))}
+            )})}
           </div>
         )}
       </div>
