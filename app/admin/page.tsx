@@ -36,8 +36,8 @@ export default function AdminPage() {
   const [annexType, setAnnexType] = useState<'external' | 'monthly'>('external')
   const [annexName, setAnnexName] = useState('')
   const [annexNote, setAnnexNote] = useState('')
-  const [monthlyStart, setMonthlyStart] = useState(todayStr().slice(0, 7))
-  const [monthlyEnd, setMonthlyEnd] = useState(todayStr().slice(0, 7))
+  const [monthlyStart, setMonthlyStart] = useState(todayStr())
+  const [monthlyEnd, setMonthlyEnd] = useState(todayStr())
   const [monthlyRentals, setMonthlyRentals] = useState<{ id: string, room_id: string, date: string, end_date: string, external_name: string | null, note: string | null }[]>([])
 
   useEffect(() => {
@@ -109,13 +109,8 @@ export default function AdminPage() {
   async function addAnnexBooking() {
     if (!annexRoom || !annexName) return
     if (annexType === 'monthly') {
-      const startDate = monthlyStart + '-01'
-      const endDate = (() => {
-        const [y, m] = monthlyEnd.split('-').map(Number)
-        return new Date(y, m, 0).toISOString().slice(0, 10)
-      })()
       const { error } = await supabase.from('bookings').insert({
-        room_id: annexRoom, date: startDate, end_date: endDate,
+        room_id: annexRoom, date: monthlyStart, end_date: monthlyEnd,
         start_hour: 11, end_hour: 22,
         booking_type: 'monthly', external_name: annexName, note: annexNote || null,
       })
@@ -334,10 +329,10 @@ export default function AdminPage() {
 
               {annexType === 'monthly' ? (
                 <div className="flex gap-3 items-center">
-                  <input type="month" value={monthlyStart} onChange={e => setMonthlyStart(e.target.value)}
+                  <input type="date" value={monthlyStart} onChange={e => setMonthlyStart(e.target.value)}
                     className={inputCls + ' flex-1'} style={{ colorScheme: 'dark' }} />
                   <span className="text-white/30 text-lg">~</span>
-                  <input type="month" value={monthlyEnd} onChange={e => setMonthlyEnd(e.target.value)}
+                  <input type="date" value={monthlyEnd} onChange={e => setMonthlyEnd(e.target.value)}
                     className={inputCls + ' flex-1'} style={{ colorScheme: 'dark' }} />
                 </div>
               ) : (
@@ -375,7 +370,7 @@ export default function AdminPage() {
                 <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest mb-2">월렌탈</p>
                 {monthlyRentals.map(b => {
                   const room = rooms.find(r => r.id === b.room_id)
-                  const fmt = (d: string) => { const [y,m] = d.split('-'); return `${y}년 ${parseInt(m)}월` }
+                  const fmt = (d: string) => { const [y,m,day] = d.split('-'); return `${y}.${m}.${day}` }
                   return (
                     <div key={b.id} className="mb-2 flex items-center justify-between px-5 py-4 rounded-2xl"
                       style={{ background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.15)' }}>
