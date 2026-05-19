@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Account, Room } from '@/lib/supabase'
 
-const ADMIN_EMAIL = 'noid80@hanmail.net'
+const SUPER_ADMIN = 'noid80@hanmail.net'
 const HOURS = Array.from({ length: 11 }, (_, i) => i + 11)
 
 function todayStr() { return new Date().toISOString().slice(0, 10) }
@@ -12,7 +12,8 @@ function todayStr() { return new Date().toISOString().slice(0, 10) }
 type PendingAccount = Account & { email?: string }
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<'users' | 'schedule' | 'annex'>('users')
+  const [tab, setTab] = useState<'users' | 'schedule' | 'annex' | 'admins'>('users')
+  const [myEmail, setMyEmail] = useState('')
   const [pending, setPending] = useState<PendingAccount[]>([])
   const [approved, setApproved] = useState<Account[]>([])
   const [rooms, setRooms] = useState<Room[]>([])
@@ -20,6 +21,8 @@ export default function AdminPage() {
   const [classes, setClasses] = useState<{ id: string, room_id: string, start_hour: number, end_hour: number, instructor: string }[]>([])
   const [annexBookings, setAnnexBookings] = useState<{ id: string, room_id: string, date: string, start_hour: number, end_hour: number, booking_type: string, external_name: string | null, note: string | null }[]>([])
   const [loading, setLoading] = useState(true)
+  const [admins, setAdmins] = useState<{ id: string, email: string }[]>([])
+  const [newAdminEmail, setNewAdminEmail] = useState('')
 
   // 수업 추가 폼
   const [selRoom, setSelRoom] = useState('')
@@ -37,8 +40,12 @@ export default function AdminPage() {
   const [annexNote, setAnnexNote] = useState('')
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user.email !== ADMIN_EMAIL) { window.location.href = '/'; return }
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) { window.location.href = '/'; return }
+      const email = session.user.email ?? ''
+      const { data } = await supabase.from('admins').select('email').eq('email', email).maybeSingle()
+      if (!data) { window.location.href = '/'; return }
+      setMyEmail(email)
       loadAll()
     })
   }, [])
@@ -47,15 +54,33 @@ export default function AdminPage() {
 
   async function loadAll() {
     setLoading(true)
-    const [pendingRes, approvedRes, roomsRes] = await Promise.all([
+    const [pendingRes, approvedRes, roomsRes, adminsRes] = await Promise.all([
       supabase.from('accounts').select('*').eq('status', 'pending').order('created_at'),
       supabase.from('accounts').select('*').eq('status', 'approved').order('name'),
       supabase.from('rooms').select('*').order('building').order('display_order'),
+      supabase.from('admins').select('*').order('created_at'),
     ])
     setPending(pendingRes.data || [])
     setApproved(approvedRes.data || [])
     setRooms(roomsRes.data || [])
+    setAdmins(adminsRes.data || [])
     setLoading(false)
+  }
+
+  async function addAdmin() {
+    const email = newAdminEmail.trim()
+    if (!email) return
+    const { error } = await supabase.from('admins').insert({ email })
+    if (error) { alert('오류: ' + error.message); return }
+    setNewAdminEmail('')
+    await loadAll()
+  }
+
+  async function removeAdmin(id: string, email: string) {
+    if (email === SUPER_ADMIN) { alert('최고 관리자는 삭제할 수 없어요.'); return }
+    if (!confirm(`${email} 을 관리자에서 제거할까요?`)) return
+    await supabase.from('admins').delete().eq('id', id)
+    await loadAll()
   }
 
   async function loadSchedule() {
@@ -123,12 +148,12 @@ export default function AdminPage() {
       </nav>
 
       {/* 탭 */}
-      <div className="flex gap-2 px-4 pt-4 mb-4">
-        {([['users', '회원 관리'], ['schedule', '본관 수업'], ['annex', '별관 예약']] as const).map(([t, label]) => (
+      <div className="flex gap-2 px-4 pt-4 mb-4 flex-wrap">
+        {([['users', '회원'], ['schedule', '본관 수업'], ['annex', '별관'], ['admins', '관리자']] as const).map(([t, label]) => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 py-2 rounded-xl text-sm font-medium transition ${tab === t ? 'text-white' : 'bg-white/5 text-white/40'}`}
             style={tab === t ? { background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' } : {}}>
-            {label} {t === 'users' && pending.length > 0 && <span className="ml-1 bg-red-500 text-white text-[10px] rounded-full px-1.5">{pending.length}</span>}
+            {label}{t === 'users' && pending.length > 0 && <span className="ml-1 bg-red-500 text-white text-[10px] rounded-full px-1.5">{pending.length}</span>}
           </button>
         ))}
       </div>
@@ -297,6 +322,31 @@ export default function AdminPage() {
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {/* 관리자 관리 */}
+        {tab === 'admins' && (
+          <div>
+            <div className="mb-4 p-4 rounded-xl bg-white/5 border border-white/10">
+              <p className="text-white/60 text-xs mb-3">관리자 추가</p>
+              <input value={newAdminEmail} onChange={e => setNewAdminEmail(e.target.value)}
+                placeholder="이메일 주소" type="email"
+                className="w-full mb-3 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-sm placeholder-white/20 focus:outline-none" />
+              <button onClick={addAdmin}
+                className="w-full py-4 rounded-xl text-white text-sm font-medium"
+                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>추가</button>
+            </div>
+
+            {admins.map(a => (
+              <div key={a.id} className="mb-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                <p className="text-white text-sm">{a.email}</p>
+                {a.email === SUPER_ADMIN
+                  ? <span className="text-white/20 text-xs">최고 관리자</span>
+                  : <button onClick={() => removeAdmin(a.id, a.email)} className="text-red-400 text-xs">삭제</button>
+                }
+              </div>
+            ))}
           </div>
         )}
       </div>
