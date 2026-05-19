@@ -13,9 +13,10 @@ export default function LoginPage() {
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setError(''); setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) { setError('이메일 또는 비밀번호가 올바르지 않아요.'); setLoading(false) }
-    else window.location.href = '/'
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) { setError('이메일 또는 비밀번호가 올바르지 않아요.'); setLoading(false); return }
+    const { data: acc } = await supabase.from('accounts').select('id').eq('user_id', data.user.id).maybeSingle()
+    window.location.href = acc ? '/' : '/signup/complete'
   }
 
   async function handleGoogle() {
