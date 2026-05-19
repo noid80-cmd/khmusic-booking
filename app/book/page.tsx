@@ -92,14 +92,29 @@ export default function BookPage() {
     setLoading(false)
   }
 
-  function canBook(hour: number): boolean {
+  function canBook(roomId: string, hour: number): boolean {
     if (!account) return false
     const isToday = date === todayStr()
     if (account.student_type === 'hobby') {
       return myBookings.filter(b => b.date === date).length === 0
     }
     if (!isToday) return false
-    const base = now.getMinutes() >= 50 ? now.getHours() + 1 : now.getHours()
+
+    const curHour = now.getHours()
+    const curMin = now.getMinutes()
+    const base = curMin >= 50 ? curHour + 1 : curHour
+
+    // 현재 진행 중인 예약 (지금 시간 슬롯에 걸린 예약)
+    const active = myBookings.find(b => b.date === date && b.start_hour === curHour)
+
+    if (active) {
+      // 다른 방 중복 예약 불가
+      if (active.room_id !== roomId) return false
+      // 같은 방 → :50 이후에 다음 시간 연장만 가능
+      return curMin >= 50 && hour === curHour + 1
+    }
+
+    // 예약 없음 → 현재 창(base, base+1) 자유 예약
     return hour === base || hour === base + 1
   }
 
@@ -112,13 +127,8 @@ export default function BookPage() {
   }
 
   async function handleBook(roomId: string, hour: number) {
-    if (!account || !canBook(hour)) return
+    if (!account || !canBook(roomId, hour)) return
     if (getBooking(roomId, hour)) return
-    if (account.student_type !== 'hobby') {
-      if (myBookings.filter(b => b.date === date && b.room_id === roomId).length >= 2) {
-        alert('해당 방에 이미 2시간 예약이 있어요.'); return
-      }
-    }
     setBooking(true)
     const { error } = await supabase.from('bookings').insert({
       account_id: account.id, room_id: roomId, date,
@@ -358,7 +368,7 @@ export default function BookPage() {
                       const cls = getClass(r.id, h)
                       const bk = getBooking(r.id, h)
                       const isMine = bk?.account_id === account.id
-                      const bookable = canBook(h)
+                      const bookable = canBook(r.id, h)
                       const restricted = building === 'annex' && account.student_type !== 'exam'
 
                       if (cls) return (
