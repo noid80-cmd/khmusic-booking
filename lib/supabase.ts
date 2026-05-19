@@ -49,6 +49,7 @@ export interface Booking {
   booking_type: BookingType
   external_name: string | null
   note: string | null
+  end_date: string | null
   created_at: string
   account?: Account
   room?: Room
