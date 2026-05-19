@@ -143,6 +143,12 @@ export default function AdminPage() {
     await loadAll()
   }
 
+  async function changeStudentType(id: string, type: Account['student_type']) {
+    const { error } = await supabase.from('accounts').update({ student_type: type }).eq('id', id)
+    if (error) { alert('오류: ' + error.message); return }
+    await loadAll()
+  }
+
   async function promoteToAdmin(account: Account) {
     if (!confirm(`${account.name}을 관리자로 지정할까요?`)) return
     const { error } = await supabase.from('admins').insert({ user_id: account.user_id })
@@ -260,12 +266,18 @@ export default function AdminPage() {
                       <p className="text-white/35 text-sm mt-0.5">{u.phone}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold px-3 py-1.5 rounded-full" style={{
-                        background: u.student_type === 'exam' ? 'rgba(99,102,241,0.15)' : u.student_type === 'professional' ? 'rgba(16,185,129,0.15)' : u.student_type === 'admin' ? 'rgba(251,146,60,0.15)' : 'rgba(168,85,247,0.15)',
-                        color: u.student_type === 'exam' ? '#a5b4fc' : u.student_type === 'professional' ? '#6ee7b7' : u.student_type === 'admin' ? '#fed7aa' : '#d8b4fe',
-                      }}>
-                        {u.student_type === 'exam' ? '입시반' : u.student_type === 'professional' ? '전문반' : u.student_type === 'admin' ? '관리자' : '취미반'}
-                      </span>
+                      <select value={u.student_type ?? ''} onChange={e => changeStudentType(u.id, e.target.value as Account['student_type'])}
+                        className="text-xs font-bold px-3 py-1.5 rounded-full focus:outline-none cursor-pointer"
+                        style={{
+                          background: u.student_type === 'exam' ? 'rgba(99,102,241,0.15)' : u.student_type === 'professional' ? 'rgba(16,185,129,0.15)' : u.student_type === 'admin' ? 'rgba(251,146,60,0.15)' : 'rgba(168,85,247,0.15)',
+                          color: u.student_type === 'exam' ? '#a5b4fc' : u.student_type === 'professional' ? '#6ee7b7' : u.student_type === 'admin' ? '#fed7aa' : '#d8b4fe',
+                          border: 'none', colorScheme: 'dark',
+                        }}>
+                        <option value="exam">입시반</option>
+                        <option value="professional">전문반</option>
+                        <option value="hobby">취미반</option>
+                        <option value="admin">관리자</option>
+                      </select>
                       {isAdmin
                         ? <button onClick={() => adminRecord && removeAdmin(adminRecord.id, adminRecord.email ?? null)}
                             className="text-xs font-medium px-3 py-1.5 rounded-xl"
