@@ -37,6 +37,7 @@ function shortName(name: string) {
 function typeLabel(t: string | null) {
   if (t === 'exam') return '입시반'
   if (t === 'professional') return '전문반'
+  if (t === 'admin') return '관리자'
   return '취미반'
 }
 
@@ -94,6 +95,7 @@ export default function BookPage() {
 
   function canBook(roomId: string, hour: number): boolean {
     if (!account) return false
+    if (account.student_type === 'admin') return true
     const isToday = date === todayStr()
     if (account.student_type === 'hobby') {
       return myBookings.filter(b => b.date === date).length === 0
@@ -143,7 +145,7 @@ export default function BookPage() {
     await loadData()
   }
 
-  const isExam = account?.student_type === 'exam' || account?.student_type === 'professional'
+  const isExam = account?.student_type === 'exam' || account?.student_type === 'professional' || account?.student_type === 'admin'
   const currentHour = now.getHours()
   const isMain = building === 'main'
   const operatingHours = getHours(date, building) // null = 휴무

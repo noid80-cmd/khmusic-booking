@@ -7,7 +7,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: { flowType: 'implicit' },
 })
 
-export type StudentType = 'exam' | 'professional' | 'hobby'
+export type StudentType = 'exam' | 'professional' | 'hobby' | 'admin'
 export type AccountStatus = 'pending' | 'approved' | 'rejected'
 export type Building = 'main' | 'annex'
 export type BookingType = 'student' | 'external' | 'monthly'
