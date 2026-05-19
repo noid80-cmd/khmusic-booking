@@ -150,7 +150,7 @@ export default function AdminPage() {
   const mainRooms = rooms.filter(r => r.building === 'main')
   const annexRooms = rooms.filter(r => r.building === 'annex')
 
-  const inputCls = 'w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-5 text-white text-[15px] focus:outline-none focus:border-indigo-500/50 transition'
+  const inputCls = 'w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-6 text-white text-[17px] focus:outline-none focus:border-indigo-500/50 transition'
   const selectCls = inputCls + ' cursor-pointer'
 
   if (loading) return <div className="min-h-screen bg-[#0c0c12] flex items-center justify-center text-white/30">로딩 중...</div>
@@ -178,7 +178,7 @@ export default function AdminPage() {
           const active = tab === t
           return (
             <button key={t} onClick={() => setTab(t)}
-              className="flex-1 py-3 rounded-2xl text-sm font-bold transition-all relative"
+              className="flex-1 py-4 rounded-2xl text-base font-bold transition-all relative"
               style={{
                 background: active ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : 'rgba(255,255,255,0.05)',
                 color: active ? '#fff' : 'rgba(255,255,255,0.35)',
@@ -203,14 +203,14 @@ export default function AdminPage() {
               <div>
                 <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest mb-3">승인 대기 {pending.length}명</p>
                 {pending.map(u => (
-                  <div key={u.id} className="mb-3 p-5 rounded-2xl border"
+                  <div key={u.id} className="mb-4 p-6 rounded-2xl border"
                     style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
                     <p className="text-white font-bold text-base">{u.name}</p>
                     <p className="text-white/40 text-sm mt-0.5">{u.phone}</p>
                     <p className="text-white/25 text-xs mt-0.5">{new Date(u.created_at).toLocaleDateString('ko')}</p>
                     <div className="flex gap-2 mt-4">
                       <select onChange={e => approveUser(u.id, e.target.value as Account['student_type'])}
-                        className="flex-1 rounded-2xl px-4 py-4 text-sm font-semibold focus:outline-none"
+                        className="flex-1 rounded-2xl px-5 py-5 text-base font-semibold focus:outline-none"
                         style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: '#a5b4fc', colorScheme: 'dark' }}
                         defaultValue="">
                         <option value="" disabled>반 선택 후 승인</option>
@@ -219,7 +219,7 @@ export default function AdminPage() {
                         <option value="hobby">취미반</option>
                       </select>
                       <button onClick={() => rejectUser(u.id)}
-                        className="px-5 py-4 rounded-2xl text-sm font-semibold"
+                        className="px-5 py-5 rounded-2xl text-base font-semibold"
                         style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }}>
                         거절
                       </button>
@@ -231,7 +231,7 @@ export default function AdminPage() {
 
             <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest mb-3">승인된 회원 {approved.length}명</p>
             {approved.map(u => (
-              <div key={u.id} className="flex items-center justify-between px-5 py-4 rounded-2xl"
+              <div key={u.id} className="flex items-center justify-between px-6 py-5 rounded-2xl"
                 style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
                 <div>
                   <p className="text-white font-semibold">{u.name}</p>
@@ -254,7 +254,7 @@ export default function AdminPage() {
             <input type="date" value={date} onChange={e => setDate(e.target.value)}
               className={inputCls} style={{ colorScheme: 'dark' }} />
 
-            <div className="p-5 rounded-2xl space-y-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="p-6 rounded-2xl space-y-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
               <p className="text-white/50 text-sm font-semibold">수업 추가</p>
               <select value={selRoom} onChange={e => setSelRoom(e.target.value)}
                 className={selectCls} style={{ colorScheme: 'dark' }}>
@@ -275,7 +275,7 @@ export default function AdminPage() {
               <input value={instructor} onChange={e => setInstructor(e.target.value)}
                 placeholder="강사명" className={inputCls} />
               <button onClick={addClass}
-                className="w-full py-5 rounded-2xl text-white font-bold text-[15px]"
+                className="w-full py-6 rounded-2xl text-white font-bold text-[17px]"
                 style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
                 추가
               </button>
@@ -286,13 +286,13 @@ export default function AdminPage() {
               : classes.map(c => {
                 const room = rooms.find(r => r.id === c.room_id)
                 return (
-                  <div key={c.id} className="flex items-center justify-between px-5 py-4 rounded-2xl"
+                  <div key={c.id} className="flex items-center justify-between px-6 py-5 rounded-2xl"
                     style={{ background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.15)' }}>
                     <div>
                       <p className="text-white font-semibold">{room?.name} · {c.instructor}</p>
                       <p className="text-white/40 text-sm">{c.start_hour}:00 ~ {c.end_hour}:00</p>
                     </div>
-                    <button onClick={() => deleteClass(c.id)} className="text-red-400 text-sm font-medium px-3 py-1.5 rounded-xl"
+                    <button onClick={() => deleteClass(c.id)} className="text-red-400 text-sm font-medium px-4 py-2.5 rounded-xl"
                       style={{ background: 'rgba(239,68,68,0.1)' }}>삭제</button>
                   </div>
                 )
@@ -307,7 +307,7 @@ export default function AdminPage() {
             <div className="flex gap-2">
               {(['external', 'monthly'] as const).map(type => (
                 <button key={type} onClick={() => setAnnexType(type)}
-                  className="flex-1 py-4 rounded-2xl text-sm font-bold transition"
+                  className="flex-1 py-5 rounded-2xl text-base font-bold transition"
                   style={{
                     background: annexType === type ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.05)',
                     color: annexType === type ? '#6ee7b7' : 'rgba(255,255,255,0.35)',
@@ -318,7 +318,7 @@ export default function AdminPage() {
               ))}
             </div>
 
-            <div className="p-5 rounded-2xl space-y-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="p-6 rounded-2xl space-y-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
               <p className="text-white/50 text-sm font-semibold">{annexType === 'monthly' ? '월렌탈 추가' : '시간제 예약 추가'}</p>
 
               <select value={annexRoom} onChange={e => setAnnexRoom(e.target.value)}
@@ -358,7 +358,7 @@ export default function AdminPage() {
               <input value={annexNote} onChange={e => setAnnexNote(e.target.value)}
                 placeholder="메모 (선택)" className={inputCls} />
               <button onClick={addAnnexBooking}
-                className="w-full py-5 rounded-2xl text-white font-bold text-[15px]"
+                className="w-full py-6 rounded-2xl text-white font-bold text-[17px]"
                 style={{ background: 'linear-gradient(135deg,#10b981,#0d9488)' }}>
                 추가
               </button>
@@ -379,7 +379,7 @@ export default function AdminPage() {
                         <p className="text-sm mt-0.5" style={{ color: '#6ee7b7' }}>{fmt(b.date)} ~ {fmt(b.end_date)}</p>
                         {b.note && <p className="text-white/25 text-xs mt-0.5">{b.note}</p>}
                       </div>
-                      <button onClick={() => deleteAnnexBooking(b.id)} className="text-red-400 text-sm font-medium px-3 py-1.5 rounded-xl"
+                      <button onClick={() => deleteAnnexBooking(b.id)} className="text-red-400 text-sm font-medium px-4 py-2.5 rounded-xl"
                         style={{ background: 'rgba(239,68,68,0.1)' }}>삭제</button>
                     </div>
                   )
@@ -404,7 +404,7 @@ export default function AdminPage() {
                         <p className="text-white/40 text-sm">{b.start_hour}:00 ~ {b.end_hour}:00</p>
                         {b.note && <p className="text-white/25 text-xs mt-0.5">{b.note}</p>}
                       </div>
-                      <button onClick={() => deleteAnnexBooking(b.id)} className="text-red-400 text-sm font-medium px-3 py-1.5 rounded-xl"
+                      <button onClick={() => deleteAnnexBooking(b.id)} className="text-red-400 text-sm font-medium px-4 py-2.5 rounded-xl"
                         style={{ background: 'rgba(239,68,68,0.1)' }}>삭제</button>
                     </div>
                   )
@@ -416,25 +416,25 @@ export default function AdminPage() {
         {/* ── 관리자 관리 ── */}
         {tab === 'admins' && (
           <div className="space-y-3">
-            <div className="p-5 rounded-2xl space-y-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="p-6 rounded-2xl space-y-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
               <p className="text-white/50 text-sm font-semibold">관리자 추가</p>
               <input value={newAdminEmail} onChange={e => setNewAdminEmail(e.target.value)}
                 placeholder="이메일 주소" type="email" className={inputCls} />
               <button onClick={addAdmin}
-                className="w-full py-5 rounded-2xl text-white font-bold text-[15px]"
+                className="w-full py-6 rounded-2xl text-white font-bold text-[17px]"
                 style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
                 추가
               </button>
             </div>
 
             {admins.map(a => (
-              <div key={a.id} className="flex items-center justify-between px-5 py-4 rounded-2xl"
+              <div key={a.id} className="flex items-center justify-between px-6 py-5 rounded-2xl"
                 style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
                 <p className="text-white font-medium">{a.email}</p>
                 {a.email === SUPER_ADMIN
                   ? <span className="text-[11px] font-bold text-white/20">최고 관리자</span>
                   : <button onClick={() => removeAdmin(a.id, a.email)}
-                      className="text-red-400 text-sm font-medium px-3 py-1.5 rounded-xl"
+                      className="text-red-400 text-sm font-medium px-4 py-2.5 rounded-xl"
                       style={{ background: 'rgba(239,68,68,0.1)' }}>삭제</button>
                 }
               </div>
