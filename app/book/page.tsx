@@ -389,7 +389,7 @@ export default function BookPage() {
                       const bk = getBooking(r.id, h)
                       const isMine = bk?.account_id === account.id
                       const bookable = canBook(r.id, h)
-                      const restricted = building === 'annex' && account.student_type !== 'exam'
+                      const restricted = building === 'annex' && account.student_type !== 'exam' && account.student_type !== 'admin'
 
                       if (cls) return (
                         <div key={`${h}-${r.id}`} className="h-11 rounded-lg flex items-center justify-center"
