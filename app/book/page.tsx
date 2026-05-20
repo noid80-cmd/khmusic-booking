@@ -292,7 +292,7 @@ export default function BookPage() {
             하루 1시간 · 언제든 미리 예약 가능
           </div>
         )}
-        {building === 'annex' && account.student_type !== 'exam' && account.student_type !== 'admin' && (
+        {building === 'annex' && account.student_type !== 'exam' && (
           <div className="px-4 py-3.5 rounded-xl text-sm font-semibold text-center flex items-center justify-center gap-2"
             style={{ background: 'rgba(251,146,60,0.12)', border: '1px solid rgba(251,146,60,0.3)', color: '#fdba74' }}>
             <span style={{ fontSize: 16 }}>⚠️</span>
