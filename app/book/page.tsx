@@ -36,7 +36,7 @@ function shortName(name: string) {
 
 function getRoomColor(name: string) {
   if (name.startsWith('PIANO'))   return { bg: 'rgba(99,102,241,0.13)',  border: 'rgba(99,102,241,0.28)',  text: '#a5b4fc' }
-  if (name.startsWith('MIDI'))    return { bg: 'rgba(167,139,250,0.13)', border: 'rgba(167,139,250,0.28)', text: '#c4b5fd' }
+  if (name.startsWith('MIDI'))    return { bg: 'rgba(6,182,212,0.13)',   border: 'rgba(6,182,212,0.28)',   text: '#67e8f9' }
   if (name.startsWith('GUITAR'))  return { bg: 'rgba(251,146,60,0.13)',  border: 'rgba(251,146,60,0.28)',  text: '#fdba74' }
   if (name.startsWith('DRUMS') || name === '소극장' || name === '녹음실' || name.startsWith('ENSEMBLE'))
                                   return { bg: 'rgba(244,63,94,0.13)',   border: 'rgba(244,63,94,0.28)',   text: '#fda4af' }
@@ -170,7 +170,7 @@ export default function BookPage() {
 
   const mainRoomTypes = [
     { key: 'piano',  label: '피아노',    color: '#a5b4fc', dimColor: 'rgba(165,180,252,0.45)', activeBg: 'rgba(99,102,241,0.18)',  activeBorder: 'rgba(99,102,241,0.35)',  dimBorder: 'rgba(99,102,241,0.15)',  filter: (r: Room) => r.name.startsWith('PIANO') },
-    { key: 'midi',   label: 'MIDI',      color: '#c4b5fd', dimColor: 'rgba(196,181,253,0.45)', activeBg: 'rgba(167,139,250,0.18)', activeBorder: 'rgba(167,139,250,0.35)', dimBorder: 'rgba(167,139,250,0.15)', filter: (r: Room) => r.name.startsWith('MIDI') },
+    { key: 'midi',   label: 'MIDI',      color: '#67e8f9', dimColor: 'rgba(103,232,249,0.45)', activeBg: 'rgba(6,182,212,0.18)',   activeBorder: 'rgba(6,182,212,0.35)',   dimBorder: 'rgba(6,182,212,0.15)',   filter: (r: Room) => r.name.startsWith('MIDI') },
     { key: 'guitar', label: '기타&베이스', color: '#fdba74', dimColor: 'rgba(253,186,116,0.45)', activeBg: 'rgba(251,146,60,0.18)',  activeBorder: 'rgba(251,146,60,0.35)',  dimBorder: 'rgba(251,146,60,0.15)',  filter: (r: Room) => r.name.startsWith('GUITAR') },
     { key: 'etc',    label: '드럼&그외',  color: '#fda4af', dimColor: 'rgba(253,164,175,0.45)', activeBg: 'rgba(244,63,94,0.18)',   activeBorder: 'rgba(244,63,94,0.35)',   dimBorder: 'rgba(244,63,94,0.15)',   filter: (r: Room) => r.name.startsWith('DRUMS') || r.name === '소극장' || r.name === '녹음실' || r.name.startsWith('ENSEMBLE') },
   ] as const
