@@ -34,6 +34,16 @@ function shortName(name: string) {
     .replace('DRUMS', 'DR')
 }
 
+function getRoomColor(name: string) {
+  if (name.startsWith('PIANO'))   return { bg: 'rgba(99,102,241,0.13)',  border: 'rgba(99,102,241,0.28)',  text: '#a5b4fc' }
+  if (name.startsWith('MIDI'))    return { bg: 'rgba(167,139,250,0.13)', border: 'rgba(167,139,250,0.28)', text: '#c4b5fd' }
+  if (name.startsWith('GUITAR'))  return { bg: 'rgba(251,146,60,0.13)',  border: 'rgba(251,146,60,0.28)',  text: '#fdba74' }
+  if (name.startsWith('DRUMS') || name === '소극장' || name === '녹음실' || name.startsWith('ENSEMBLE'))
+                                  return { bg: 'rgba(244,63,94,0.13)',   border: 'rgba(244,63,94,0.28)',   text: '#fda4af' }
+  // 별관
+  return { bg: 'rgba(16,185,129,0.13)', border: 'rgba(16,185,129,0.28)', text: '#6ee7b7' }
+}
+
 function typeLabel(t: string | null) {
   if (t === 'exam') return '입시반'
   if (t === 'professional') return '전문반'
@@ -346,21 +356,24 @@ export default function BookPage() {
 
                 {/* 헤더 */}
                 <div />
-                {filteredRooms.map(r => (
-                  <div key={`hdr-${r.id}`} className="flex items-center justify-center py-2.5 rounded-lg"
-                    style={{ background: 'rgba(255,255,255,0.04)' }}>
-                    <span className="text-[10px] font-bold" style={{ color: 'rgba(255,255,255,0.45)', letterSpacing: '0.02em' }}>
-                      {shortName(r.name)}
-                    </span>
-                  </div>
-                ))}
+                {filteredRooms.map(r => {
+                  const rc = getRoomColor(r.name)
+                  return (
+                    <div key={`hdr-${r.id}`} className="flex items-center justify-center py-2.5 rounded-lg"
+                      style={{ background: rc.bg, border: `1px solid ${rc.border}` }}>
+                      <span className="text-[10px] font-bold" style={{ color: rc.text, letterSpacing: '0.02em' }}>
+                        {shortName(r.name)}
+                      </span>
+                    </div>
+                  )
+                })}
 
                 {/* 셀 */}
                 {operatingHours.flatMap(h => {
                   const isCurrent = h === currentHour && date === todayStr()
                   return [
                     <div key={`t-${h}`} className="flex items-center justify-end pr-2">
-                      <span className="text-[11px] font-bold" style={{ color: isCurrent ? color.text : 'rgba(255,255,255,0.2)' }}>
+                      <span className="text-[11px] font-bold" style={{ color: isCurrent ? color.text : 'rgba(255,255,255,0.55)' }}>
                         {h}
                       </span>
                     </div>,
