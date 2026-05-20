@@ -300,7 +300,7 @@ export default function BookPage() {
           <div className="px-4 py-3.5 rounded-xl text-sm font-semibold text-center flex items-center justify-center gap-2"
             style={{ background: 'rgba(251,146,60,0.12)', border: '1px solid rgba(251,146,60,0.3)', color: '#fdba74' }}>
             <span style={{ fontSize: 16 }}>⚠️</span>
-            별관은 입시반만 이용 가능해요
+            별관은 입시반·오디션반만 이용 가능해요
           </div>
         )}
 
