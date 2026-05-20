@@ -188,21 +188,21 @@ export default function BookPage() {
       <div className="sticky top-0 z-20" style={{ background: 'rgba(12,12,18,0.96)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
 
         {/* 상단: 브랜드 + 로그아웃 */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-4">
-          <div className="flex items-center gap-3.5">
+        <div className="flex items-center justify-between px-5 pt-6 pb-5">
+          <div className="flex items-center gap-4">
             {/* KH 로고 */}
             <div className="relative">
-              <img src="/logo.png" alt="KH Music" className="w-11 h-11 rounded-2xl object-cover"
-                style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }} />
+              <img src="/logo.png" alt="KH Music" className="w-14 h-14 rounded-2xl object-cover"
+                style={{ boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }} />
               {/* 온라인 도트 */}
-              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0c0c12]"
+              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0c0c12]"
                 style={{ background: '#22c55e' }} />
             </div>
 
             {/* 텍스트 */}
             <div>
-              <p className="text-white font-black text-lg leading-none tracking-tight">연습실 예약</p>
-              <div className="flex items-center gap-1.5 mt-1">
+              <p className="text-white font-black text-2xl leading-none tracking-tight">연습실 예약</p>
+              <div className="flex items-center gap-1.5 mt-2">
                 <p className="text-[13px] font-semibold" style={{ color: 'rgba(255,255,255,0.6)' }}>{account.name}</p>
                 <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10 }}>·</span>
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
@@ -240,6 +240,26 @@ export default function BookPage() {
             )
           })}
         </div>
+
+        {/* 방 종류 탭 (본관만) */}
+        {building === 'main' && (
+          <div className="flex gap-2 px-4 py-4">
+            {mainRoomTypes.map(t => {
+              const active = roomType === t.key
+              return (
+                <button key={t.key} onClick={() => setRoomType(t.key)}
+                  className="flex-1 py-4 rounded-xl text-[13px] font-bold transition-all"
+                  style={{
+                    background: active ? t.activeBg : 'rgba(255,255,255,0.04)',
+                    color: active ? t.color : t.dimColor,
+                    border: `1px solid ${active ? t.activeBorder : t.dimBorder}`,
+                  }}>
+                  {t.label}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       <div className="px-4 pt-5 space-y-5">
@@ -272,30 +292,11 @@ export default function BookPage() {
             하루 1시간 · 언제든 미리 예약 가능
           </div>
         )}
-        {building === 'annex' && account.student_type !== 'exam' && (
-          <div className="px-4 py-3 rounded-xl text-xs text-center"
-            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.2)' }}>
+        {building === 'annex' && account.student_type !== 'exam' && account.student_type !== 'admin' && (
+          <div className="px-4 py-3.5 rounded-xl text-sm font-semibold text-center flex items-center justify-center gap-2"
+            style={{ background: 'rgba(251,146,60,0.12)', border: '1px solid rgba(251,146,60,0.3)', color: '#fdba74' }}>
+            <span style={{ fontSize: 16 }}>⚠️</span>
             별관은 입시반만 이용 가능해요
-          </div>
-        )}
-
-        {/* 방 종류 탭 */}
-        {building === 'main' && (
-          <div className="flex gap-2">
-            {mainRoomTypes.map(t => {
-              const active = roomType === t.key
-              return (
-                <button key={t.key} onClick={() => setRoomType(t.key)}
-                  className="flex-1 py-3.5 rounded-xl text-[12px] font-bold transition-all"
-                  style={{
-                    background: active ? t.activeBg : 'rgba(255,255,255,0.04)',
-                    color: active ? t.color : t.dimColor,
-                    border: `1px solid ${active ? t.activeBorder : t.dimBorder}`,
-                  }}>
-                  {t.label}
-                </button>
-              )
-            })}
           </div>
         )}
 
