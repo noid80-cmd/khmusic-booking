@@ -169,10 +169,10 @@ export default function BookPage() {
     : { primary: '#10b981', glow: 'rgba(16,185,129,0.25)', bookableBg: 'rgba(16,185,129,0.08)', bookableBorder: 'rgba(16,185,129,0.22)', bookableHotBg: 'rgba(16,185,129,0.14)', bookableHotBorder: 'rgba(16,185,129,0.38)', text: '#6ee7b7' }
 
   const mainRoomTypes = [
-    { key: 'piano',  label: '피아노',   color: '#a5b4fc', activeBg: 'rgba(99,102,241,0.18)',  activeBorder: 'rgba(99,102,241,0.35)',  filter: (r: Room) => r.name.startsWith('PIANO') },
-    { key: 'midi',   label: 'MIDI',     color: '#c4b5fd', activeBg: 'rgba(167,139,250,0.18)', activeBorder: 'rgba(167,139,250,0.35)', filter: (r: Room) => r.name.startsWith('MIDI') },
-    { key: 'guitar', label: '기타&베이스', color: '#fdba74', activeBg: 'rgba(251,146,60,0.18)',  activeBorder: 'rgba(251,146,60,0.35)',  filter: (r: Room) => r.name.startsWith('GUITAR') },
-    { key: 'etc',    label: '드럼&그외',  color: '#fda4af', activeBg: 'rgba(244,63,94,0.18)',   activeBorder: 'rgba(244,63,94,0.35)',   filter: (r: Room) => r.name.startsWith('DRUMS') || r.name === '소극장' || r.name === '녹음실' || r.name.startsWith('ENSEMBLE') },
+    { key: 'piano',  label: '피아노',    color: '#a5b4fc', dimColor: 'rgba(165,180,252,0.45)', activeBg: 'rgba(99,102,241,0.18)',  activeBorder: 'rgba(99,102,241,0.35)',  dimBorder: 'rgba(99,102,241,0.15)',  filter: (r: Room) => r.name.startsWith('PIANO') },
+    { key: 'midi',   label: 'MIDI',      color: '#c4b5fd', dimColor: 'rgba(196,181,253,0.45)', activeBg: 'rgba(167,139,250,0.18)', activeBorder: 'rgba(167,139,250,0.35)', dimBorder: 'rgba(167,139,250,0.15)', filter: (r: Room) => r.name.startsWith('MIDI') },
+    { key: 'guitar', label: '기타&베이스', color: '#fdba74', dimColor: 'rgba(253,186,116,0.45)', activeBg: 'rgba(251,146,60,0.18)',  activeBorder: 'rgba(251,146,60,0.35)',  dimBorder: 'rgba(251,146,60,0.15)',  filter: (r: Room) => r.name.startsWith('GUITAR') },
+    { key: 'etc',    label: '드럼&그외',  color: '#fda4af', dimColor: 'rgba(253,164,175,0.45)', activeBg: 'rgba(244,63,94,0.18)',   activeBorder: 'rgba(244,63,94,0.35)',   dimBorder: 'rgba(244,63,94,0.15)',   filter: (r: Room) => r.name.startsWith('DRUMS') || r.name === '소극장' || r.name === '녹음실' || r.name.startsWith('ENSEMBLE') },
   ] as const
 
   const filteredRooms = building === 'annex' ? rooms : rooms.filter(
@@ -288,11 +288,11 @@ export default function BookPage() {
               const active = roomType === t.key
               return (
                 <button key={t.key} onClick={() => setRoomType(t.key)}
-                  className="flex-1 py-2 rounded-lg text-[11px] font-semibold transition-all"
+                  className="flex-1 py-3.5 rounded-xl text-[12px] font-bold transition-all"
                   style={{
                     background: active ? t.activeBg : 'rgba(255,255,255,0.04)',
-                    color: active ? t.color : 'rgba(255,255,255,0.3)',
-                    border: active ? `1px solid ${t.activeBorder}` : '1px solid transparent',
+                    color: active ? t.color : t.dimColor,
+                    border: `1px solid ${active ? t.activeBorder : t.dimBorder}`,
                   }}>
                   {t.label}
                 </button>
