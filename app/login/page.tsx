@@ -27,19 +27,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#0c0c12' }}>
+    <div className="min-h-screen flex items-center justify-center px-6" style={{ background: '#0c0c12' }}>
 
       {/* 배경 그라디언트 장식 */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div style={{
-          position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)',
+          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -60%)',
           width: '600px', height: '600px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%)',
         }} />
       </div>
 
-      {/* 상단 로고 영역 */}
-      <div className="flex flex-col items-center pt-24 pb-12 px-6">
+      <div className="w-full max-w-sm flex flex-col items-center">
+
+      {/* 로고 영역 */}
+      <div className="flex flex-col items-center mb-10">
         <img src="/logo.png" alt="KH Music" className="w-20 h-20 rounded-3xl mb-6"
           style={{ boxShadow: '0 16px 48px rgba(0,0,0,0.5)' }} />
         <h1 className="text-3xl font-black text-white tracking-tight mb-2">연습실 예약</h1>
@@ -47,7 +49,7 @@ export default function LoginPage() {
       </div>
 
       {/* 폼 영역 */}
-      <div className="flex-1 flex flex-col px-6 max-w-sm w-full mx-auto">
+      <div className="w-full flex flex-col">
 
         {/* Google 로그인 */}
         <button onClick={handleGoogle}
@@ -92,8 +94,7 @@ export default function LoginPage() {
           <Link href="/signup" className="font-semibold" style={{ color: '#818cf8' }}>가입 신청</Link>
         </p>
       </div>
-
-      <div className="pb-16" />
+      </div>
     </div>
   )
 }
