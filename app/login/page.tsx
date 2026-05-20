@@ -38,7 +38,7 @@ export default function LoginPage() {
         }} />
       </div>
 
-      <div className="w-full max-w-sm flex flex-col items-center">
+      <div className="w-full max-w-sm flex flex-col items-center" style={{ marginBottom: '12vh' }}>
 
       {/* 로고 영역 */}
       <div className="flex flex-col items-center mb-10">
