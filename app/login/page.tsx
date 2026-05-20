@@ -9,6 +9,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resetMode, setResetMode] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
+
+  async function handleReset(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset`,
+    })
+    setLoading(false)
+    if (error) { setError('이메일을 확인해주세요.'); return }
+    setResetSent(true)
+  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -72,22 +85,53 @@ export default function LoginPage() {
         </div>
 
         {/* 이메일 폼 */}
-        <form onSubmit={handleLogin} className="flex flex-col gap-3">
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-            placeholder="이메일" required
-            className="w-full rounded-2xl px-5 py-4 text-white text-[15px] focus:outline-none transition"
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', colorScheme: 'dark' }} />
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-            placeholder="비밀번호" required
-            className="w-full rounded-2xl px-5 py-4 text-white text-[15px] focus:outline-none transition"
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', colorScheme: 'dark' }} />
-          {error && <p className="text-red-400 text-sm text-center pt-1">{error}</p>}
-          <button type="submit" disabled={loading}
-            className="w-full py-4 rounded-2xl text-white font-bold text-[15px] disabled:opacity-50 transition active:scale-95 mt-1"
-            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
-            {loading ? '로그인 중...' : '로그인'}
-          </button>
-        </form>
+        {!resetMode ? (
+          <form onSubmit={handleLogin} className="flex flex-col gap-3">
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="이메일" required
+              className="w-full rounded-2xl px-5 py-4 text-white text-[15px] focus:outline-none transition"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', colorScheme: 'dark' }} />
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+              placeholder="비밀번호" required
+              className="w-full rounded-2xl px-5 py-4 text-white text-[15px] focus:outline-none transition"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', colorScheme: 'dark' }} />
+            {error && <p className="text-red-400 text-sm text-center pt-1">{error}</p>}
+            <button type="submit" disabled={loading}
+              className="w-full py-4 rounded-2xl text-white font-bold text-[15px] disabled:opacity-50 transition active:scale-95 mt-1"
+              style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
+              {loading ? '로그인 중...' : '로그인'}
+            </button>
+            <button type="button" onClick={() => { setResetMode(true); setError('') }}
+              className="text-center text-sm mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+              비밀번호를 잊으셨나요?
+            </button>
+          </form>
+        ) : resetSent ? (
+          <div className="text-center py-4">
+            <p className="text-white font-semibold mb-2">이메일을 확인해주세요 ✉️</p>
+            <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.4)' }}>재설정 링크를 보냈어요</p>
+            <button onClick={() => { setResetMode(false); setResetSent(false) }}
+              className="text-sm font-semibold" style={{ color: '#818cf8' }}>로그인으로 돌아가기</button>
+          </div>
+        ) : (
+          <form onSubmit={handleReset} className="flex flex-col gap-3">
+            <p className="text-sm font-semibold text-white mb-1">비밀번호 재설정</p>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="가입한 이메일" required
+              className="w-full rounded-2xl px-5 py-4 text-white text-[15px] focus:outline-none transition"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', colorScheme: 'dark' }} />
+            {error && <p className="text-red-400 text-sm text-center pt-1">{error}</p>}
+            <button type="submit" disabled={loading}
+              className="w-full py-4 rounded-2xl text-white font-bold text-[15px] disabled:opacity-50 transition active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
+              {loading ? '전송 중...' : '재설정 링크 보내기'}
+            </button>
+            <button type="button" onClick={() => { setResetMode(false); setError('') }}
+              className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
+              취소
+            </button>
+          </form>
+        )}
 
         <p className="text-center text-sm mt-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
           계정이 없으신가요?{' '}
