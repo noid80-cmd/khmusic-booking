@@ -46,6 +46,7 @@ function getRoomColor(name: string) {
 
 function typeLabel(t: string | null) {
   if (t === 'exam') return '입시반'
+  if (t === 'audition') return '오디션반'
   if (t === 'professional') return '전문반'
   if (t === 'admin') return '관리자'
   return '취미반'
@@ -158,7 +159,7 @@ export default function BookPage() {
     await loadData()
   }
 
-  const isExam = account?.student_type === 'exam' || account?.student_type === 'professional' || account?.student_type === 'admin'
+  const isExam = account?.student_type === 'exam' || account?.student_type === 'audition' || account?.student_type === 'professional' || account?.student_type === 'admin'
   const currentHour = now.getHours()
   const isMain = building === 'main'
   const operatingHours = getHours(date, building) // null = 휴무
@@ -207,8 +208,8 @@ export default function BookPage() {
                 <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10 }}>·</span>
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
                   style={{
-                    background: account.student_type === 'exam' ? 'rgba(99,102,241,0.18)' : account.student_type === 'professional' ? 'rgba(16,185,129,0.18)' : 'rgba(168,85,247,0.18)',
-                    color: account.student_type === 'exam' ? '#a5b4fc' : account.student_type === 'professional' ? '#6ee7b7' : '#d8b4fe',
+                    background: account.student_type === 'exam' ? 'rgba(99,102,241,0.18)' : account.student_type === 'audition' ? 'rgba(245,158,11,0.18)' : account.student_type === 'professional' ? 'rgba(16,185,129,0.18)' : account.student_type === 'admin' ? 'rgba(251,146,60,0.18)' : 'rgba(168,85,247,0.18)',
+                    color: account.student_type === 'exam' ? '#a5b4fc' : account.student_type === 'audition' ? '#fde68a' : account.student_type === 'professional' ? '#6ee7b7' : account.student_type === 'admin' ? '#fed7aa' : '#d8b4fe',
                   }}>
                   {typeLabel(account.student_type)}
                 </span>
@@ -295,7 +296,7 @@ export default function BookPage() {
             하루 1시간 · 언제든 미리 예약 가능
           </div>
         )}
-        {building === 'annex' && account.student_type !== 'exam' && (
+        {building === 'annex' && account.student_type !== 'exam' && account.student_type !== 'audition' && (
           <div className="px-4 py-3.5 rounded-xl text-sm font-semibold text-center flex items-center justify-center gap-2"
             style={{ background: 'rgba(251,146,60,0.12)', border: '1px solid rgba(251,146,60,0.3)', color: '#fdba74' }}>
             <span style={{ fontSize: 16 }}>⚠️</span>
@@ -389,7 +390,7 @@ export default function BookPage() {
                       const bk = getBooking(r.id, h)
                       const isMine = bk?.account_id === account.id
                       const bookable = canBook(r.id, h)
-                      const restricted = building === 'annex' && account.student_type !== 'exam' && account.student_type !== 'admin'
+                      const restricted = building === 'annex' && account.student_type !== 'exam' && account.student_type !== 'audition' && account.student_type !== 'admin'
 
                       if (cls) return (
                         <div key={`${h}-${r.id}`} className="h-11 rounded-lg flex items-center justify-center"
