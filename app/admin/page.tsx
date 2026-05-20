@@ -156,6 +156,13 @@ export default function AdminPage() {
     await loadAll()
   }
 
+  async function deleteUser(id: string, name: string) {
+    if (!confirm(`${name} 회원을 삭제할까요? 이 작업은 되돌릴 수 없어요.`)) return
+    const { error } = await supabase.from('accounts').delete().eq('id', id)
+    if (error) { alert('삭제 오류: ' + error.message); return }
+    await loadAll()
+  }
+
   async function removeAdmin(id: string, email: string | null) {
     if (email === SUPER_ADMIN) { alert('최고 관리자는 삭제할 수 없어요.'); return }
     if (!confirm('관리자에서 제거할까요?')) return
@@ -288,6 +295,9 @@ export default function AdminPage() {
                             className="text-xs font-medium px-3 py-1.5 rounded-xl"
                             style={{ background: 'rgba(99,102,241,0.12)', color: '#a5b4fc' }}>관리자</button>
                       }
+                      <button onClick={() => deleteUser(u.id, u.name)}
+                        className="text-xs font-medium px-3 py-1.5 rounded-xl"
+                        style={{ background: 'rgba(239,68,68,0.08)', color: 'rgba(248,113,113,0.6)' }}>삭제</button>
                     </div>
                   </div>
                 </div>
