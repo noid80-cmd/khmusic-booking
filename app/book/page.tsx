@@ -188,8 +188,8 @@ export default function BookPage() {
       <div className="sticky top-0 z-20" style={{ background: 'rgba(12,12,18,0.96)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
 
         {/* 상단: 브랜드 + 로그아웃 */}
-        <div className="flex items-center justify-between px-5 pt-6 pb-8"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="flex items-center justify-between"
+          style={{ padding: '24px 20px 32px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <div className="flex items-center gap-4">
             {/* KH 로고 */}
             <div className="relative">
@@ -224,7 +224,7 @@ export default function BookPage() {
         </div>
 
         {/* 건물 탭 */}
-        <div className="flex gap-3 px-4 pt-8 pb-2">
+        <div className="flex gap-3" style={{ padding: '28px 16px 8px' }}>
           {(['main', 'annex'] as const).map(b => {
             const active = building === b
             const c = b === 'main' ? { color: '#818cf8', bg: 'rgba(99,102,241,0.18)', border: 'rgba(99,102,241,0.35)' }
