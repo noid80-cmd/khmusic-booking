@@ -169,10 +169,10 @@ export default function BookPage() {
     : { primary: '#10b981', glow: 'rgba(16,185,129,0.25)', bookableBg: 'rgba(16,185,129,0.08)', bookableBorder: 'rgba(16,185,129,0.22)', bookableHotBg: 'rgba(16,185,129,0.14)', bookableHotBorder: 'rgba(16,185,129,0.38)', text: '#6ee7b7' }
 
   const mainRoomTypes = [
-    { key: 'piano', label: '피아노', filter: (r: Room) => r.name.startsWith('PIANO') },
-    { key: 'midi', label: 'MIDI', filter: (r: Room) => r.name.startsWith('MIDI') },
-    { key: 'guitar', label: '기타&베이스', filter: (r: Room) => r.name.startsWith('GUITAR') },
-    { key: 'etc', label: '드럼&그외', filter: (r: Room) => r.name.startsWith('DRUMS') || r.name === '소극장' || r.name === '녹음실' || r.name.startsWith('ENSEMBLE') },
+    { key: 'piano',  label: '피아노',   color: '#a5b4fc', activeBg: 'rgba(99,102,241,0.18)',  activeBorder: 'rgba(99,102,241,0.35)',  filter: (r: Room) => r.name.startsWith('PIANO') },
+    { key: 'midi',   label: 'MIDI',     color: '#c4b5fd', activeBg: 'rgba(167,139,250,0.18)', activeBorder: 'rgba(167,139,250,0.35)', filter: (r: Room) => r.name.startsWith('MIDI') },
+    { key: 'guitar', label: '기타&베이스', color: '#fdba74', activeBg: 'rgba(251,146,60,0.18)',  activeBorder: 'rgba(251,146,60,0.35)',  filter: (r: Room) => r.name.startsWith('GUITAR') },
+    { key: 'etc',    label: '드럼&그외',  color: '#fda4af', activeBg: 'rgba(244,63,94,0.18)',   activeBorder: 'rgba(244,63,94,0.35)',   filter: (r: Room) => r.name.startsWith('DRUMS') || r.name === '소극장' || r.name === '녹음실' || r.name.startsWith('ENSEMBLE') },
   ] as const
 
   const filteredRooms = building === 'annex' ? rooms : rooms.filter(
@@ -290,9 +290,9 @@ export default function BookPage() {
                 <button key={t.key} onClick={() => setRoomType(t.key)}
                   className="flex-1 py-2 rounded-lg text-[11px] font-semibold transition-all"
                   style={{
-                    background: active ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.04)',
-                    color: active ? '#fff' : 'rgba(255,255,255,0.3)',
-                    border: active ? '1px solid rgba(255,255,255,0.15)' : '1px solid transparent',
+                    background: active ? t.activeBg : 'rgba(255,255,255,0.04)',
+                    color: active ? t.color : 'rgba(255,255,255,0.3)',
+                    border: active ? `1px solid ${t.activeBorder}` : '1px solid transparent',
                   }}>
                   {t.label}
                 </button>
@@ -403,7 +403,7 @@ export default function BookPage() {
                           className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
                           style={{ background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.28)' }}>
                           <span className="text-[9px] font-bold truncate px-1.5" style={{ color: '#6ee7b7' }}>
-                            {account.name}
+                            {account.student_type === 'admin' ? 'X' : account.name}
                           </span>
                         </button>
                       )
