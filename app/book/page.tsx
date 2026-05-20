@@ -224,7 +224,7 @@ export default function BookPage() {
         </div>
 
         {/* 건물 탭 */}
-        <div className="flex gap-3 px-4 pt-4 pb-2">
+        <div className="flex gap-3 px-4 pt-6 pb-2">
           {(['main', 'annex'] as const).map(b => {
             const active = building === b
             const c = b === 'main' ? { color: '#818cf8', bg: 'rgba(99,102,241,0.18)', border: 'rgba(99,102,241,0.35)' }
