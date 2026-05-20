@@ -188,13 +188,13 @@ export default function BookPage() {
       <div className="sticky top-0 z-20" style={{ background: 'rgba(12,12,18,0.96)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
 
         {/* 상단: 브랜드 + 로그아웃 */}
-        <div className="flex items-center justify-between px-5 pt-6 pb-5">
+        <div className="flex items-center justify-between px-5 pt-6 pb-6"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="flex items-center gap-4">
             {/* KH 로고 */}
             <div className="relative">
               <img src="/logo.png" alt="KH Music" className="w-14 h-14 rounded-2xl object-cover"
                 style={{ boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }} />
-              {/* 온라인 도트 */}
               <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0c0c12]"
                 style={{ background: '#22c55e' }} />
             </div>
@@ -224,18 +224,21 @@ export default function BookPage() {
         </div>
 
         {/* 건물 탭 */}
-        <div className="flex gap-6 px-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="flex gap-3 px-4 pt-4 pb-2">
           {(['main', 'annex'] as const).map(b => {
             const active = building === b
-            const c = b === 'main' ? '#818cf8' : '#34d399'
+            const c = b === 'main' ? { color: '#818cf8', bg: 'rgba(99,102,241,0.18)', border: 'rgba(99,102,241,0.35)' }
+                                   : { color: '#34d399', bg: 'rgba(52,211,153,0.18)', border: 'rgba(52,211,153,0.35)' }
             return (
               <button key={b} onClick={() => setBuilding(b)}
-                className="pb-3 text-sm font-bold transition-all relative"
-                style={{ color: active ? '#fff' : 'rgba(255,255,255,0.28)' }}>
+                className="flex-1 py-4 rounded-2xl text-base font-black transition-all"
+                style={{
+                  background: active ? c.bg : 'rgba(255,255,255,0.04)',
+                  color: active ? c.color : 'rgba(255,255,255,0.25)',
+                  border: `1px solid ${active ? c.border : 'rgba(255,255,255,0.07)'}`,
+                  letterSpacing: '0.05em',
+                }}>
                 {b === 'main' ? '본관' : '별관'}
-                {active && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full" style={{ background: c }} />
-                )}
               </button>
             )
           })}
