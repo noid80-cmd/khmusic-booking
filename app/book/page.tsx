@@ -437,6 +437,18 @@ export default function BookPage() {
               </div>
             </div>
 
+            {/* 별관 현관 비밀번호 */}
+            {building === 'annex' && (
+              <div className="mt-5 px-5 py-4 rounded-2xl flex items-center gap-3"
+                style={{ background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.2)' }}>
+                <span style={{ fontSize: 20 }}>🔐</span>
+                <div>
+                  <p className="text-xs font-semibold mb-0.5" style={{ color: 'rgba(52,211,153,0.6)' }}>별관 현관 비밀번호</p>
+                  <p className="text-lg font-black tracking-widest" style={{ color: '#34d399' }}>2094*</p>
+                </div>
+              </div>
+            )}
+
             {/* 범례 */}
             <div className="flex gap-3 mt-5 flex-wrap px-1">
               {[
