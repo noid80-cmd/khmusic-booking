@@ -105,6 +105,7 @@ export default function BookPage() {
 
   function canBook(roomId: string, hour: number): boolean {
     if (!account) return false
+    if (account.student_type === 'admin') return true
     const isToday = date === todayStr()
     if (account.student_type === 'hobby') {
       return myBookings.filter(b => b.date === date).length === 0
