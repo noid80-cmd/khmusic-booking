@@ -433,16 +433,17 @@ export default function BookPage() {
             </div>
 
             {/* 범례 */}
-            <div className="flex gap-4 mt-5 flex-wrap">
+            <div className="flex gap-3 mt-5 flex-wrap px-1">
               {[
                 { bg: color.bookableBg, border: color.bookableBorder, label: '예약 가능' },
                 { bg: 'rgba(16,185,129,0.14)', border: 'rgba(16,185,129,0.28)', label: '내 예약' },
-                { bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.06)', label: '예약됨' },
-                { bg: 'rgba(244,63,94,0.09)', border: 'rgba(244,63,94,0.14)', label: '수업' },
+                { bg: 'rgba(255,255,255,0.07)', border: 'rgba(255,255,255,0.12)', label: '예약됨' },
+                { bg: 'rgba(244,63,94,0.12)', border: 'rgba(244,63,94,0.25)', label: '수업' },
               ].map(item => (
-                <div key={item.label} className="flex items-center gap-1.5">
+                <div key={item.label} className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
                   <div className="w-3 h-3 rounded-[3px]" style={{ background: item.bg, border: `1px solid ${item.border}` }} />
-                  <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>{item.label}</span>
+                  <span className="text-[11px] font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>{item.label}</span>
                 </div>
               ))}
             </div>
