@@ -192,10 +192,8 @@ export default function BookPage() {
           <div className="flex items-center gap-3.5">
             {/* KH 로고 */}
             <div className="relative">
-              <div className="w-11 h-11 rounded-2xl flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', boxShadow: '0 8px 24px rgba(99,102,241,0.35)' }}>
-                <span className="text-white font-black text-base tracking-tight">KH</span>
-              </div>
+              <img src="/logo.png" alt="KH Music" className="w-11 h-11 rounded-2xl object-cover"
+                style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }} />
               {/* 온라인 도트 */}
               <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0c0c12]"
                 style={{ background: '#22c55e' }} />
