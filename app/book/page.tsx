@@ -114,18 +114,21 @@ export default function BookPage() {
 
     const curHour = now.getHours()
     const curMin = now.getMinutes()
-    const base = curMin >= 50 ? curHour + 1 : curHour
 
-    // 현재 진행 중인 예약
+    // 10:50 전에는 예약 불가
+    if (curHour < 10 || (curHour === 10 && curMin < 50)) return false
+
+    // 같은 시간대 다른 방 중복 예약 불가
+    if (myBookings.some(b => b.date === date && b.start_hour === hour)) return false
+
+    // 현재 진행 중인 예약이 있으면 → :50 이후에만 다음 시간 예약 가능
     const active = myBookings.find(b => b.date === date && b.start_hour === curHour)
-
     if (active) {
-      // 예약 중이면 → :50 이후에만 다음 시간 예약 가능 (어느 방이든)
       return curMin >= 50 && hour === curHour + 1
     }
 
-    // 예약 없으면 → 현재 창(base, base+1) 자유 예약
-    return hour === base || hour === base + 1
+    // 첫 예약: 현재 시간 또는 다음 시간만
+    return hour === curHour || hour === curHour + 1
   }
 
   function getBooking(roomId: string, hour: number) {
@@ -253,13 +256,15 @@ export default function BookPage() {
           }} />
 
         {/* 안내 */}
-        {isExam && (
+        {isExam && account.student_type !== 'admin' && date === todayStr() && (
           <div className="px-4 py-3 rounded-xl text-xs flex items-center gap-2"
             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.45)' }}>
             <span style={{ color: color.text, fontSize: 14 }}>●</span>
-            {now.getMinutes() >= 50
-              ? `${currentHour + 1}:00 ~ ${currentHour + 3}:00 예약 가능`
-              : `${currentHour}:00 ~ ${currentHour + 2}:00 예약 가능`}
+            {currentHour < 10 || (currentHour === 10 && now.getMinutes() < 50)
+              ? '10:50 이후 예약 가능'
+              : myBookings.some(b => b.date === date && b.start_hour === currentHour)
+                ? `${currentHour + 1}:00 예약 가능 (:50 이후)`
+                : `${currentHour}:00 ~ ${currentHour + 1}:00 예약 가능`}
           </div>
         )}
         {account.student_type === 'hobby' && (
