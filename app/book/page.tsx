@@ -132,7 +132,9 @@ export default function BookPage() {
       return curMin >= 50 && hour === curHour + 1
     }
 
-    // 첫 예약: 현재 시간 또는 다음 시간만
+    // :50 이후: 현재 시간 닫히고 다음 두 시간 오픈
+    if (curMin >= 50) return hour === curHour + 1 || hour === curHour + 2
+    // :50 전: 현재 시간 또는 다음 시간
     return hour === curHour || hour === curHour + 1
   }
 
@@ -307,7 +309,9 @@ export default function BookPage() {
               ? '10:50 이후 예약 가능'
               : myBookings.some(b => b.date === date && b.start_hour === currentHour)
                 ? `${currentHour + 1}:00 추가 예약 가능 (하루 최대 2시간)`
-                : `${currentHour}:00 ~ ${currentHour + 1}:00 예약 가능`}
+                : now.getMinutes() >= 50
+                  ? `${currentHour + 1}:00 ~ ${currentHour + 2}:00 예약 가능`
+                  : `${currentHour}:00 ~ ${currentHour + 1}:00 예약 가능`}
           </div>
         )}
         {account.student_type === 'hobby' && (
