@@ -164,7 +164,8 @@ export default function AdminPage() {
   }
 
   async function toggleRoomLock(room: Room) {
-    await supabase.from('rooms').update({ is_locked: !room.is_locked }).eq('id', room.id)
+    const { error } = await supabase.from('rooms').update({ is_locked: !room.is_locked }).eq('id', room.id)
+    if (error) { alert('잠금 오류: ' + error.message); return }
     await loadAll()
   }
 
