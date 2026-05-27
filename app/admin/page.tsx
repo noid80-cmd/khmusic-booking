@@ -63,6 +63,7 @@ export default function AdminPage() {
       supabase.from('rooms').select('*').order('building').order('display_order'),
       supabase.from('admins').select('*').order('created_at'),
     ])
+    if (roomsRes.error) alert('rooms 오류: ' + roomsRes.error.message)
     setPending(pendingRes.data || [])
     setApproved(approvedRes.data || [])
     setRooms(roomsRes.data || [])
@@ -319,7 +320,7 @@ export default function AdminPage() {
               className={inputCls} style={{ colorScheme: 'dark' }} />
 
             <div className="p-6 rounded-2xl space-y-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <p className="text-white/50 text-sm font-semibold">수업 추가</p>
+              <p className="text-white/50 text-sm font-semibold">수업 추가 (본관 {mainRooms.length}개)</p>
               <select value={selRoom} onChange={e => setSelRoom(e.target.value)}
                 className={selectCls} style={{ colorScheme: 'dark' }}>
                 <option value="">연습실 선택</option>
