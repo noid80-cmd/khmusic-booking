@@ -141,10 +141,8 @@ export default function BookPage() {
       return curMin >= 50 && hour === effectiveHour + 1
     }
 
-    // :50 이후: effective current(다음 시간)만 오픈, 그 다음은 예약 후 열림
-    if (curMin >= 50) return hour === effectiveHour
-    // :50 전: 현재 시간 또는 다음 시간
-    return hour === effectiveHour || hour === effectiveHour + 1
+    // 항상 effective current부터 순서대로 예약 (다음 시간은 현재 시간 예약 후 열림)
+    return hour === effectiveHour
   }
 
   function getBooking(roomId: string, hour: number) {
@@ -320,7 +318,7 @@ export default function BookPage() {
                 ? `${currentHour + 1}:00 추가 예약 가능 (하루 최대 2시간)`
                 : now.getMinutes() >= 50
                   ? `${currentHour + 1}:00 예약 가능`
-                  : `${currentHour}:00 ~ ${currentHour + 1}:00 예약 가능`}
+                  : `${currentHour}:00 예약 가능`}
           </div>
         )}
         {account.student_type === 'hobby' && (
