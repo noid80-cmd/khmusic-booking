@@ -131,8 +131,13 @@ export default function BookPage() {
     // 10:50 전에는 예약 불가
     if (curHour < 10 || (curHour === 10 && curMin < 50)) return false
 
-    // 같은 시간대 다른 방 중복 예약 불가
+    // 같은 시간대 중복 예약 불가 (본관·별관 통합)
     if (myBookings.some(b => b.date === date && b.start_hour === hour)) return false
+
+    // 별관: 입시/오디션은 원하는 시간 자유 예약
+    if (building === 'annex' && (account.student_type === 'exam' || account.student_type === 'audition')) {
+      return true
+    }
 
     const todayCount = myBookings.filter(b => b.date === date).length
     // :50 이후엔 다음 시간이 effective current
