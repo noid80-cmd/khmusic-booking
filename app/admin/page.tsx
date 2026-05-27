@@ -188,6 +188,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen pb-24" style={{ background: '#0c0c12' }}>
+      <style>{`select option { color: #111111 !important; background: #ffffff !important; }`}</style>
 
       {/* 헤더 */}
       <div className="sticky top-0 z-20 px-5 py-4 flex items-center justify-between border-b border-white/[0.07]"
@@ -320,7 +321,7 @@ export default function AdminPage() {
               className={inputCls} style={{ colorScheme: 'dark' }} />
 
             <div className="p-6 rounded-2xl space-y-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <p className="text-white/50 text-sm font-semibold">수업 추가 (본관 {mainRooms.length}개)</p>
+              <p className="text-white/50 text-sm font-semibold">수업 추가</p>
               <select value={selRoom} onChange={e => setSelRoom(e.target.value)}
                 className={selectCls} style={{ colorScheme: 'dark' }}>
                 <option value="">연습실 선택</option>
