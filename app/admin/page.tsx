@@ -12,7 +12,7 @@ function todayStr() { return new Date().toISOString().slice(0, 10) }
 type PendingAccount = Account & { email?: string }
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<'users' | 'schedule' | 'annex' | 'admins'>('users')
+  const [tab, setTab] = useState<'users' | 'schedule' | 'annex' | 'admins' | 'locks'>('users')
   const [myEmail, setMyEmail] = useState('')
   const [pending, setPending] = useState<PendingAccount[]>([])
   const [approved, setApproved] = useState<Account[]>([])
@@ -163,6 +163,11 @@ export default function AdminPage() {
     await loadAll()
   }
 
+  async function toggleRoomLock(room: Room) {
+    await supabase.from('rooms').update({ is_locked: !room.is_locked }).eq('id', room.id)
+    await loadAll()
+  }
+
   async function removeAdmin(id: string, email: string | null) {
     if (email === SUPER_ADMIN) { alert('최고 관리자는 삭제할 수 없어요.'); return }
     if (!confirm('관리자에서 제거할까요?')) return
@@ -198,7 +203,7 @@ export default function AdminPage() {
 
       {/* 탭 */}
       <div className="flex px-4 pt-5 mb-6 gap-2">
-        {([['users', '회원'], ['schedule', '본관 수업'], ['annex', '별관'], ['admins', '관리자']] as const).map(([t, label]) => {
+        {([['users', '회원'], ['schedule', '본관 수업'], ['annex', '별관'], ['locks', '방 잠금'], ['admins', '관리자']] as const).map(([t, label]) => {
           const active = tab === t
           return (
             <button key={t} onClick={() => setTab(t)}
@@ -468,6 +473,46 @@ export default function AdminPage() {
                   )
                 })}
             </div>
+          </div>
+        )}
+
+        {/* ── 방 잠금 ── */}
+        {tab === 'locks' && (
+          <div className="space-y-3">
+            <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest">본관</p>
+            {mainRooms.map(r => (
+              <div key={r.id} className="flex items-center justify-between px-6 py-5 rounded-2xl"
+                style={{ background: r.is_locked ? 'rgba(239,68,68,0.06)' : 'rgba(255,255,255,0.04)', border: `1px solid ${r.is_locked ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.07)'}` }}>
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">{r.is_locked ? '🔒' : '🟢'}</span>
+                  <p className="text-white font-semibold">{r.name}</p>
+                </div>
+                <button onClick={() => toggleRoomLock(r)}
+                  className="text-sm font-bold px-5 py-2.5 rounded-2xl transition"
+                  style={r.is_locked
+                    ? { background: 'rgba(16,185,129,0.15)', color: '#6ee7b7' }
+                    : { background: 'rgba(239,68,68,0.12)', color: '#f87171' }}>
+                  {r.is_locked ? '잠금 해제' : '잠금'}
+                </button>
+              </div>
+            ))}
+            <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest pt-2">별관</p>
+            {annexRooms.map(r => (
+              <div key={r.id} className="flex items-center justify-between px-6 py-5 rounded-2xl"
+                style={{ background: r.is_locked ? 'rgba(239,68,68,0.06)' : 'rgba(255,255,255,0.04)', border: `1px solid ${r.is_locked ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.07)'}` }}>
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">{r.is_locked ? '🔒' : '🟢'}</span>
+                  <p className="text-white font-semibold">{r.name}</p>
+                </div>
+                <button onClick={() => toggleRoomLock(r)}
+                  className="text-sm font-bold px-5 py-2.5 rounded-2xl transition"
+                  style={r.is_locked
+                    ? { background: 'rgba(16,185,129,0.15)', color: '#6ee7b7' }
+                    : { background: 'rgba(239,68,68,0.12)', color: '#f87171' }}>
+                  {r.is_locked ? '잠금 해제' : '잠금'}
+                </button>
+              </div>
+            ))}
           </div>
         )}
 

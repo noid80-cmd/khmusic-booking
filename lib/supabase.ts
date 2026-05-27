@@ -28,6 +28,7 @@ export interface Room {
   name: string
   display_order: number
   is_active: boolean
+  is_locked: boolean
 }
 
 export interface ClassSchedule {

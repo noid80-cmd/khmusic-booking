@@ -113,6 +113,7 @@ export default function BookPage() {
 
   function canBook(roomId: string, hour: number): boolean {
     if (!account) return false
+    if (rooms.find(r => r.id === roomId)?.is_locked) return false
     if (account.student_type === 'admin') return true
     const isToday = date === todayStr()
     if (account.student_type === 'hobby') {
@@ -410,14 +411,17 @@ export default function BookPage() {
                   const rc = getRoomColor(r.name)
                   return (
                     <div key={`hdr-${r.id}`} className="flex flex-col items-center justify-center py-2.5 rounded-lg gap-0.5"
-                      style={{ background: rc.bg, border: `1px solid ${rc.border}` }}>
-                      <span className="text-[10px] font-bold" style={{ color: rc.text, letterSpacing: '0.02em' }}>
-                        {shortName(r.name)}
+                      style={{ background: r.is_locked ? 'rgba(255,255,255,0.03)' : rc.bg, border: `1px solid ${r.is_locked ? 'rgba(255,255,255,0.08)' : rc.border}` }}>
+                      <span className="text-[10px] font-bold" style={{ color: r.is_locked ? 'rgba(255,255,255,0.25)' : rc.text, letterSpacing: '0.02em' }}>
+                        {r.is_locked ? '🔒' : shortName(r.name)}
                       </span>
-                      {getRoomSoftware(r.name) && (
+                      {!r.is_locked && getRoomSoftware(r.name) && (
                         <span className="text-[8px] font-medium" style={{ color: rc.text, opacity: 0.6, letterSpacing: '0.01em' }}>
                           {getRoomSoftware(r.name)}
                         </span>
+                      )}
+                      {r.is_locked && (
+                        <span className="text-[8px]" style={{ color: 'rgba(255,255,255,0.2)' }}>사용불가</span>
                       )}
                     </div>
                   )
