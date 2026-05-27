@@ -116,10 +116,11 @@ export default function BookPage() {
     if (account.student_type === 'admin') return true
     const isToday = date === todayStr()
     if (account.student_type === 'hobby') {
+      if (date !== todayStr()) return false
       if (myBookings.filter(b => b.date === date).length > 0) return false
-      if (date !== todayStr()) return true
       const curHour = now.getHours()
       const curMin = now.getMinutes()
+      if (curHour < 10 || (curHour === 10 && curMin < 50)) return false
       return hour > curHour || (hour === curHour && curMin < 50)
     }
     if (!isToday) return false
@@ -329,7 +330,7 @@ export default function BookPage() {
           <div className="px-4 py-3 rounded-xl text-xs flex items-center gap-2"
             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.45)' }}>
             <span style={{ color: '#a78bfa', fontSize: 14 }}>●</span>
-            하루 1시간 · 언제든 미리 예약 가능
+            하루 1시간 · 당일 10:50 이후 예약 가능
           </div>
         )}
         {building === 'annex' && account.student_type !== 'exam' && account.student_type !== 'audition' && (
