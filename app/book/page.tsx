@@ -65,7 +65,7 @@ export default function BookPage() {
   const [roomType, setRoomType] = useState<'piano' | 'midi' | 'guitar' | 'etc'>('piano')
   const [date, setDate] = useState(todayStr())
   const [rooms, setRooms] = useState<Room[]>([])
-  const [bookings, setBookings] = useState<Booking[]>([])
+  const [bookings, setBookings] = useState<(Booking & { account?: { name: string } | null })[]>([])
   const [classes, setClasses] = useState<{ room_id: string, start_hour: number, end_hour: number, instructor: string }[]>([])
   const [myBookings, setMyBookings] = useState<(Booking & { room: Room })[]>([])
   const [loading, setLoading] = useState(true)
@@ -96,7 +96,7 @@ export default function BookPage() {
     setLoading(true)
     const [roomsRes, bookingsRes, classesRes, myRes] = await Promise.all([
       supabase.from('rooms').select('*').eq('building', building).eq('is_active', true).order('display_order'),
-      supabase.from('bookings').select('*').eq('date', date).in('room_id',
+      supabase.from('bookings').select('*, account:accounts(name)').eq('date', date).in('room_id',
         (await supabase.from('rooms').select('id').eq('building', building)).data?.map(r => r.id) || []
       ),
       building === 'main'
@@ -462,10 +462,21 @@ export default function BookPage() {
                         </button>
                       )
 
-                      if (bk) return (
-                        <div key={`${h}-${r.id}`} className="h-11 rounded-lg"
-                          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.05)' }} />
-                      )
+                      if (bk) {
+                        if (account.student_type === 'admin') return (
+                          <button key={`${h}-${r.id}`} onClick={() => handleCancel(bk.id)}
+                            className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
+                            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <span className="text-[9px] font-medium truncate px-1.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                              {bk.account?.name ?? '?'}
+                            </span>
+                          </button>
+                        )
+                        return (
+                          <div key={`${h}-${r.id}`} className="h-11 rounded-lg"
+                            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.05)' }} />
+                        )
+                      }
 
                       if (restricted || !bookable) return (
                         <div key={`${h}-${r.id}`} className="h-11 rounded-lg"
