@@ -167,6 +167,22 @@ export default function BookPage() {
   async function handleBook(roomId: string, hour: number) {
     if (!account || !canBook(roomId, hour)) return
     if (getBooking(roomId, hour)) return
+
+    if (account.student_type === 'admin') {
+      const name = window.prompt('예약자 이름')
+      if (!name?.trim()) return
+      setBooking(true)
+      const { error } = await supabase.from('bookings').insert({
+        account_id: null, room_id: roomId, date,
+        start_hour: hour, end_hour: hour + 1,
+        booking_type: 'external', external_name: name.trim(),
+      })
+      if (error) alert('예약 실패: ' + error.message)
+      await loadData()
+      setBooking(false)
+      return
+    }
+
     setBooking(true)
     const { error } = await supabase.from('bookings').insert({
       account_id: account.id, room_id: roomId, date,
@@ -184,7 +200,9 @@ export default function BookPage() {
     // 취소 대상: 선택한 시간 + 같은 예약자의 연속된 이후 예약 전부
     const sourceList = myBookings.some(b => b.id === bookingId)
       ? myBookings
-      : bookings.filter(b => b.account_id === target.account_id)
+      : target.account_id
+        ? bookings.filter(b => b.account_id === target.account_id)
+        : [target]
     const toCancel: string[] = [bookingId]
     let next = target.start_hour + 1
     while (true) {
@@ -471,7 +489,7 @@ export default function BookPage() {
                             className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
                             style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
                             <span className="text-[9px] font-medium truncate px-1.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                              {bk.account?.name ?? '?'}
+                              {bk.external_name ?? bk.account?.name ?? '?'}
                             </span>
                           </button>
                         )
