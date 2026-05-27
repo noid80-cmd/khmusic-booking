@@ -178,14 +178,17 @@ export default function BookPage() {
   }
 
   async function handleCancel(bookingId: string) {
-    const target = myBookings.find(b => b.id === bookingId)
+    const target = myBookings.find(b => b.id === bookingId) ?? bookings.find(b => b.id === bookingId)
     if (!target) return
 
-    // 취소 대상: 선택한 시간 + 연속된 이후 예약 전부
+    // 취소 대상: 선택한 시간 + 같은 예약자의 연속된 이후 예약 전부
+    const sourceList = myBookings.some(b => b.id === bookingId)
+      ? myBookings
+      : bookings.filter(b => b.account_id === target.account_id)
     const toCancel: string[] = [bookingId]
     let next = target.start_hour + 1
     while (true) {
-      const found = myBookings.find(b => b.date === target.date && b.start_hour === next)
+      const found = sourceList.find(b => b.date === target.date && b.start_hour === next)
       if (!found) break
       toCancel.push(found.id)
       next++
