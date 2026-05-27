@@ -304,7 +304,7 @@ export default function BookPage() {
       <div className="px-4 pt-5 space-y-5">
 
         {/* 날짜 */}
-        <input type="date" value={date} onChange={e => setDate(e.target.value)} min={todayStr()}
+        <input type="date" value={date} onChange={e => setDate(e.target.value)} min={todayStr()} max={account.student_type !== 'admin' ? todayStr() : undefined}
           className="w-full rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition"
           style={{
             background: 'rgba(255,255,255,0.04)',
