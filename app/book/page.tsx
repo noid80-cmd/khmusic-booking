@@ -34,6 +34,13 @@ function shortName(name: string) {
     .replace('DRUMS', 'DR')
 }
 
+function getRoomSoftware(name: string): string {
+  if (name === 'MIDI 1' || name === 'MIDI 2') return 'Logic · Ableton'
+  if (name === 'MIDI 3') return 'Ableton · Cubase'
+  if (name === 'MIDI 4') return 'Ableton'
+  return ''
+}
+
 function getRoomColor(name: string) {
   if (name.startsWith('PIANO'))   return { bg: 'rgba(99,102,241,0.13)',  border: 'rgba(99,102,241,0.28)',  text: '#a5b4fc' }
   if (name.startsWith('MIDI'))    return { bg: 'rgba(6,182,212,0.13)',   border: 'rgba(6,182,212,0.28)',   text: '#67e8f9' }
@@ -394,11 +401,16 @@ export default function BookPage() {
                 {filteredRooms.map(r => {
                   const rc = getRoomColor(r.name)
                   return (
-                    <div key={`hdr-${r.id}`} className="flex items-center justify-center py-2.5 rounded-lg"
+                    <div key={`hdr-${r.id}`} className="flex flex-col items-center justify-center py-2.5 rounded-lg gap-0.5"
                       style={{ background: rc.bg, border: `1px solid ${rc.border}` }}>
                       <span className="text-[10px] font-bold" style={{ color: rc.text, letterSpacing: '0.02em' }}>
                         {shortName(r.name)}
                       </span>
+                      {getRoomSoftware(r.name) && (
+                        <span className="text-[8px] font-medium" style={{ color: rc.text, opacity: 0.6, letterSpacing: '0.01em' }}>
+                          {getRoomSoftware(r.name)}
+                        </span>
+                      )}
                     </div>
                   )
                 })}
