@@ -66,7 +66,7 @@ export default function BookPage() {
   const [date, setDate] = useState(todayStr())
   const [rooms, setRooms] = useState<Room[]>([])
   const [bookings, setBookings] = useState<(Booking & { account?: { name: string } | null })[]>([])
-  const [classes, setClasses] = useState<{ room_id: string, start_hour: number, end_hour: number, instructor: string }[]>([])
+  const [classes, setClasses] = useState<{ id: string, room_id: string, start_hour: number, end_hour: number, instructor: string }[]>([])
   const [myBookings, setMyBookings] = useState<(Booking & { room: Room })[]>([])
   const [loading, setLoading] = useState(true)
   const [booking, setBooking] = useState(false)
@@ -106,7 +106,7 @@ export default function BookPage() {
     ])
     setRooms(roomsRes.data || [])
     setBookings(bookingsRes.data || [])
-    setClasses((classesRes as { data: { room_id: string, start_hour: number, end_hour: number, instructor: string }[] | null }).data || [])
+    setClasses((classesRes as { data: { id: string, room_id: string, start_hour: number, end_hour: number, instructor: string }[] | null }).data || [])
     setMyBookings((myRes.data || []) as (Booking & { room: Room })[])
     setLoading(false)
   }
@@ -218,6 +218,12 @@ export default function BookPage() {
     if (!confirm(msg)) return
 
     await supabase.from('bookings').delete().in('id', toCancel)
+    await loadData()
+  }
+
+  async function handleDeleteClass(classId: string, instructor: string) {
+    if (!confirm(`"${instructor}" 수업을 삭제할까요?`)) return
+    await supabase.from('class_schedules').delete().eq('id', classId)
     await loadData()
   }
 
@@ -464,14 +470,25 @@ export default function BookPage() {
                       const bookable = canBook(r.id, h)
                       const restricted = building === 'annex' && account.student_type !== 'exam' && account.student_type !== 'audition' && account.student_type !== 'admin'
 
-                      if (cls) return (
-                        <div key={`${h}-${r.id}`} className="h-11 rounded-lg flex items-center justify-center"
-                          style={{ background: 'rgba(244,63,94,0.09)', border: '1px solid rgba(244,63,94,0.14)' }}>
-                          <span className="text-[9px] font-semibold truncate px-1.5" style={{ color: 'rgba(251,113,133,0.7)' }}>
-                            {cls.instructor}
-                          </span>
-                        </div>
-                      )
+                      if (cls) {
+                        if (account.student_type === 'admin') return (
+                          <button key={`${h}-${r.id}`} onClick={() => handleDeleteClass(cls.id, cls.instructor)}
+                            className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
+                            style={{ background: 'rgba(244,63,94,0.09)', border: '1px solid rgba(244,63,94,0.22)' }}>
+                            <span className="text-[9px] font-semibold truncate px-1.5" style={{ color: 'rgba(251,113,133,0.85)' }}>
+                              {cls.instructor}
+                            </span>
+                          </button>
+                        )
+                        return (
+                          <div key={`${h}-${r.id}`} className="h-11 rounded-lg flex items-center justify-center"
+                            style={{ background: 'rgba(244,63,94,0.09)', border: '1px solid rgba(244,63,94,0.14)' }}>
+                            <span className="text-[9px] font-semibold truncate px-1.5" style={{ color: 'rgba(251,113,133,0.7)' }}>
+                              {cls.instructor}
+                            </span>
+                          </div>
+                        )
+                      }
 
                       if (isMine) return (
                         <button key={`${h}-${r.id}`} onClick={() => handleCancel(bk!.id)}
