@@ -123,19 +123,21 @@ export default function BookPage() {
     if (myBookings.some(b => b.date === date && b.start_hour === hour)) return false
 
     const todayCount = myBookings.filter(b => b.date === date).length
-    const active = myBookings.find(b => b.date === date && b.start_hour === curHour)
+    // :50 이후엔 다음 시간이 effective current
+    const effectiveHour = curMin >= 50 ? curHour + 1 : curHour
+    const active = myBookings.find(b => b.date === date && b.start_hour === effectiveHour)
 
     if (active) {
       // 2시간 블록 이내 → 즉시 예약 가능
-      if (todayCount < 2) return hour === curHour + 1
+      if (todayCount < 2) return hour === effectiveHour + 1
       // 2시간 초과 연장 → :50 이후에만 가능
-      return curMin >= 50 && hour === curHour + 1
+      return curMin >= 50 && hour === effectiveHour + 1
     }
 
-    // :50 이후: 현재 시간 닫히고 다음 두 시간 오픈
-    if (curMin >= 50) return hour === curHour + 1 || hour === curHour + 2
+    // :50 이후: effective current(다음 시간)만 오픈, 그 다음은 예약 후 열림
+    if (curMin >= 50) return hour === effectiveHour
     // :50 전: 현재 시간 또는 다음 시간
-    return hour === curHour || hour === curHour + 1
+    return hour === effectiveHour || hour === effectiveHour + 1
   }
 
   function getBooking(roomId: string, hour: number) {
@@ -310,7 +312,7 @@ export default function BookPage() {
               : myBookings.some(b => b.date === date && b.start_hour === currentHour)
                 ? `${currentHour + 1}:00 추가 예약 가능 (하루 최대 2시간)`
                 : now.getMinutes() >= 50
-                  ? `${currentHour + 1}:00 ~ ${currentHour + 2}:00 예약 가능`
+                  ? `${currentHour + 1}:00 예약 가능`
                   : `${currentHour}:00 ~ ${currentHour + 1}:00 예약 가능`}
           </div>
         )}
