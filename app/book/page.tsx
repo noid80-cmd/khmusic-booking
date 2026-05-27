@@ -116,7 +116,11 @@ export default function BookPage() {
     if (account.student_type === 'admin') return true
     const isToday = date === todayStr()
     if (account.student_type === 'hobby') {
-      return myBookings.filter(b => b.date === date).length === 0
+      if (myBookings.filter(b => b.date === date).length > 0) return false
+      if (date !== todayStr()) return true
+      const curHour = now.getHours()
+      const curMin = now.getMinutes()
+      return hour > curHour || (hour === curHour && curMin < 50)
     }
     if (!isToday) return false
 
