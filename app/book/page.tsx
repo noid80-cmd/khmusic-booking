@@ -122,10 +122,14 @@ export default function BookPage() {
     // 같은 시간대 다른 방 중복 예약 불가
     if (myBookings.some(b => b.date === date && b.start_hour === hour)) return false
 
-    // 현재 진행 중인 예약이 있으면 → :50 이후에만 다음 시간 예약 가능
+    // 하루 최대 2시간
+    const todayCount = myBookings.filter(b => b.date === date).length
+    if (todayCount >= 2) return false
+
+    // 현재 진행 중인 예약이 있으면 → 바로 다음 시간(2시간 블록) 예약 가능
     const active = myBookings.find(b => b.date === date && b.start_hour === curHour)
     if (active) {
-      return curMin >= 50 && hour === curHour + 1
+      return hour === curHour + 1
     }
 
     // 첫 예약: 현재 시간 또는 다음 시간만
@@ -285,7 +289,7 @@ export default function BookPage() {
             {currentHour < 10 || (currentHour === 10 && now.getMinutes() < 50)
               ? '10:50 이후 예약 가능'
               : myBookings.some(b => b.date === date && b.start_hour === currentHour)
-                ? `${currentHour + 1}:00 예약 가능 (:50 이후)`
+                ? `${currentHour + 1}:00 추가 예약 가능 (하루 최대 2시간)`
                 : `${currentHour}:00 ~ ${currentHour + 1}:00 예약 가능`}
           </div>
         )}
