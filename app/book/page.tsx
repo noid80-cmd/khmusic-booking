@@ -158,8 +158,25 @@ export default function BookPage() {
   }
 
   async function handleCancel(bookingId: string) {
-    if (!confirm('예약을 취소할까요?')) return
-    await supabase.from('bookings').delete().eq('id', bookingId)
+    const target = myBookings.find(b => b.id === bookingId)
+    if (!target) return
+
+    // 취소 대상: 선택한 시간 + 연속된 이후 예약 전부
+    const toCancel: string[] = [bookingId]
+    let next = target.start_hour + 1
+    while (true) {
+      const found = myBookings.find(b => b.date === target.date && b.start_hour === next)
+      if (!found) break
+      toCancel.push(found.id)
+      next++
+    }
+
+    const msg = toCancel.length > 1
+      ? `${toCancel.length}개 예약이 연속으로 취소됩니다. 취소할까요?`
+      : '예약을 취소할까요?'
+    if (!confirm(msg)) return
+
+    await supabase.from('bookings').delete().in('id', toCancel)
     await loadData()
   }
 
