@@ -24,10 +24,6 @@ export default function AdminPage() {
   const [admins, setAdmins] = useState<{ id: string, email: string | null, user_id: string | null }[]>([])
   const [newAdminEmail, setNewAdminEmail] = useState('')
 
-  const [selRoom, setSelRoom] = useState('')
-  const [selStart, setSelStart] = useState(11)
-  const [selEnd, setSelEnd] = useState(12)
-  const [instructor, setInstructor] = useState('')
 
   const [annexRoom, setAnnexRoom] = useState('')
   const [annexDate, setAnnexDate] = useState(todayStr())
@@ -96,16 +92,21 @@ export default function AdminPage() {
     await loadAll()
   }
 
-  async function addClass() {
-    if (!selRoom) { alert('연습실을 선택해주세요.'); return }
-    if (!instructor) { alert('강사명을 입력해주세요.'); return }
-    const { error } = await supabase.from('class_schedules').insert({ room_id: selRoom, date, start_hour: selStart, end_hour: selEnd, instructor })
+  async function addClassFromGrid(roomId: string, hour: number) {
+    const inst = window.prompt('강사명')
+    if (!inst?.trim()) return
+    const endInput = window.prompt('몇 시까지?', String(hour + 1))
+    const endHour = parseInt(endInput || '')
+    if (isNaN(endHour) || endHour <= hour || endHour > 22) { alert('올바른 종료 시간을 입력해주세요.'); return }
+    const { error } = await supabase.from('class_schedules').insert({
+      room_id: roomId, date, start_hour: hour, end_hour: endHour, instructor: inst.trim()
+    })
     if (error) { alert('오류: ' + error.message); return }
-    setInstructor('')
     await loadSchedule()
   }
 
   async function deleteClass(id: string) {
+    if (!confirm('수업을 삭제할까요?')) return
     await supabase.from('class_schedules').delete().eq('id', id)
     await loadSchedule()
   }
@@ -316,53 +317,52 @@ export default function AdminPage() {
 
         {/* ── 본관 수업 ── */}
         {tab === 'schedule' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <input type="date" value={date} onChange={e => setDate(e.target.value)}
               className={inputCls} style={{ colorScheme: 'dark' }} />
-
-            <div className="p-6 rounded-2xl space-y-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <p className="text-white/50 text-sm font-semibold">수업 추가</p>
-              <select value={selRoom} onChange={e => setSelRoom(e.target.value)}
-                className={selectCls} style={{ colorScheme: 'dark' }}>
-                <option value="">연습실 선택</option>
-                {mainRooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-              </select>
-              <div className="flex gap-3">
-                <select value={selStart} onChange={e => setSelStart(Number(e.target.value))}
-                  className={selectCls} style={{ colorScheme: 'dark' }}>
-                  {HOURS.map(h => <option key={h} value={h}>{h}:00</option>)}
-                </select>
-                <span className="text-white/30 self-center text-lg">~</span>
-                <select value={selEnd} onChange={e => setSelEnd(Number(e.target.value))}
-                  className={selectCls} style={{ colorScheme: 'dark' }}>
-                  {HOURS.filter(h => h > selStart).concat([22]).map(h => <option key={h} value={h}>{h}:00</option>)}
-                </select>
-              </div>
-              <input value={instructor} onChange={e => setInstructor(e.target.value)}
-                placeholder="강사명" className={inputCls} />
-              <button onClick={addClass}
-                className="w-full py-6 rounded-2xl text-white font-bold text-[17px]"
-                style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
-                추가
-              </button>
-            </div>
-
-            {classes.length === 0
-              ? <p className="text-white/20 text-sm text-center py-10">등록된 수업이 없어요</p>
-              : classes.map(c => {
-                const room = rooms.find(r => r.id === c.room_id)
-                return (
-                  <div key={c.id} className="flex items-center justify-between px-6 py-5 rounded-2xl"
-                    style={{ background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.15)' }}>
-                    <div>
-                      <p className="text-white font-semibold">{room?.name} · {c.instructor}</p>
-                      <p className="text-white/40 text-sm">{c.start_hour}:00 ~ {c.end_hour}:00</p>
-                    </div>
-                    <button onClick={() => deleteClass(c.id)} className="text-red-400 text-sm font-medium px-4 py-2.5 rounded-xl"
-                      style={{ background: 'rgba(239,68,68,0.1)' }}>삭제</button>
+            <p className="text-white/25 text-xs px-1">빈 칸 탭 → 수업 등록 · 등록된 수업 탭 → 삭제</p>
+            <div className="overflow-x-auto -mx-4 px-4">
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: `36px repeat(${mainRooms.length}, minmax(48px, 1fr))`,
+                gap: '3px',
+                minWidth: `${mainRooms.length * 51 + 39}px`,
+              }}>
+                <div />
+                {mainRooms.map(r => (
+                  <div key={`hdr-${r.id}`} className="flex items-center justify-center py-2.5 rounded-lg"
+                    style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.22)' }}>
+                    <span className="text-[10px] font-bold" style={{ color: '#a5b4fc' }}>
+                      {r.name.replace('PIANO','P').replace('MIDI','M').replace('GUITAR & BASS','G&B').replace('ENSEMBLE ROOM','ENS').replace('DRUMS','DR')}
+                    </span>
                   </div>
-                )
-              })}
+                ))}
+                {HOURS.flatMap(h => [
+                  <div key={`t-${h}`} className="flex items-center justify-end pr-2">
+                    <span className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.5)' }}>{h}</span>
+                  </div>,
+                  ...mainRooms.map(r => {
+                    const cls = classes.find(c => c.room_id === r.id && c.start_hour <= h && h < c.end_hour)
+                    if (cls) return (
+                      <button key={`${h}-${r.id}`} onClick={() => deleteClass(cls.id)}
+                        className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
+                        style={{ background: 'rgba(244,63,94,0.12)', border: '1px solid rgba(244,63,94,0.28)' }}>
+                        <span className="text-[9px] font-semibold truncate px-1" style={{ color: '#fda4af' }}>
+                          {cls.instructor}
+                        </span>
+                      </button>
+                    )
+                    return (
+                      <button key={`${h}-${r.id}`} onClick={() => addClassFromGrid(r.id, h)}
+                        className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
+                        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <span className="text-[14px] font-light" style={{ color: 'rgba(255,255,255,0.1)' }}>+</span>
+                      </button>
+                    )
+                  })
+                ])}
+              </div>
+            </div>
           </div>
         )}
 
