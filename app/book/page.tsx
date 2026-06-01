@@ -209,8 +209,8 @@ export default function BookPage() {
   const operatingHours = getHours(date, building)
 
   const color = isMain
-    ? { primary: '#6366f1', bookableBg: '#eef2ff', bookableBorder: '#c7d2fe', bookableHotBg: '#e0e7ff', bookableHotBorder: '#a5b4fc', text: '#6366f1' }
-    : { primary: '#16a34a', bookableBg: '#f0fdf4', bookableBorder: '#bbf7d0', bookableHotBg: '#dcfce7', bookableHotBorder: '#86efac', text: '#16a34a' }
+    ? { primary: '#6366f1', bookableBg: '#dde4ff', bookableBorder: '#a5b4fc', bookableHotBg: '#c7d2fe', bookableHotBorder: '#818cf8', text: '#4f46e5' }
+    : { primary: '#16a34a', bookableBg: '#bbf7d0', bookableBorder: '#4ade80', bookableHotBg: '#86efac', bookableHotBorder: '#22c55e', text: '#15803d' }
 
   const mainRoomTypes = [
     { key: 'piano',  label: '피아노',     color: '#6366f1', dimColor: '#a8a8cc', activeBg: '#eef2ff', activeBorder: '#c7d2fe', dimBorder: '#ebebf5', filter: (r: Room) => r.name.startsWith('PIANO') },
@@ -477,8 +477,8 @@ export default function BookPage() {
                       if (isMine) return (
                         <button key={`${h}-${r.id}`} onClick={() => handleCancel(bk!.id)}
                           className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                          style={{ background: '#f0fdf4', border: '1px solid #86efac' }}>
-                          <span className="text-[9px] font-bold truncate px-1.5" style={{ color: '#16a34a' }}>
+                          style={{ background: '#bbf7d0', border: '1px solid #4ade80' }}>
+                          <span className="text-[9px] font-bold truncate px-1.5" style={{ color: '#15803d' }}>
                             {account.student_type === 'admin' ? 'X' : account.name}
                           </span>
                         </button>
@@ -488,7 +488,7 @@ export default function BookPage() {
                         if (account.student_type === 'admin') return (
                           <button key={`${h}-${r.id}`} onClick={() => handleCancel(bk.id)}
                             className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                            style={{ background: '#f5f5fb', border: '1px solid #e0e0f0' }}>
+                            style={{ background: '#e8e8f4', border: '1px solid #c4c0df' }}>
                             <span className="text-[9px] font-medium truncate px-1.5" style={{ color: '#6b6b9a' }}>
                               {bk.external_name ?? bk.account?.name ?? '?'}
                             </span>
@@ -496,13 +496,13 @@ export default function BookPage() {
                         )
                         return (
                           <div key={`${h}-${r.id}`} className="h-11 rounded-lg"
-                            style={{ background: '#f0f0f8', border: '1px solid #e4e4ef' }} />
+                            style={{ background: '#e8e8f4', border: '1px solid #c4c0df' }} />
                         )
                       }
 
                       if (restricted || !bookable) return (
                         <div key={`${h}-${r.id}`} className="h-11 rounded-lg"
-                          style={{ background: '#fafafa', border: '1px solid #f0f0f0' }} />
+                          style={{ background: '#f3f4f6', border: '1px solid #e5e7eb' }} />
                       )
 
                       return (
@@ -537,9 +537,9 @@ export default function BookPage() {
             <div className="flex gap-3 mt-4 flex-wrap px-1">
               {[
                 { bg: color.bookableBg, border: color.bookableBorder, label: '예약 가능' },
-                { bg: '#f0fdf4', border: '#86efac', label: '내 예약' },
-                { bg: '#f0f0f8', border: '#e4e4ef', label: '예약됨' },
-                { bg: '#fde8ef', border: '#fecdd3', label: '수업' },
+                { bg: '#bbf7d0', border: '#4ade80', label: '내 예약' },
+                { bg: '#e8e8f4', border: '#c4c0df', label: '예약됨' },
+                { bg: '#fde8ef', border: '#fca5b8', label: '수업' },
               ].map(item => (
                 <div key={item.label} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border"
                   style={{ borderColor: '#e8e8f2' }}>
