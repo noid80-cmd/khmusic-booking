@@ -60,20 +60,20 @@ export default function LoginPage() {
       <div className="w-full max-w-sm flex flex-col items-center" style={{ marginBottom: '10vh' }}>
 
         {/* 로고 */}
-        <div className="flex flex-col items-center mb-10">
-          <img src="/logo.png" alt="KH Music" className="w-20 h-20 rounded-3xl mb-5 object-cover"
+        <div className="flex flex-col items-center mb-8">
+          <img src="/logo.png" alt="KH Music" className="w-20 h-20 rounded-3xl mb-4 object-cover"
             style={{ boxShadow: '0 8px 32px rgba(99,102,241,0.2)' }} />
-          <h1 className="text-3xl font-black tracking-tight mb-1.5" style={{ color: '#1e1b4b' }}>연습실 예약</h1>
-          <p className="text-sm" style={{ color: '#b0b0cc' }}>KH Music & Studio</p>
+          <h1 className="text-3xl font-black tracking-tight mb-1" style={{ color: '#1e1b4b' }}>연습실 예약</h1>
+          <p className="text-sm font-medium" style={{ color: '#8b8baa' }}>KH Music & Studio</p>
         </div>
 
         {/* 폼 */}
-        <div className="w-full flex flex-col">
+        <div className="w-full flex flex-col gap-4">
 
           {/* Google 로그인 */}
           <button onClick={handleGoogle}
-            className="w-full flex items-center justify-center gap-3 font-semibold py-4 rounded-2xl mb-6 transition active:scale-95"
-            style={{ background: '#ffffff', color: '#1e1b4b', fontSize: 15, border: '1px solid #e4e4ef', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            className="w-full flex items-center justify-center gap-3 font-semibold py-4 rounded-2xl transition active:scale-95"
+            style={{ background: '#ffffff', color: '#1e1b4b', fontSize: 15, border: '1px solid #d8d8ec', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
             <svg width="20" height="20" viewBox="0 0 48 48">
               <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/>
               <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.5 15.8 18.9 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
@@ -84,10 +84,10 @@ export default function LoginPage() {
           </button>
 
           {/* 구분선 */}
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex-1 h-px" style={{ background: '#e8e8f2' }} />
-            <span className="text-[11px] font-medium" style={{ color: '#c0c0d8' }}>이메일로 로그인</span>
-            <div className="flex-1 h-px" style={{ background: '#e8e8f2' }} />
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px" style={{ background: '#d8d8ec' }} />
+            <span className="text-[12px] font-semibold" style={{ color: '#8b8baa' }}>이메일로 로그인</span>
+            <div className="flex-1 h-px" style={{ background: '#d8d8ec' }} />
           </div>
 
           {/* 이메일 폼 */}
@@ -104,14 +104,14 @@ export default function LoginPage() {
                 {loading ? '로그인 중...' : '로그인'}
               </button>
               <button type="button" onClick={() => { setResetMode(true); setError('') }}
-                className="text-center text-sm mt-1" style={{ color: '#c0c0d8' }}>
+                className="text-center text-sm font-medium mt-1" style={{ color: '#8b8baa' }}>
                 비밀번호를 잊으셨나요?
               </button>
             </form>
           ) : resetSent ? (
             <div className="text-center py-4">
               <p className="font-semibold mb-2" style={{ color: '#1e1b4b' }}>이메일을 확인해주세요 ✉️</p>
-              <p className="text-sm mb-6" style={{ color: '#b0b0cc' }}>재설정 링크를 보냈어요</p>
+              <p className="text-sm mb-6" style={{ color: '#8b8baa' }}>재설정 링크를 보냈어요</p>
               <button onClick={() => { setResetMode(false); setResetSent(false) }}
                 className="text-sm font-semibold" style={{ color: '#6366f1' }}>로그인으로 돌아가기</button>
             </div>
@@ -127,15 +127,15 @@ export default function LoginPage() {
                 {loading ? '전송 중...' : '재설정 링크 보내기'}
               </button>
               <button type="button" onClick={() => { setResetMode(false); setError('') }}
-                className="text-center text-sm" style={{ color: '#c0c0d8' }}>
+                className="text-center text-sm font-medium" style={{ color: '#8b8baa' }}>
                 취소
               </button>
             </form>
           )}
 
-          <p className="text-center text-sm mt-8" style={{ color: '#b0b0cc' }}>
+          <p className="text-center text-sm mt-2 font-medium" style={{ color: '#8b8baa' }}>
             계정이 없으신가요?{' '}
-            <Link href="/signup" className="font-semibold" style={{ color: '#6366f1' }}>가입 신청</Link>
+            <Link href="/signup" className="font-bold" style={{ color: '#6366f1' }}>가입 신청</Link>
           </p>
         </div>
       </div>
