@@ -99,8 +99,8 @@ export default function LoginPage() {
                 placeholder="비밀번호" required style={inputStyle} />
               {error && <p className="text-red-500 text-sm text-center pt-1">{error}</p>}
               <button type="submit" disabled={loading}
-                className="w-full py-4 rounded-2xl text-white font-bold text-[15px] disabled:opacity-50 transition active:scale-95 mt-1"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 4px 14px rgba(99,102,241,0.28)' }}>
+                className="w-full py-4 rounded-2xl text-white font-bold text-[17px] disabled:opacity-50 transition active:scale-95 mt-1"
+                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 4px 16px rgba(99,102,241,0.35)' }}>
                 {loading ? '로그인 중...' : '로그인'}
               </button>
               <button type="button" onClick={() => { setResetMode(true); setError('') }}
