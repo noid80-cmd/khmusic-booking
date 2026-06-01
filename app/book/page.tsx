@@ -7,7 +7,6 @@ import type { Account, Room, Booking } from '@/lib/supabase'
 function fmt(h: number) { return `${h}:00` }
 function todayStr() { return new Date().toISOString().slice(0, 10) }
 
-// 본관 휴무일 (신정·구정연휴·추석연휴·크리스마스)
 const MAIN_CLOSED = new Set([
   '2025-01-01','2026-01-01','2027-01-01',
   '2025-01-28','2025-01-29','2025-01-30',
@@ -20,9 +19,9 @@ const MAIN_CLOSED = new Set([
 function getHours(date: string, building: 'main' | 'annex'): number[] | null {
   if (building === 'annex') return Array.from({ length: 11 }, (_, i) => i + 11)
   const day = new Date(date + 'T00:00:00').getDay()
-  if (day === 0 || MAIN_CLOSED.has(date)) return null          // 휴무
-  if (day === 6) return Array.from({ length: 8 }, (_, i) => i + 11) // 토: 11~18
-  return Array.from({ length: 11 }, (_, i) => i + 11)          // 평일: 11~21
+  if (day === 0 || MAIN_CLOSED.has(date)) return null
+  if (day === 6) return Array.from({ length: 8 }, (_, i) => i + 11)
+  return Array.from({ length: 11 }, (_, i) => i + 11)
 }
 
 function shortName(name: string) {
@@ -42,13 +41,12 @@ function getRoomSoftware(name: string): string {
 }
 
 function getRoomColor(name: string) {
-  if (name.startsWith('PIANO'))   return { bg: 'rgba(99,102,241,0.13)',  border: 'rgba(99,102,241,0.28)',  text: '#a5b4fc' }
-  if (name.startsWith('MIDI'))    return { bg: 'rgba(6,182,212,0.13)',   border: 'rgba(6,182,212,0.28)',   text: '#67e8f9' }
-  if (name.startsWith('GUITAR'))  return { bg: 'rgba(251,146,60,0.13)',  border: 'rgba(251,146,60,0.28)',  text: '#fdba74' }
+  if (name.startsWith('PIANO'))   return { bg: '#eef2ff', border: '#c7d2fe', text: '#6366f1' }
+  if (name.startsWith('MIDI'))    return { bg: '#ecfeff', border: '#a5f3fc', text: '#0891b2' }
+  if (name.startsWith('GUITAR'))  return { bg: '#fff7ed', border: '#fed7aa', text: '#ea580c' }
   if (name.startsWith('DRUMS') || name === '소극장' || name === '녹음실' || name.startsWith('ENSEMBLE'))
-                                  return { bg: 'rgba(244,63,94,0.13)',   border: 'rgba(244,63,94,0.28)',   text: '#fda4af' }
-  // 별관
-  return { bg: 'rgba(16,185,129,0.13)', border: 'rgba(16,185,129,0.28)', text: '#6ee7b7' }
+                                  return { bg: '#fff1f2', border: '#fecdd3', text: '#e11d48' }
+  return { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' }
 }
 
 function typeLabel(t: string | null) {
@@ -125,34 +123,20 @@ export default function BookPage() {
       return hour > curHour || (hour === curHour && curMin < 50)
     }
     if (!isToday) return false
-
     const curHour = now.getHours()
     const curMin = now.getMinutes()
-
-    // 10:50 전에는 예약 불가
     if (curHour < 10 || (curHour === 10 && curMin < 50)) return false
-
-    // 같은 시간대 중복 예약 불가 (본관·별관 통합)
     if (myBookings.some(b => b.date === date && b.start_hour === hour)) return false
-
-    // 별관: 입시/오디션은 원하는 시간 자유 예약
     if (building === 'annex' && (account.student_type === 'exam' || account.student_type === 'audition')) {
       return true
     }
-
     const todayCount = myBookings.filter(b => b.date === date).length
-    // :50 이후엔 다음 시간이 effective current
     const effectiveHour = curMin >= 50 ? curHour + 1 : curHour
     const active = myBookings.find(b => b.date === date && b.start_hour === effectiveHour)
-
     if (active) {
-      // 2시간 블록 이내 → 즉시 예약 가능
       if (todayCount < 2) return hour === effectiveHour + 1
-      // 2시간 초과 연장 → :50 이후에만 가능
       return curMin >= 50 && hour === effectiveHour + 1
     }
-
-    // 항상 effective current부터 순서대로 예약 (다음 시간은 현재 시간 예약 후 열림)
     return hour === effectiveHour
   }
 
@@ -167,7 +151,6 @@ export default function BookPage() {
   async function handleBook(roomId: string, hour: number) {
     if (!account || !canBook(roomId, hour)) return
     if (getBooking(roomId, hour)) return
-
     if (account.student_type === 'admin') {
       const name = window.prompt('예약자 이름')
       if (!name?.trim()) return
@@ -182,7 +165,6 @@ export default function BookPage() {
       setBooking(false)
       return
     }
-
     setBooking(true)
     const { error } = await supabase.from('bookings').insert({
       account_id: account.id, room_id: roomId, date,
@@ -196,8 +178,6 @@ export default function BookPage() {
   async function handleCancel(bookingId: string) {
     const target = myBookings.find(b => b.id === bookingId) ?? bookings.find(b => b.id === bookingId)
     if (!target) return
-
-    // 취소 대상: 선택한 시간 + 같은 예약자의 연속된 이후 예약 전부
     const sourceList = myBookings.some(b => b.id === bookingId)
       ? myBookings
       : target.account_id
@@ -211,12 +191,8 @@ export default function BookPage() {
       toCancel.push(found.id)
       next++
     }
-
-    const msg = toCancel.length > 1
-      ? `${toCancel.length}개 예약이 연속으로 취소됩니다. 취소할까요?`
-      : '예약을 취소할까요?'
+    const msg = toCancel.length > 1 ? `${toCancel.length}개 예약이 연속으로 취소됩니다. 취소할까요?` : '예약을 취소할까요?'
     if (!confirm(msg)) return
-
     await supabase.from('bookings').delete().in('id', toCancel)
     await loadData()
   }
@@ -230,81 +206,85 @@ export default function BookPage() {
   const isExam = account?.student_type === 'exam' || account?.student_type === 'audition' || account?.student_type === 'professional' || account?.student_type === 'admin'
   const currentHour = now.getHours()
   const isMain = building === 'main'
-  const operatingHours = getHours(date, building) // null = 휴무
+  const operatingHours = getHours(date, building)
 
-  // 색은 최소화: 포인트 컬러만 정의
   const color = isMain
-    ? { primary: '#6366f1', glow: 'rgba(99,102,241,0.25)', bookableBg: 'rgba(99,102,241,0.08)', bookableBorder: 'rgba(99,102,241,0.22)', bookableHotBg: 'rgba(99,102,241,0.14)', bookableHotBorder: 'rgba(99,102,241,0.38)', text: '#a5b4fc' }
-    : { primary: '#10b981', glow: 'rgba(16,185,129,0.25)', bookableBg: 'rgba(16,185,129,0.08)', bookableBorder: 'rgba(16,185,129,0.22)', bookableHotBg: 'rgba(16,185,129,0.14)', bookableHotBorder: 'rgba(16,185,129,0.38)', text: '#6ee7b7' }
+    ? { primary: '#6366f1', bookableBg: '#eef2ff', bookableBorder: '#c7d2fe', bookableHotBg: '#e0e7ff', bookableHotBorder: '#a5b4fc', text: '#6366f1' }
+    : { primary: '#16a34a', bookableBg: '#f0fdf4', bookableBorder: '#bbf7d0', bookableHotBg: '#dcfce7', bookableHotBorder: '#86efac', text: '#16a34a' }
 
   const mainRoomTypes = [
-    { key: 'piano',  label: '피아노',    color: '#a5b4fc', dimColor: 'rgba(165,180,252,0.45)', activeBg: 'rgba(99,102,241,0.18)',  activeBorder: 'rgba(99,102,241,0.35)',  dimBorder: 'rgba(99,102,241,0.15)',  filter: (r: Room) => r.name.startsWith('PIANO') },
-    { key: 'midi',   label: 'MIDI',      color: '#67e8f9', dimColor: 'rgba(103,232,249,0.45)', activeBg: 'rgba(6,182,212,0.18)',   activeBorder: 'rgba(6,182,212,0.35)',   dimBorder: 'rgba(6,182,212,0.15)',   filter: (r: Room) => r.name.startsWith('MIDI') },
-    { key: 'guitar', label: '기타&베이스', color: '#fdba74', dimColor: 'rgba(253,186,116,0.45)', activeBg: 'rgba(251,146,60,0.18)',  activeBorder: 'rgba(251,146,60,0.35)',  dimBorder: 'rgba(251,146,60,0.15)',  filter: (r: Room) => r.name.startsWith('GUITAR') },
-    { key: 'etc',    label: '드럼&그외',  color: '#fda4af', dimColor: 'rgba(253,164,175,0.45)', activeBg: 'rgba(244,63,94,0.18)',   activeBorder: 'rgba(244,63,94,0.35)',   dimBorder: 'rgba(244,63,94,0.15)',   filter: (r: Room) => r.name.startsWith('DRUMS') || r.name === '소극장' || r.name === '녹음실' || r.name.startsWith('ENSEMBLE') },
+    { key: 'piano',  label: '피아노',     color: '#6366f1', dimColor: '#a8a8cc', activeBg: '#eef2ff', activeBorder: '#c7d2fe', dimBorder: '#ebebf5', filter: (r: Room) => r.name.startsWith('PIANO') },
+    { key: 'midi',   label: 'MIDI',       color: '#0891b2', dimColor: '#88b0c0', activeBg: '#ecfeff', activeBorder: '#a5f3fc', dimBorder: '#ebebf5', filter: (r: Room) => r.name.startsWith('MIDI') },
+    { key: 'guitar', label: '기타&베이스', color: '#ea580c', dimColor: '#c8a088', activeBg: '#fff7ed', activeBorder: '#fed7aa', dimBorder: '#ebebf5', filter: (r: Room) => r.name.startsWith('GUITAR') },
+    { key: 'etc',    label: '드럼&그외',   color: '#e11d48', dimColor: '#c89098', activeBg: '#fff1f2', activeBorder: '#fecdd3', dimBorder: '#ebebf5', filter: (r: Room) => r.name.startsWith('DRUMS') || r.name === '소극장' || r.name === '녹음실' || r.name.startsWith('ENSEMBLE') },
   ] as const
 
   const filteredRooms = building === 'annex' ? rooms : rooms.filter(
     mainRoomTypes.find(t => t.key === roomType)?.filter ?? (() => true)
   )
 
-  if (!account) return <div className="min-h-screen" style={{ background: '#0c0c12' }} />
+  // badge style per student type
+  const typeBadgeStyle = {
+    exam:         { bg: '#eef2ff', color: '#6366f1' },
+    audition:     { bg: '#fefce8', color: '#d97706' },
+    professional: { bg: '#f0fdf4', color: '#16a34a' },
+    admin:        { bg: '#fff7ed', color: '#ea580c' },
+    hobby:        { bg: '#faf5ff', color: '#9333ea' },
+  }
+  const badgeStyle = typeBadgeStyle[account?.student_type ?? 'hobby'] ?? typeBadgeStyle.hobby
+
+  if (!account) return <div className="min-h-screen" style={{ background: '#f0f0f8' }} />
 
   return (
-    <div className="min-h-screen pb-28" style={{ background: '#0c0c12' }}>
+    <div className="min-h-screen pb-28" style={{ background: '#f0f0f8' }}>
 
       {/* ── 헤더 ── */}
-      <div className="sticky top-0 z-20" style={{ background: 'rgba(12,12,18,0.96)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="sticky top-0 z-20" style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(24px)', borderBottom: '1px solid #e8e8f2' }}>
 
         {/* 상단: 브랜드 + 로그아웃 */}
         <div className="flex items-center justify-between"
-          style={{ padding: '20px 20px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+          style={{ padding: '16px 20px', borderBottom: '1px solid #f0f0f8' }}>
           <div className="flex items-center gap-4">
-            {/* KH 로고 */}
             <div className="relative">
-              <img src="/logo.png" alt="KH Music" className="w-14 h-14 rounded-2xl object-cover"
-                style={{ boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }} />
-              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0c0c12]"
+              <img src="/logo.png" alt="KH Music" className="w-12 h-12 rounded-2xl object-cover"
+                style={{ boxShadow: '0 4px 16px rgba(99,102,241,0.2)' }} />
+              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white"
                 style={{ background: '#22c55e' }} />
             </div>
-
-            {/* 텍스트 */}
             <div>
-              <p className="text-white font-black text-2xl leading-none tracking-tight">연습실 예약</p>
-              <div className="flex items-center gap-1.5 mt-2">
-                <p className="text-[13px] font-semibold" style={{ color: 'rgba(255,255,255,0.6)' }}>{account.name}</p>
-                <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10 }}>·</span>
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                  style={{
-                    background: account.student_type === 'exam' ? 'rgba(99,102,241,0.18)' : account.student_type === 'audition' ? 'rgba(245,158,11,0.18)' : account.student_type === 'professional' ? 'rgba(16,185,129,0.18)' : account.student_type === 'admin' ? 'rgba(251,146,60,0.18)' : 'rgba(168,85,247,0.18)',
-                    color: account.student_type === 'exam' ? '#a5b4fc' : account.student_type === 'audition' ? '#fde68a' : account.student_type === 'professional' ? '#6ee7b7' : account.student_type === 'admin' ? '#fed7aa' : '#d8b4fe',
-                  }}>
+              <p className="font-black text-xl leading-none tracking-tight" style={{ color: '#1e1b4b' }}>연습실 예약</p>
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <p className="text-[13px] font-semibold" style={{ color: '#6b6b9a' }}>{account.name}</p>
+                <span style={{ color: '#c0c0d8', fontSize: 10 }}>·</span>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: badgeStyle.bg, color: badgeStyle.color }}>
                   {typeLabel(account.student_type)}
                 </span>
               </div>
             </div>
           </div>
-
           <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
-            className="text-[11px] font-medium px-3 py-1.5 rounded-lg transition"
-            style={{ color: 'rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.04)' }}>
+            className="text-[11px] font-medium px-3 py-1.5 rounded-lg border transition"
+            style={{ color: '#a0a0c0', background: '#f5f5fb', borderColor: '#e8e8f2' }}>
             로그아웃
           </button>
         </div>
 
         {/* 건물 탭 */}
-        <div className="flex gap-3" style={{ padding: '16px 16px 8px' }}>
+        <div className="flex gap-3" style={{ padding: '12px 16px 8px' }}>
           {(['main', 'annex'] as const).map(b => {
             const active = building === b
-            const c = b === 'main' ? { color: '#818cf8', bg: 'rgba(99,102,241,0.18)', border: 'rgba(99,102,241,0.35)' }
-                                   : { color: '#34d399', bg: 'rgba(52,211,153,0.18)', border: 'rgba(52,211,153,0.35)' }
+            const c = b === 'main'
+              ? { color: '#6366f1', bg: '#eef2ff', border: '#c7d2fe' }
+              : { color: '#16a34a', bg: '#f0fdf4', border: '#86efac' }
             return (
               <button key={b} onClick={() => setBuilding(b)}
-                className="flex-1 py-4 rounded-2xl text-base font-black transition-all"
+                className="flex-1 py-3.5 rounded-2xl text-base font-black transition-all border"
                 style={{
-                  background: active ? c.bg : 'rgba(255,255,255,0.04)',
-                  color: active ? c.color : 'rgba(255,255,255,0.25)',
-                  border: `1px solid ${active ? c.border : 'rgba(255,255,255,0.07)'}`,
+                  background: active ? c.bg : '#ffffff',
+                  color: active ? c.color : '#a0a0c0',
+                  borderColor: active ? c.border : '#e8e8f2',
+                  boxShadow: active ? `0 4px 14px ${b === 'main' ? 'rgba(99,102,241,0.18)' : 'rgba(22,163,74,0.18)'}` : '0 1px 3px rgba(0,0,0,0.04)',
                   letterSpacing: '0.05em',
                 }}>
                 {b === 'main' ? '본관' : '별관'}
@@ -315,16 +295,17 @@ export default function BookPage() {
 
         {/* 방 종류 탭 (본관만) */}
         {building === 'main' && (
-          <div className="flex gap-2 px-4 py-4">
+          <div className="flex gap-2 px-4 py-3">
             {mainRoomTypes.map(t => {
               const active = roomType === t.key
               return (
                 <button key={t.key} onClick={() => setRoomType(t.key)}
-                  className="flex-1 py-4 rounded-xl text-[13px] font-bold transition-all"
+                  className="flex-1 py-3 rounded-xl text-[13px] font-bold transition-all border"
                   style={{
-                    background: active ? t.activeBg : 'rgba(255,255,255,0.04)',
+                    background: active ? t.activeBg : '#ffffff',
                     color: active ? t.color : t.dimColor,
-                    border: `1px solid ${active ? t.activeBorder : t.dimBorder}`,
+                    borderColor: active ? t.activeBorder : t.dimBorder,
+                    boxShadow: active ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
                   }}>
                   {t.label}
                 </button>
@@ -334,22 +315,24 @@ export default function BookPage() {
         )}
       </div>
 
-      <div className="px-4 pt-5 space-y-5">
+      <div className="px-4 pt-5 space-y-4">
 
         {/* 날짜 */}
-        <input type="date" value={date} onChange={e => setDate(e.target.value)} min={todayStr()} max={account.student_type !== 'admin' ? todayStr() : undefined}
-          className="w-full rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition"
+        <input type="date" value={date} onChange={e => setDate(e.target.value)}
+          min={todayStr()} max={account.student_type !== 'admin' ? todayStr() : undefined}
+          className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition border"
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            colorScheme: 'dark',
+            background: '#ffffff',
+            borderColor: '#e4e4ef',
+            color: '#1e1b4b',
+            colorScheme: 'light',
           }} />
 
         {/* 안내 */}
         {isExam && account.student_type !== 'admin' && date === todayStr() && (
-          <div className="px-4 py-3 rounded-xl text-xs flex items-center gap-2"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.45)' }}>
-            <span style={{ color: color.text, fontSize: 14 }}>●</span>
+          <div className="px-4 py-3 rounded-xl text-xs flex items-center gap-2 border"
+            style={{ background: '#eef2ff', borderColor: '#c7d2fe', color: '#6366f1' }}>
+            <span style={{ fontSize: 14 }}>●</span>
             {currentHour < 10 || (currentHour === 10 && now.getMinutes() < 50)
               ? '10:50 이후 예약 가능'
               : myBookings.some(b => b.date === date && b.start_hour === currentHour)
@@ -360,15 +343,15 @@ export default function BookPage() {
           </div>
         )}
         {account.student_type === 'hobby' && (
-          <div className="px-4 py-3 rounded-xl text-xs flex items-center gap-2"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.45)' }}>
-            <span style={{ color: '#a78bfa', fontSize: 14 }}>●</span>
+          <div className="px-4 py-3 rounded-xl text-xs flex items-center gap-2 border"
+            style={{ background: '#faf5ff', borderColor: '#e9d5ff', color: '#9333ea' }}>
+            <span style={{ fontSize: 14 }}>●</span>
             하루 1시간 · 당일 10:50 이후 예약 가능
           </div>
         )}
-        {building === 'annex' && account.student_type !== 'exam' && account.student_type !== 'audition' && (
-          <div className="px-4 py-3.5 rounded-xl text-sm font-semibold text-center flex items-center justify-center gap-2"
-            style={{ background: 'rgba(251,146,60,0.12)', border: '1px solid rgba(251,146,60,0.3)', color: '#fdba74' }}>
+        {building === 'annex' && account.student_type !== 'exam' && account.student_type !== 'audition' && account.student_type !== 'admin' && (
+          <div className="px-4 py-3.5 rounded-xl text-sm font-semibold text-center flex items-center justify-center gap-2 border"
+            style={{ background: '#fff7ed', borderColor: '#fed7aa', color: '#ea580c' }}>
             <span style={{ fontSize: 16 }}>⚠️</span>
             별관은 입시반·오디션반만 이용 가능해요
           </div>
@@ -377,27 +360,25 @@ export default function BookPage() {
         {/* 내 예약 */}
         {myBookings.length > 0 && (
           <div>
-            <p className="text-[11px] font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.25)', letterSpacing: '0.08em' }}>
+            <p className="text-[11px] font-bold mb-2 uppercase tracking-widest" style={{ color: '#b0b0cc' }}>
               내 예약
             </p>
             <div className="space-y-2">
               {myBookings.map(b => (
-                <div key={b.id} className="flex items-center justify-between px-4 py-3.5 rounded-xl"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <div key={b.id} className="flex items-center justify-between px-4 py-3.5 rounded-xl bg-white border"
+                  style={{ borderColor: '#e8e8f2', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                   <div className="flex items-center gap-3">
                     <div className="w-[2px] h-8 rounded-full" style={{ background: color.primary }} />
                     <div>
-                      <p className="text-white text-sm font-semibold leading-none">{(b.room as Room).name}</p>
-                      <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                      <p className="text-sm font-semibold leading-none" style={{ color: '#1e1b4b' }}>{(b.room as Room).name}</p>
+                      <p className="text-[11px] mt-1" style={{ color: '#a0a0c0' }}>
                         {b.date} · {fmt(b.start_hour)} ~ {fmt(b.end_hour)}
                       </p>
                     </div>
                   </div>
                   <button onClick={() => handleCancel(b.id)}
-                    className="text-[11px] px-2.5 py-1.5 rounded-lg font-medium transition"
-                    style={{ color: 'rgba(248,113,113,0.6)', background: 'transparent' }}
-                    onMouseOver={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.08)')}
-                    onMouseOut={e => (e.currentTarget.style.background = 'transparent')}>
+                    className="text-[11px] px-2.5 py-1.5 rounded-lg font-medium transition border"
+                    style={{ color: '#ef4444', background: '#fef2f2', borderColor: '#fecaca' }}>
                     취소
                   </button>
                 </div>
@@ -408,20 +389,20 @@ export default function BookPage() {
 
         {/* 예약 그리드 */}
         {loading ? (
-          <div className="text-center py-20 text-sm" style={{ color: 'rgba(255,255,255,0.12)' }}>불러오는 중...</div>
+          <div className="text-center py-20 text-sm" style={{ color: '#c0c0d8' }}>불러오는 중...</div>
         ) : operatingHours === null ? (
-          <div className="py-16 text-center rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="py-16 text-center rounded-2xl bg-white border" style={{ borderColor: '#e8e8f2' }}>
             <p className="text-2xl mb-3">🔒</p>
-            <p className="text-sm font-semibold text-white/50">
+            <p className="text-sm font-semibold" style={{ color: '#6b6b9a' }}>
               {building === 'main' ? '본관' : '별관'} 휴무일이에요
             </p>
-            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
+            <p className="text-xs mt-1" style={{ color: '#b0b0cc' }}>
               {new Date(date + 'T00:00:00').getDay() === 0 ? '일요일은 본관이 운영하지 않아요' : '해당일은 휴무예요'}
             </p>
           </div>
         ) : (
           <div>
-            <p className="text-[11px] font-semibold mb-3" style={{ color: 'rgba(255,255,255,0.25)', letterSpacing: '0.08em' }}>
+            <p className="text-[11px] font-bold mb-3 uppercase tracking-widest" style={{ color: '#b0b0cc' }}>
               예약 현황
             </p>
             <div className="overflow-x-auto -mx-4 px-4">
@@ -438,17 +419,20 @@ export default function BookPage() {
                   const rc = getRoomColor(r.name)
                   return (
                     <div key={`hdr-${r.id}`} className="flex flex-col items-center justify-center py-2.5 rounded-lg gap-0.5"
-                      style={{ background: r.is_locked ? 'rgba(255,255,255,0.03)' : rc.bg, border: `1px solid ${r.is_locked ? 'rgba(255,255,255,0.08)' : rc.border}` }}>
-                      <span className="text-[10px] font-bold" style={{ color: r.is_locked ? 'rgba(255,255,255,0.25)' : rc.text, letterSpacing: '0.02em' }}>
+                      style={{
+                        background: r.is_locked ? '#f5f5fa' : rc.bg,
+                        border: `1px solid ${r.is_locked ? '#e0e0ee' : rc.border}`,
+                      }}>
+                      <span className="text-[10px] font-bold" style={{ color: r.is_locked ? '#c0c0d8' : rc.text, letterSpacing: '0.02em' }}>
                         {r.is_locked ? '🔒' : shortName(r.name)}
                       </span>
                       {!r.is_locked && getRoomSoftware(r.name) && (
-                        <span className="text-[8px] font-medium" style={{ color: rc.text, opacity: 0.6, letterSpacing: '0.01em' }}>
+                        <span className="text-[8px] font-medium" style={{ color: rc.text, opacity: 0.6 }}>
                           {getRoomSoftware(r.name)}
                         </span>
                       )}
                       {r.is_locked && (
-                        <span className="text-[8px]" style={{ color: 'rgba(255,255,255,0.2)' }}>사용불가</span>
+                        <span className="text-[8px]" style={{ color: '#c0c0d8' }}>사용불가</span>
                       )}
                     </div>
                   )
@@ -459,7 +443,7 @@ export default function BookPage() {
                   const isCurrent = h === currentHour && date === todayStr()
                   return [
                     <div key={`t-${h}`} className="flex items-center justify-end pr-2">
-                      <span className="text-[11px] font-bold" style={{ color: isCurrent ? color.text : 'rgba(255,255,255,0.55)' }}>
+                      <span className="text-[11px] font-bold" style={{ color: isCurrent ? color.primary : '#a0a0c0' }}>
                         {h}
                       </span>
                     </div>,
@@ -474,16 +458,16 @@ export default function BookPage() {
                         if (account.student_type === 'admin') return (
                           <button key={`${h}-${r.id}`} onClick={() => handleDeleteClass(cls.id, cls.instructor)}
                             className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                            style={{ background: 'rgba(244,63,94,0.09)', border: '1px solid rgba(244,63,94,0.22)' }}>
-                            <span className="text-[9px] font-semibold truncate px-1.5" style={{ color: 'rgba(251,113,133,0.85)' }}>
+                            style={{ background: '#fde8ef', border: '1px solid #fca5b8' }}>
+                            <span className="text-[9px] font-semibold truncate px-1.5" style={{ color: '#e11d48' }}>
                               {cls.instructor}
                             </span>
                           </button>
                         )
                         return (
                           <div key={`${h}-${r.id}`} className="h-11 rounded-lg flex items-center justify-center"
-                            style={{ background: 'rgba(244,63,94,0.09)', border: '1px solid rgba(244,63,94,0.14)' }}>
-                            <span className="text-[9px] font-semibold truncate px-1.5" style={{ color: 'rgba(251,113,133,0.7)' }}>
+                            style={{ background: '#fde8ef', border: '1px solid #fecdd3' }}>
+                            <span className="text-[9px] font-semibold truncate px-1.5" style={{ color: '#e11d48', opacity: 0.8 }}>
                               {cls.instructor}
                             </span>
                           </div>
@@ -493,8 +477,8 @@ export default function BookPage() {
                       if (isMine) return (
                         <button key={`${h}-${r.id}`} onClick={() => handleCancel(bk!.id)}
                           className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                          style={{ background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.28)' }}>
-                          <span className="text-[9px] font-bold truncate px-1.5" style={{ color: '#6ee7b7' }}>
+                          style={{ background: '#f0fdf4', border: '1px solid #86efac' }}>
+                          <span className="text-[9px] font-bold truncate px-1.5" style={{ color: '#16a34a' }}>
                             {account.student_type === 'admin' ? 'X' : account.name}
                           </span>
                         </button>
@@ -504,26 +488,26 @@ export default function BookPage() {
                         if (account.student_type === 'admin') return (
                           <button key={`${h}-${r.id}`} onClick={() => handleCancel(bk.id)}
                             className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                            <span className="text-[9px] font-medium truncate px-1.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                            style={{ background: '#f5f5fb', border: '1px solid #e0e0f0' }}>
+                            <span className="text-[9px] font-medium truncate px-1.5" style={{ color: '#6b6b9a' }}>
                               {bk.external_name ?? bk.account?.name ?? '?'}
                             </span>
                           </button>
                         )
                         return (
                           <div key={`${h}-${r.id}`} className="h-11 rounded-lg"
-                            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.05)' }} />
+                            style={{ background: '#f0f0f8', border: '1px solid #e4e4ef' }} />
                         )
                       }
 
                       if (restricted || !bookable) return (
                         <div key={`${h}-${r.id}`} className="h-11 rounded-lg"
-                          style={{ background: 'rgba(255,255,255,0.02)' }} />
+                          style={{ background: '#fafafa', border: '1px solid #f0f0f0' }} />
                       )
 
                       return (
                         <button key={`${h}-${r.id}`} onClick={() => handleBook(r.id, h)} disabled={booking}
-                          className="h-11 rounded-lg flex items-center justify-center transition active:scale-95 disabled:opacity-30"
+                          className="h-11 rounded-lg flex items-center justify-center transition active:scale-95 disabled:opacity-40"
                           style={{
                             background: isCurrent ? color.bookableHotBg : color.bookableBg,
                             border: `1px solid ${isCurrent ? color.bookableHotBorder : color.bookableBorder}`,
@@ -539,28 +523,28 @@ export default function BookPage() {
 
             {/* 별관 현관 비밀번호 */}
             {building === 'annex' && (
-              <div className="mt-5 px-5 py-4 rounded-2xl flex items-center gap-3"
-                style={{ background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.2)' }}>
+              <div className="mt-5 px-5 py-4 rounded-2xl flex items-center gap-3 border"
+                style={{ background: '#f0fdf4', borderColor: '#86efac' }}>
                 <span style={{ fontSize: 20 }}>🔐</span>
                 <div>
-                  <p className="text-xs font-semibold mb-0.5" style={{ color: 'rgba(52,211,153,0.6)' }}>별관 현관 비밀번호</p>
-                  <p className="text-lg font-black tracking-widest" style={{ color: '#34d399' }}>2094*</p>
+                  <p className="text-xs font-semibold mb-0.5" style={{ color: '#16a34a', opacity: 0.7 }}>별관 현관 비밀번호</p>
+                  <p className="text-lg font-black tracking-widest" style={{ color: '#16a34a' }}>2094*</p>
                 </div>
               </div>
             )}
 
             {/* 범례 */}
-            <div className="flex gap-3 mt-5 flex-wrap px-1">
+            <div className="flex gap-3 mt-4 flex-wrap px-1">
               {[
                 { bg: color.bookableBg, border: color.bookableBorder, label: '예약 가능' },
-                { bg: 'rgba(16,185,129,0.14)', border: 'rgba(16,185,129,0.28)', label: '내 예약' },
-                { bg: 'rgba(255,255,255,0.07)', border: 'rgba(255,255,255,0.12)', label: '예약됨' },
-                { bg: 'rgba(244,63,94,0.12)', border: 'rgba(244,63,94,0.25)', label: '수업' },
+                { bg: '#f0fdf4', border: '#86efac', label: '내 예약' },
+                { bg: '#f0f0f8', border: '#e4e4ef', label: '예약됨' },
+                { bg: '#fde8ef', border: '#fecdd3', label: '수업' },
               ].map(item => (
-                <div key={item.label} className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <div className="w-3 h-3 rounded-[3px]" style={{ background: item.bg, border: `1px solid ${item.border}` }} />
-                  <span className="text-[11px] font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>{item.label}</span>
+                <div key={item.label} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border"
+                  style={{ borderColor: '#e8e8f2' }}>
+                  <div className="w-3 h-3 rounded-[3px] border" style={{ background: item.bg, borderColor: item.border }} />
+                  <span className="text-[11px] font-medium" style={{ color: '#9898b8' }}>{item.label}</span>
                 </div>
               ))}
             </div>
