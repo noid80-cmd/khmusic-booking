@@ -69,6 +69,10 @@ export default function BookPage() {
   const [loading, setLoading] = useState(true)
   const [booking, setBooking] = useState(false)
   const [now, setNow] = useState(new Date())
+  const [adminModal, setAdminModal] = useState<{ roomId: string, hour: number } | null>(null)
+  const [adminName, setAdminName] = useState('')
+  const [adminIsClass, setAdminIsClass] = useState(false)
+  const [adminEndHour, setAdminEndHour] = useState(12)
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 30000)
@@ -97,9 +101,7 @@ export default function BookPage() {
       supabase.from('bookings').select('*, account:accounts(name)').eq('date', date).in('room_id',
         (await supabase.from('rooms').select('id').eq('building', building)).data?.map(r => r.id) || []
       ),
-      building === 'main'
-        ? supabase.from('class_schedules').select('*').eq('date', date)
-        : Promise.resolve({ data: [] }),
+      supabase.from('class_schedules').select('*').eq('date', date),
       supabase.from('bookings').select('*, room:rooms(*)').eq('account_id', account!.id).gte('date', todayStr()).order('date').order('start_hour'),
     ])
     setRooms(roomsRes.data || [])
@@ -152,17 +154,10 @@ export default function BookPage() {
     if (!account || !canBook(roomId, hour)) return
     if (getBooking(roomId, hour)) return
     if (account.student_type === 'admin') {
-      const name = window.prompt('예약자 이름')
-      if (!name?.trim()) return
-      setBooking(true)
-      const { error } = await supabase.from('bookings').insert({
-        account_id: null, room_id: roomId, date,
-        start_hour: hour, end_hour: hour + 1,
-        booking_type: 'external', external_name: name.trim(),
-      })
-      if (error) alert('예약 실패: ' + error.message)
-      await loadData()
-      setBooking(false)
+      setAdminName('')
+      setAdminIsClass(false)
+      setAdminEndHour(hour + 1)
+      setAdminModal({ roomId, hour })
       return
     }
     setBooking(true)
@@ -195,6 +190,28 @@ export default function BookPage() {
     if (!confirm(msg)) return
     await supabase.from('bookings').delete().in('id', toCancel)
     await loadData()
+  }
+
+  async function handleAdminConfirm() {
+    if (!adminModal || !adminName.trim()) return
+    const { roomId, hour } = adminModal
+    setAdminModal(null)
+    setBooking(true)
+    if (adminIsClass) {
+      const { error } = await supabase.from('class_schedules').insert({
+        room_id: roomId, date, start_hour: hour, end_hour: adminEndHour, instructor: adminName.trim()
+      })
+      if (error) alert('수업 등록 실패: ' + error.message)
+    } else {
+      const { error } = await supabase.from('bookings').insert({
+        account_id: null, room_id: roomId, date,
+        start_hour: hour, end_hour: hour + 1,
+        booking_type: 'external', external_name: adminName.trim(),
+      })
+      if (error) alert('예약 실패: ' + error.message)
+    }
+    await loadData()
+    setBooking(false)
   }
 
   async function handleDeleteClass(classId: string, instructor: string) {
@@ -551,6 +568,67 @@ export default function BookPage() {
           </div>
         )}
       </div>
+
+      {/* 어드민 예약/수업 등록 모달 */}
+      {adminModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+          style={{ background: 'rgba(30,27,75,0.3)', backdropFilter: 'blur(6px)' }}
+          onClick={e => { if (e.target === e.currentTarget) setAdminModal(null) }}>
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl" style={{ border: '1px solid #e8e8f2' }}>
+            <h3 className="font-black text-lg mb-1" style={{ color: '#1e1b4b' }}>
+              {adminModal.hour}:00 예약 등록
+            </h3>
+            <p className="text-xs mb-5" style={{ color: '#a0a0c0' }}>이름을 입력하고 수업 여부를 선택하세요</p>
+
+            <input
+              value={adminName} onChange={e => setAdminName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAdminConfirm()}
+              placeholder={adminIsClass ? '강사명' : '예약자 이름'}
+              autoFocus
+              className="w-full border rounded-2xl px-4 py-3.5 text-[15px] focus:outline-none mb-4 transition"
+              style={{ borderColor: adminIsClass ? '#fca5b8' : '#e4e4ef', color: '#1e1b4b', background: adminIsClass ? '#fff5f7' : '#ffffff' }} />
+
+            {/* 수업 토글 */}
+            <div className="flex items-center justify-between mb-4 px-1">
+              <div>
+                <p className="text-sm font-bold" style={{ color: adminIsClass ? '#e11d48' : '#6b6b9a' }}>수업</p>
+                <p className="text-xs" style={{ color: '#b0b0cc' }}>체크 시 분홍으로 표시돼요</p>
+              </div>
+              <button onClick={() => setAdminIsClass(!adminIsClass)}
+                className="w-13 h-7 rounded-full transition-all relative flex-shrink-0"
+                style={{ background: adminIsClass ? '#fca5b8' : '#e4e4ef', width: 52, height: 28 }}>
+                <span className="absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-all"
+                  style={{ left: adminIsClass ? 28 : 4 }} />
+              </button>
+            </div>
+
+            {/* 종료 시간 (수업일 때만) */}
+            {adminIsClass && (
+              <select value={adminEndHour} onChange={e => setAdminEndHour(Number(e.target.value))}
+                className="w-full border rounded-2xl px-4 py-3.5 text-[15px] focus:outline-none mb-4 cursor-pointer"
+                style={{ borderColor: '#fca5b8', color: '#e11d48', background: '#fde8ef', colorScheme: 'light' }}>
+                {Array.from({ length: 11 }, (_, i) => i + 11)
+                  .filter(h => h > adminModal.hour)
+                  .concat([22])
+                  .map(h => <option key={h} value={h}>{h}:00 까지</option>)}
+              </select>
+            )}
+
+            <div className="flex gap-3">
+              <button onClick={() => setAdminModal(null)}
+                className="flex-1 py-3.5 rounded-2xl font-semibold border"
+                style={{ background: '#f5f5fb', color: '#a0a0c0', borderColor: '#e8e8f2' }}>
+                취소
+              </button>
+              <button onClick={handleAdminConfirm} disabled={!adminName.trim()}
+                className="flex-1 py-3.5 rounded-2xl font-bold text-white transition disabled:opacity-40"
+                style={{ background: adminIsClass ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
+                {adminIsClass ? '수업 등록' : '예약'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
