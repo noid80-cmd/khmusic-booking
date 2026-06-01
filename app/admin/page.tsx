@@ -11,6 +11,21 @@ function todayStr() { return new Date().toISOString().slice(0, 10) }
 
 type PendingAccount = Account & { email?: string }
 
+function TypeBadge({ type }: { type: string | null }) {
+  const map: Record<string, { bg: string, color: string, border: string, label: string }> = {
+    exam:         { bg: '#eef2ff', color: '#6366f1', border: '#c7d2fe', label: '입시반' },
+    audition:     { bg: '#fefce8', color: '#d97706', border: '#fde68a', label: '오디션반' },
+    professional: { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0', label: '전문반' },
+    hobby:        { bg: '#faf5ff', color: '#9333ea', border: '#e9d5ff', label: '취미반' },
+    admin:        { bg: '#fff7ed', color: '#ea580c', border: '#fed7aa', label: '관리자' },
+  }
+  const s = map[type ?? ''] ?? { bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb', label: type ?? '?' }
+  return (
+    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full border"
+      style={{ background: s.bg, color: s.color, borderColor: s.border }}>{s.label}</span>
+  )
+}
+
 export default function AdminPage() {
   const [tab, setTab] = useState<'users' | 'schedule' | 'annex' | 'admins' | 'locks'>('users')
   const [myEmail, setMyEmail] = useState('')
@@ -23,7 +38,6 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [admins, setAdmins] = useState<{ id: string, email: string | null, user_id: string | null }[]>([])
   const [newAdminEmail, setNewAdminEmail] = useState('')
-
 
   const [annexRoom, setAnnexRoom] = useState('')
   const [annexDate, setAnnexDate] = useState(todayStr())
@@ -182,39 +196,45 @@ export default function AdminPage() {
   const annexRooms = rooms.filter(r => r.building === 'annex')
   const adminUserIds = new Set(admins.map(a => a.user_id).filter(Boolean))
 
-  const inputCls = 'w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-6 text-white text-[17px] focus:outline-none focus:border-indigo-500/50 transition'
+  const inputCls = 'w-full bg-white border border-[#e4e4ef] rounded-2xl px-5 py-4 text-[#1e1b4b] text-[15px] focus:outline-none focus:border-indigo-400 transition placeholder:text-[#c0c0d8]'
   const selectCls = inputCls + ' cursor-pointer'
 
-  if (loading) return <div className="min-h-screen bg-[#0c0c12] flex items-center justify-center text-white/30">로딩 중...</div>
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#f0f0f8' }}>
+      <p className="text-sm" style={{ color: '#b0b0cc' }}>로딩 중...</p>
+    </div>
+  )
 
   return (
-    <div className="min-h-screen pb-24" style={{ background: '#0c0c12' }}>
-      <style>{`select option { color: #111111 !important; background: #ffffff !important; }`}</style>
+    <div className="min-h-screen pb-24" style={{ background: '#f0f0f8' }}>
+      <style>{`select option { color: #1e1b4b !important; background: #ffffff !important; }`}</style>
 
       {/* 헤더 */}
-      <div className="sticky top-0 z-20 px-5 py-4 flex items-center justify-between border-b border-white/[0.07]"
-        style={{ background: 'rgba(12,12,18,0.95)', backdropFilter: 'blur(20px)' }}>
+      <div className="sticky top-0 z-20 px-5 py-4 flex items-center justify-between"
+        style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)', borderBottom: '1px solid #e8e8f2' }}>
         <div>
-          <h1 className="text-white font-black text-lg leading-none">관리자</h1>
-          <p className="text-white/30 text-xs mt-0.5">{myEmail}</p>
+          <h1 className="font-black text-lg leading-none" style={{ color: '#1e1b4b' }}>관리자</h1>
+          <p className="text-xs mt-0.5" style={{ color: '#a0a0c0' }}>{myEmail}</p>
         </div>
         <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
-          className="text-[11px] font-medium px-3 py-1.5 rounded-lg"
-          style={{ color: 'rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.05)' }}>
+          className="text-[11px] font-medium px-3 py-1.5 rounded-lg border"
+          style={{ color: '#a0a0c0', background: '#f5f5fb', borderColor: '#e8e8f2' }}>
           로그아웃
         </button>
       </div>
 
       {/* 탭 */}
-      <div className="flex px-4 pt-5 mb-6 gap-2">
+      <div className="flex px-4 pt-5 mb-5 gap-2">
         {([['users', '회원'], ['schedule', '본관 수업'], ['annex', '별관'], ['locks', '방 잠금'], ['admins', '관리자']] as const).map(([t, label]) => {
           const active = tab === t
           return (
             <button key={t} onClick={() => setTab(t)}
-              className="flex-1 py-4 rounded-2xl text-base font-bold transition-all relative"
+              className="flex-1 py-3.5 rounded-2xl text-[13px] font-bold transition-all relative"
               style={{
-                background: active ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : 'rgba(255,255,255,0.05)',
-                color: active ? '#fff' : 'rgba(255,255,255,0.35)',
+                background: active ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#ffffff',
+                color: active ? '#fff' : '#a0a0c0',
+                border: active ? 'none' : '1px solid #e8e8f2',
+                boxShadow: active ? '0 4px 14px rgba(99,102,241,0.28)' : '0 1px 3px rgba(0,0,0,0.04)',
               }}>
               {label}
               {t === 'users' && pending.length > 0 && (
@@ -234,17 +254,17 @@ export default function AdminPage() {
           <div className="space-y-3">
             {pending.length > 0 && (
               <div>
-                <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest mb-3">승인 대기 {pending.length}명</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: '#b0b0cc' }}>승인 대기 {pending.length}명</p>
                 {pending.map(u => (
-                  <div key={u.id} className="mb-4 p-6 rounded-2xl border"
-                    style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
-                    <p className="text-white font-bold text-base">{u.name}</p>
-                    <p className="text-white/40 text-sm mt-0.5">{u.phone}</p>
-                    <p className="text-white/25 text-xs mt-0.5">{new Date(u.created_at).toLocaleDateString('ko')}</p>
+                  <div key={u.id} className="mb-3 p-5 rounded-2xl bg-white"
+                    style={{ border: '1px solid #e8e8f2', boxShadow: '0 2px 10px rgba(99,102,241,0.08)' }}>
+                    <p className="font-bold text-base" style={{ color: '#1e1b4b' }}>{u.name}</p>
+                    <p className="text-sm mt-0.5" style={{ color: '#9898b8' }}>{u.phone}</p>
+                    <p className="text-xs mt-0.5" style={{ color: '#c0c0d8' }}>{new Date(u.created_at).toLocaleDateString('ko')}</p>
                     <div className="flex gap-2 mt-4">
                       <select onChange={e => approveUser(u.id, e.target.value as Account['student_type'])}
-                        className="flex-1 rounded-2xl px-5 py-5 text-base font-semibold focus:outline-none"
-                        style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: '#a5b4fc', colorScheme: 'dark' }}
+                        className="flex-1 rounded-2xl px-4 py-4 text-sm font-semibold focus:outline-none border cursor-pointer"
+                        style={{ background: '#eef2ff', borderColor: '#c7d2fe', color: '#6366f1', colorScheme: 'light' }}
                         defaultValue="">
                         <option value="" disabled>반 선택 후 승인</option>
                         <option value="exam">입시반</option>
@@ -254,8 +274,8 @@ export default function AdminPage() {
                         <option value="admin">관리자</option>
                       </select>
                       <button onClick={() => rejectUser(u.id)}
-                        className="px-5 py-5 rounded-2xl text-base font-semibold"
-                        style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }}>
+                        className="px-5 py-4 rounded-2xl text-sm font-semibold border"
+                        style={{ background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>
                         거절
                       </button>
                     </div>
@@ -264,32 +284,33 @@ export default function AdminPage() {
               </div>
             )}
 
-            <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest mb-3">승인된 회원 {approved.length}명</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: '#b0b0cc' }}>승인된 회원 {approved.length}명</p>
             {approved.map(u => {
               const isAdmin = adminUserIds.has(u.user_id)
               const adminRecord = admins.find(a => a.user_id === u.user_id)
+              const typeColors: Record<string, { bg: string, color: string, border: string }> = {
+                exam:         { bg: '#eef2ff', color: '#6366f1', border: '#c7d2fe' },
+                audition:     { bg: '#fefce8', color: '#d97706', border: '#fde68a' },
+                professional: { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
+                hobby:        { bg: '#faf5ff', color: '#9333ea', border: '#e9d5ff' },
+                admin:        { bg: '#fff7ed', color: '#ea580c', border: '#fed7aa' },
+              }
+              const tc = typeColors[u.student_type ?? ''] ?? { bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb' }
               return (
-                <div key={u.id} className="px-6 py-5 rounded-2xl"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${isAdmin ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.07)'}` }}>
+                <div key={u.id} className="px-5 py-4 rounded-2xl bg-white"
+                  style={{ border: `1px solid ${isAdmin ? '#c7d2fe' : '#e8e8f2'}`, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-white font-semibold">{u.name}</p>
-                        {isAdmin && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                            style={{ background: 'rgba(99,102,241,0.2)', color: '#a5b4fc' }}>관리자</span>
-                        )}
+                        <p className="font-semibold" style={{ color: '#1e1b4b' }}>{u.name}</p>
+                        {isAdmin && <TypeBadge type="admin" />}
                       </div>
-                      <p className="text-white/35 text-sm mt-0.5">{u.phone}</p>
+                      <p className="text-sm mt-0.5" style={{ color: '#9898b8' }}>{u.phone}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <select value={u.student_type ?? ''} onChange={e => changeStudentType(u.id, e.target.value as Account['student_type'])}
-                        className="text-sm font-bold px-4 py-3 rounded-2xl focus:outline-none"
-                        style={{
-                          background: u.student_type === 'exam' ? 'rgba(99,102,241,0.15)' : u.student_type === 'audition' ? 'rgba(245,158,11,0.15)' : u.student_type === 'professional' ? 'rgba(16,185,129,0.15)' : u.student_type === 'admin' ? 'rgba(251,146,60,0.15)' : 'rgba(168,85,247,0.15)',
-                          color: u.student_type === 'exam' ? '#a5b4fc' : u.student_type === 'audition' ? '#fde68a' : u.student_type === 'professional' ? '#6ee7b7' : u.student_type === 'admin' ? '#fed7aa' : '#d8b4fe',
-                          border: 'none', colorScheme: 'dark', minWidth: '80px',
-                        }}>
+                        className="text-[12px] font-bold px-3 py-2 rounded-xl focus:outline-none border cursor-pointer"
+                        style={{ background: tc.bg, color: tc.color, borderColor: tc.border, colorScheme: 'light', minWidth: '80px' }}>
                         <option value="exam">입시반</option>
                         <option value="audition">오디션반</option>
                         <option value="professional">전문반</option>
@@ -298,15 +319,15 @@ export default function AdminPage() {
                       </select>
                       {isAdmin
                         ? <button onClick={() => adminRecord && removeAdmin(adminRecord.id, adminRecord.email ?? null)}
-                            className="text-xs font-medium px-3 py-1.5 rounded-xl"
-                            style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }}>해제</button>
+                            className="text-xs font-medium px-3 py-1.5 rounded-xl border"
+                            style={{ background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>해제</button>
                         : <button onClick={() => promoteToAdmin(u)}
-                            className="text-xs font-medium px-3 py-1.5 rounded-xl"
-                            style={{ background: 'rgba(99,102,241,0.12)', color: '#a5b4fc' }}>관리자</button>
+                            className="text-xs font-medium px-3 py-1.5 rounded-xl border"
+                            style={{ background: '#eef2ff', color: '#6366f1', borderColor: '#c7d2fe' }}>관리자</button>
                       }
                       <button onClick={() => deleteUser(u.id, u.name)}
-                        className="text-xs font-medium px-3 py-1.5 rounded-xl"
-                        style={{ background: 'rgba(239,68,68,0.08)', color: 'rgba(248,113,113,0.6)' }}>삭제</button>
+                        className="text-xs font-medium px-3 py-1.5 rounded-xl border"
+                        style={{ background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca', opacity: 0.7 }}>삭제</button>
                     </div>
                   </div>
                 </div>
@@ -319,8 +340,8 @@ export default function AdminPage() {
         {tab === 'schedule' && (
           <div className="space-y-4">
             <input type="date" value={date} onChange={e => setDate(e.target.value)}
-              className={inputCls} style={{ colorScheme: 'dark' }} />
-            <p className="text-white/25 text-xs px-1">빈 칸 탭 → 수업 등록 · 등록된 수업 탭 → 삭제</p>
+              className={inputCls} style={{ colorScheme: 'light' }} />
+            <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>빈 칸 탭 → 수업 등록 · 등록된 수업 탭 → 삭제</p>
             <div className="overflow-x-auto -mx-4 px-4">
               <div style={{
                 display: 'grid',
@@ -331,23 +352,23 @@ export default function AdminPage() {
                 <div />
                 {mainRooms.map(r => (
                   <div key={`hdr-${r.id}`} className="flex items-center justify-center py-2.5 rounded-lg"
-                    style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.22)' }}>
-                    <span className="text-[10px] font-bold" style={{ color: '#a5b4fc' }}>
+                    style={{ background: '#eef2ff', border: '1px solid #c7d2fe' }}>
+                    <span className="text-[10px] font-bold" style={{ color: '#6366f1' }}>
                       {r.name.replace('PIANO','P').replace('MIDI','M').replace('GUITAR & BASS','G&B').replace('ENSEMBLE ROOM','ENS').replace('DRUMS','DR')}
                     </span>
                   </div>
                 ))}
                 {HOURS.flatMap(h => [
                   <div key={`t-${h}`} className="flex items-center justify-end pr-2">
-                    <span className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.5)' }}>{h}</span>
+                    <span className="text-[11px] font-bold" style={{ color: '#a0a0c0' }}>{h}</span>
                   </div>,
                   ...mainRooms.map(r => {
                     const cls = classes.find(c => c.room_id === r.id && c.start_hour <= h && h < c.end_hour)
                     if (cls) return (
                       <button key={`${h}-${r.id}`} onClick={() => deleteClass(cls.id)}
                         className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                        style={{ background: 'rgba(244,63,94,0.12)', border: '1px solid rgba(244,63,94,0.28)' }}>
-                        <span className="text-[9px] font-semibold truncate px-1" style={{ color: '#fda4af' }}>
+                        style={{ background: '#fde8ef', border: '1px solid #fca5b8' }}>
+                        <span className="text-[9px] font-semibold truncate px-1" style={{ color: '#e11d48' }}>
                           {cls.instructor}
                         </span>
                       </button>
@@ -355,8 +376,8 @@ export default function AdminPage() {
                     return (
                       <button key={`${h}-${r.id}`} onClick={() => addClassFromGrid(r.id, h)}
                         className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        <span className="text-[14px] font-light" style={{ color: 'rgba(255,255,255,0.1)' }}>+</span>
+                        style={{ background: '#f8f8fc', border: '1px solid #ebebf5' }}>
+                        <span className="text-[14px] font-light" style={{ color: '#d0d0e8' }}>+</span>
                       </button>
                     )
                   })
@@ -369,26 +390,26 @@ export default function AdminPage() {
         {/* ── 별관 예약 ── */}
         {tab === 'annex' && (
           <div className="space-y-3">
-            {/* 타입 선택 */}
             <div className="flex gap-2">
               {(['external', 'monthly'] as const).map(type => (
                 <button key={type} onClick={() => setAnnexType(type)}
-                  className="flex-1 py-5 rounded-2xl text-base font-bold transition"
+                  className="flex-1 py-4 rounded-2xl text-sm font-bold transition border"
                   style={{
-                    background: annexType === type ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.05)',
-                    color: annexType === type ? '#6ee7b7' : 'rgba(255,255,255,0.35)',
-                    border: annexType === type ? '1px solid rgba(16,185,129,0.3)' : '1px solid transparent',
+                    background: annexType === type ? '#f0fdf4' : '#ffffff',
+                    color: annexType === type ? '#16a34a' : '#a0a0c0',
+                    borderColor: annexType === type ? '#86efac' : '#e8e8f2',
+                    boxShadow: annexType === type ? '0 2px 8px rgba(22,163,74,0.12)' : 'none',
                   }}>
                   {type === 'external' ? '시간제' : '월렌탈'}
                 </button>
               ))}
             </div>
 
-            <div className="p-6 rounded-2xl space-y-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <p className="text-white/50 text-sm font-semibold">{annexType === 'monthly' ? '월렌탈 추가' : '시간제 예약 추가'}</p>
+            <div className="p-5 rounded-2xl bg-white space-y-3" style={{ border: '1px solid #e8e8f2', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+              <p className="text-sm font-semibold" style={{ color: '#6b6b9a' }}>{annexType === 'monthly' ? '월렌탈 추가' : '시간제 예약 추가'}</p>
 
               <select value={annexRoom} onChange={e => setAnnexRoom(e.target.value)}
-                className={selectCls} style={{ colorScheme: 'dark' }}>
+                className={selectCls} style={{ colorScheme: 'light' }}>
                 <option value="">연습실 선택</option>
                 {annexRooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
@@ -396,23 +417,23 @@ export default function AdminPage() {
               {annexType === 'monthly' ? (
                 <div className="flex gap-3 items-center">
                   <input type="date" value={monthlyStart} onChange={e => setMonthlyStart(e.target.value)}
-                    className={inputCls + ' flex-1'} style={{ colorScheme: 'dark' }} />
-                  <span className="text-white/30 text-lg">~</span>
+                    className={inputCls + ' flex-1'} style={{ colorScheme: 'light' }} />
+                  <span className="text-lg" style={{ color: '#c0c0d8' }}>~</span>
                   <input type="date" value={monthlyEnd} onChange={e => setMonthlyEnd(e.target.value)}
-                    className={inputCls + ' flex-1'} style={{ colorScheme: 'dark' }} />
+                    className={inputCls + ' flex-1'} style={{ colorScheme: 'light' }} />
                 </div>
               ) : (
                 <>
                   <input type="date" value={annexDate} onChange={e => setAnnexDate(e.target.value)}
-                    className={inputCls} style={{ colorScheme: 'dark' }} />
+                    className={inputCls} style={{ colorScheme: 'light' }} />
                   <div className="flex gap-3">
                     <select value={annexStart} onChange={e => setAnnexStart(Number(e.target.value))}
-                      className={selectCls} style={{ colorScheme: 'dark' }}>
+                      className={selectCls} style={{ colorScheme: 'light' }}>
                       {HOURS.map(h => <option key={h} value={h}>{h}:00</option>)}
                     </select>
-                    <span className="text-white/30 self-center text-lg">~</span>
+                    <span className="self-center text-lg" style={{ color: '#c0c0d8' }}>~</span>
                     <select value={annexEnd} onChange={e => setAnnexEnd(Number(e.target.value))}
-                      className={selectCls} style={{ colorScheme: 'dark' }}>
+                      className={selectCls} style={{ colorScheme: 'light' }}>
                       {HOURS.filter(h => h > annexStart).concat([22]).map(h => <option key={h} value={h}>{h}:00</option>)}
                     </select>
                   </div>
@@ -424,54 +445,52 @@ export default function AdminPage() {
               <input value={annexNote} onChange={e => setAnnexNote(e.target.value)}
                 placeholder="메모 (선택)" className={inputCls} />
               <button onClick={addAnnexBooking}
-                className="w-full py-6 rounded-2xl text-white font-bold text-[17px]"
-                style={{ background: 'linear-gradient(135deg,#10b981,#0d9488)' }}>
+                className="w-full py-5 rounded-2xl text-white font-bold text-[16px]"
+                style={{ background: 'linear-gradient(135deg,#10b981,#0d9488)', boxShadow: '0 4px 14px rgba(16,185,129,0.28)' }}>
                 추가
               </button>
             </div>
 
-            {/* 월렌탈 목록 */}
             {monthlyRentals.length > 0 && (
               <div>
-                <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest mb-2">월렌탈</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: '#b0b0cc' }}>월렌탈</p>
                 {monthlyRentals.map(b => {
                   const room = rooms.find(r => r.id === b.room_id)
                   const fmt = (d: string) => { const [y,m,day] = d.split('-'); return `${y}.${m}.${day}` }
                   return (
-                    <div key={b.id} className="mb-2 flex items-center justify-between px-5 py-4 rounded-2xl"
-                      style={{ background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.15)' }}>
+                    <div key={b.id} className="mb-2 flex items-center justify-between px-5 py-4 rounded-2xl bg-white"
+                      style={{ border: '1px solid #bbf7d0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                       <div>
-                        <p className="text-white font-semibold">{room?.name} · {b.external_name}</p>
-                        <p className="text-sm mt-0.5" style={{ color: '#6ee7b7' }}>{fmt(b.date)} ~ {fmt(b.end_date)}</p>
-                        {b.note && <p className="text-white/25 text-xs mt-0.5">{b.note}</p>}
+                        <p className="font-semibold" style={{ color: '#1e1b4b' }}>{room?.name} · {b.external_name}</p>
+                        <p className="text-sm mt-0.5" style={{ color: '#16a34a' }}>{fmt(b.date)} ~ {fmt(b.end_date)}</p>
+                        {b.note && <p className="text-xs mt-0.5" style={{ color: '#c0c0d8' }}>{b.note}</p>}
                       </div>
-                      <button onClick={() => deleteAnnexBooking(b.id)} className="text-red-400 text-sm font-medium px-4 py-2.5 rounded-xl"
-                        style={{ background: 'rgba(239,68,68,0.1)' }}>삭제</button>
+                      <button onClick={() => deleteAnnexBooking(b.id)} className="text-sm font-medium px-4 py-2 rounded-xl border"
+                        style={{ background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>삭제</button>
                     </div>
                   )
                 })}
               </div>
             )}
 
-            {/* 시간제 예약 목록 */}
             <div>
-              <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest mb-2">시간제 예약 조회</p>
+              <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: '#b0b0cc' }}>시간제 예약 조회</p>
               <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                className={inputCls} style={{ colorScheme: 'dark' }} />
+                className={inputCls} style={{ colorScheme: 'light' }} />
               {annexBookings.length === 0
-                ? <p className="text-white/20 text-sm text-center py-6">해당 날짜 시간제 예약 없음</p>
+                ? <p className="text-sm text-center py-6" style={{ color: '#c0c0d8' }}>해당 날짜 시간제 예약 없음</p>
                 : annexBookings.map(b => {
                   const room = rooms.find(r => r.id === b.room_id)
                   return (
-                    <div key={b.id} className="mt-2 flex items-center justify-between px-5 py-4 rounded-2xl"
-                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <div key={b.id} className="mt-2 flex items-center justify-between px-5 py-4 rounded-2xl bg-white"
+                      style={{ border: '1px solid #e8e8f2', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                       <div>
-                        <p className="text-white font-semibold">{room?.name} · {b.external_name}</p>
-                        <p className="text-white/40 text-sm">{b.start_hour}:00 ~ {b.end_hour}:00</p>
-                        {b.note && <p className="text-white/25 text-xs mt-0.5">{b.note}</p>}
+                        <p className="font-semibold" style={{ color: '#1e1b4b' }}>{room?.name} · {b.external_name}</p>
+                        <p className="text-sm" style={{ color: '#9898b8' }}>{b.start_hour}:00 ~ {b.end_hour}:00</p>
+                        {b.note && <p className="text-xs mt-0.5" style={{ color: '#c0c0d8' }}>{b.note}</p>}
                       </div>
-                      <button onClick={() => deleteAnnexBooking(b.id)} className="text-red-400 text-sm font-medium px-4 py-2.5 rounded-xl"
-                        style={{ background: 'rgba(239,68,68,0.1)' }}>삭제</button>
+                      <button onClick={() => deleteAnnexBooking(b.id)} className="text-sm font-medium px-4 py-2 rounded-xl border"
+                        style={{ background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>삭제</button>
                     </div>
                   )
                 })}
@@ -482,36 +501,36 @@ export default function AdminPage() {
         {/* ── 방 잠금 ── */}
         {tab === 'locks' && (
           <div className="space-y-3">
-            <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest">본관</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#b0b0cc' }}>본관</p>
             {mainRooms.map(r => (
-              <div key={r.id} className="flex items-center justify-between px-6 py-5 rounded-2xl"
-                style={{ background: r.is_locked ? 'rgba(239,68,68,0.06)' : 'rgba(255,255,255,0.04)', border: `1px solid ${r.is_locked ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.07)'}` }}>
+              <div key={r.id} className="flex items-center justify-between px-5 py-4 rounded-2xl"
+                style={{ background: r.is_locked ? '#fef2f2' : '#ffffff', border: `1px solid ${r.is_locked ? '#fecaca' : '#e8e8f2'}`, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                 <div className="flex items-center gap-3">
                   <span className="text-lg">{r.is_locked ? '🔒' : '🟢'}</span>
-                  <p className="text-white font-semibold">{r.name}</p>
+                  <p className="font-semibold" style={{ color: '#1e1b4b' }}>{r.name}</p>
                 </div>
                 <button onClick={() => toggleRoomLock(r)}
-                  className="text-sm font-bold px-5 py-2.5 rounded-2xl transition"
+                  className="text-sm font-bold px-5 py-2.5 rounded-2xl border transition"
                   style={r.is_locked
-                    ? { background: 'rgba(16,185,129,0.15)', color: '#6ee7b7' }
-                    : { background: 'rgba(239,68,68,0.12)', color: '#f87171' }}>
+                    ? { background: '#f0fdf4', color: '#16a34a', borderColor: '#86efac' }
+                    : { background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>
                   {r.is_locked ? '잠금 해제' : '잠금'}
                 </button>
               </div>
             ))}
-            <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest pt-2">별관</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest pt-2" style={{ color: '#b0b0cc' }}>별관</p>
             {annexRooms.map(r => (
-              <div key={r.id} className="flex items-center justify-between px-6 py-5 rounded-2xl"
-                style={{ background: r.is_locked ? 'rgba(239,68,68,0.06)' : 'rgba(255,255,255,0.04)', border: `1px solid ${r.is_locked ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.07)'}` }}>
+              <div key={r.id} className="flex items-center justify-between px-5 py-4 rounded-2xl"
+                style={{ background: r.is_locked ? '#fef2f2' : '#ffffff', border: `1px solid ${r.is_locked ? '#fecaca' : '#e8e8f2'}`, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                 <div className="flex items-center gap-3">
                   <span className="text-lg">{r.is_locked ? '🔒' : '🟢'}</span>
-                  <p className="text-white font-semibold">{r.name}</p>
+                  <p className="font-semibold" style={{ color: '#1e1b4b' }}>{r.name}</p>
                 </div>
                 <button onClick={() => toggleRoomLock(r)}
-                  className="text-sm font-bold px-5 py-2.5 rounded-2xl transition"
+                  className="text-sm font-bold px-5 py-2.5 rounded-2xl border transition"
                   style={r.is_locked
-                    ? { background: 'rgba(16,185,129,0.15)', color: '#6ee7b7' }
-                    : { background: 'rgba(239,68,68,0.12)', color: '#f87171' }}>
+                    ? { background: '#f0fdf4', color: '#16a34a', borderColor: '#86efac' }
+                    : { background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>
                   {r.is_locked ? '잠금 해제' : '잠금'}
                 </button>
               </div>
@@ -522,13 +541,13 @@ export default function AdminPage() {
         {/* ── 관리자 관리 ── */}
         {tab === 'admins' && (
           <div className="space-y-3">
-            <div className="p-6 rounded-2xl space-y-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <p className="text-white/50 text-sm font-semibold">관리자 추가</p>
+            <div className="p-5 rounded-2xl bg-white space-y-3" style={{ border: '1px solid #e8e8f2', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+              <p className="text-sm font-semibold" style={{ color: '#6b6b9a' }}>관리자 추가</p>
               <input value={newAdminEmail} onChange={e => setNewAdminEmail(e.target.value)}
                 placeholder="이메일 주소" type="email" className={inputCls} />
               <button onClick={addAdmin}
-                className="w-full py-6 rounded-2xl text-white font-bold text-[17px]"
-                style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
+                className="w-full py-5 rounded-2xl text-white font-bold text-[16px]"
+                style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', boxShadow: '0 4px 14px rgba(99,102,241,0.28)' }}>
                 추가
               </button>
             </div>
@@ -536,20 +555,21 @@ export default function AdminPage() {
             {admins.map(a => {
               const memberName = approved.find(u => u.user_id === a.user_id)?.name
               return (
-              <div key={a.id} className="flex items-center justify-between px-6 py-5 rounded-2xl"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <div>
-                  <p className="text-white font-medium">{memberName ?? a.email ?? '알 수 없음'}</p>
-                  {a.email && <p className="text-white/30 text-xs mt-0.5">{a.email}</p>}
+                <div key={a.id} className="flex items-center justify-between px-5 py-4 rounded-2xl bg-white"
+                  style={{ border: '1px solid #e8e8f2', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                  <div>
+                    <p className="font-medium" style={{ color: '#1e1b4b' }}>{memberName ?? a.email ?? '알 수 없음'}</p>
+                    {a.email && <p className="text-xs mt-0.5" style={{ color: '#c0c0d8' }}>{a.email}</p>}
+                  </div>
+                  {a.email === SUPER_ADMIN
+                    ? <span className="text-[11px] font-bold" style={{ color: '#c0c0d8' }}>최고 관리자</span>
+                    : <button onClick={() => removeAdmin(a.id, a.email ?? null)}
+                        className="text-sm font-medium px-4 py-2 rounded-xl border"
+                        style={{ background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>삭제</button>
+                  }
                 </div>
-                {a.email === SUPER_ADMIN
-                  ? <span className="text-[11px] font-bold text-white/20">최고 관리자</span>
-                  : <button onClick={() => removeAdmin(a.id, a.email ?? null)}
-                      className="text-red-400 text-sm font-medium px-4 py-2.5 rounded-xl"
-                      style={{ background: 'rgba(239,68,68,0.1)' }}>삭제</button>
-                }
-              </div>
-            )})}
+              )
+            })}
           </div>
         )}
       </div>
