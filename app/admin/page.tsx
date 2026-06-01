@@ -147,6 +147,7 @@ export default function AdminPage() {
   async function addAnnexBooking() {
     if (!annexRoom || !annexName) return
     if (annexType === 'monthly') {
+      if (monthlyEnd < monthlyStart) { alert('종료일이 시작일보다 빠를 수 없어요.'); return }
       const { error } = await supabase.from('bookings').insert({
         room_id: annexRoom, date: monthlyStart, end_date: monthlyEnd,
         start_hour: 11, end_hour: 22,
@@ -165,6 +166,7 @@ export default function AdminPage() {
   }
 
   async function deleteAnnexBooking(id: string) {
+    if (!confirm('예약을 삭제할까요?')) return
     await supabase.from('bookings').delete().eq('id', id)
     await loadSchedule()
   }
