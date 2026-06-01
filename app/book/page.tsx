@@ -226,8 +226,8 @@ export default function BookPage() {
   const operatingHours = getHours(date, building)
 
   const color = isMain
-    ? { primary: '#6366f1', bookableBg: '#dde4ff', bookableBorder: '#a5b4fc', bookableHotBg: '#c7d2fe', bookableHotBorder: '#818cf8', text: '#4f46e5' }
-    : { primary: '#16a34a', bookableBg: '#bbf7d0', bookableBorder: '#4ade80', bookableHotBg: '#86efac', bookableHotBorder: '#22c55e', text: '#15803d' }
+    ? { primary: '#6366f1', bookableBg: '#e0e7ff', bookableBorder: '#a5b4fc', bookableHotBg: '#c7d2fe', bookableHotBorder: '#818cf8', text: '#4f46e5', mineBg: '#6366f1', mineBorder: '#4f46e5' }
+    : { primary: '#16a34a', bookableBg: '#dcfce7', bookableBorder: '#86efac', bookableHotBg: '#bbf7d0', bookableHotBorder: '#4ade80', text: '#15803d', mineBg: '#22c55e', mineBorder: '#16a34a' }
 
   const mainRoomTypes = [
     { key: 'piano',  label: '피아노',     color: '#6366f1', dimColor: '#a8a8cc', activeBg: '#eef2ff', activeBorder: '#c7d2fe', dimBorder: '#ebebf5', filter: (r: Room) => r.name.startsWith('PIANO') },
@@ -494,8 +494,8 @@ export default function BookPage() {
                       if (isMine) return (
                         <button key={`${h}-${r.id}`} onClick={() => handleCancel(bk!.id)}
                           className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                          style={{ background: '#bbf7d0', border: '1px solid #4ade80' }}>
-                          <span className="text-[9px] font-bold truncate px-1.5" style={{ color: '#15803d' }}>
+                          style={{ background: color.mineBg, border: `2px solid ${color.mineBorder}` }}>
+                          <span className="text-[9px] font-bold truncate px-1.5" style={{ color: 'white' }}>
                             {account.student_type === 'admin' ? 'X' : account.name}
                           </span>
                         </button>
@@ -505,15 +505,15 @@ export default function BookPage() {
                         if (account.student_type === 'admin') return (
                           <button key={`${h}-${r.id}`} onClick={() => handleCancel(bk.id)}
                             className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                            style={{ background: '#e8e8f4', border: '1px solid #c4c0df' }}>
-                            <span className="text-[9px] font-medium truncate px-1.5" style={{ color: '#6b6b9a' }}>
+                            style={{ background: '#f1f5f9', border: '1px solid #94a3b8' }}>
+                            <span className="text-[9px] font-medium truncate px-1.5" style={{ color: '#475569' }}>
                               {bk.external_name ?? bk.account?.name ?? '?'}
                             </span>
                           </button>
                         )
                         return (
                           <div key={`${h}-${r.id}`} className="h-11 rounded-lg"
-                            style={{ background: '#e8e8f4', border: '1px solid #c4c0df' }} />
+                            style={{ background: '#f1f5f9', border: '1px solid #94a3b8' }} />
                         )
                       }
 
@@ -553,10 +553,10 @@ export default function BookPage() {
             {/* 범례 */}
             <div className="flex gap-3 mt-4 flex-wrap px-1">
               {[
-                { bg: color.bookableBg, border: color.bookableBorder, label: '예약 가능' },
-                { bg: '#bbf7d0', border: '#4ade80', label: '내 예약' },
-                { bg: '#e8e8f4', border: '#c4c0df', label: '예약됨' },
-                { bg: '#fde8ef', border: '#fca5b8', label: '수업' },
+                { bg: color.bookableBg, border: color.bookableBorder, label: '예약 가능', textColor: color.text },
+                { bg: color.mineBg, border: color.mineBorder, label: '내 예약', textColor: 'white' },
+                { bg: '#f1f5f9', border: '#94a3b8', label: '예약됨', textColor: '#64748b' },
+                { bg: '#fde8ef', border: '#fca5b8', label: '수업', textColor: '#e11d48' },
               ].map(item => (
                 <div key={item.label} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border"
                   style={{ borderColor: '#e8e8f2' }}>
@@ -571,57 +571,46 @@ export default function BookPage() {
 
       {/* 어드민 예약/수업 등록 모달 */}
       {adminModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
-          style={{ background: 'rgba(30,27,75,0.3)', backdropFilter: 'blur(6px)' }}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(30,27,75,0.25)', backdropFilter: 'blur(6px)' }}
           onClick={e => { if (e.target === e.currentTarget) setAdminModal(null) }}>
-          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl" style={{ border: '1px solid #e8e8f2' }}>
-            <h3 className="font-black text-lg mb-1" style={{ color: '#1e1b4b' }}>
-              {adminModal.hour}:00 예약 등록
-            </h3>
-            <p className="text-xs mb-5" style={{ color: '#a0a0c0' }}>이름을 입력하고 수업 여부를 선택하세요</p>
+          <div className="bg-white rounded-3xl p-5 w-full max-w-xs shadow-2xl" style={{ border: '1px solid #e8e8f2' }}>
 
-            <input
-              value={adminName} onChange={e => setAdminName(e.target.value)}
+            <p className="text-xs font-bold mb-3" style={{ color: '#b0b0cc' }}>{adminModal.hour}:00</p>
+
+            <input value={adminName} onChange={e => setAdminName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleAdminConfirm()}
-              placeholder={adminIsClass ? '강사명' : '예약자 이름'}
+              placeholder={adminIsClass ? '강사명' : '이름'}
               autoFocus
-              className="w-full border rounded-2xl px-4 py-3.5 text-[15px] focus:outline-none mb-4 transition"
-              style={{ borderColor: adminIsClass ? '#fca5b8' : '#e4e4ef', color: '#1e1b4b', background: adminIsClass ? '#fff5f7' : '#ffffff' }} />
+              className="w-full border rounded-2xl px-4 py-3 text-[15px] focus:outline-none mb-3 transition"
+              style={{ borderColor: adminIsClass ? '#fca5b8' : '#e4e4ef', color: '#1e1b4b' }} />
 
-            {/* 수업 토글 */}
-            <div className="flex items-center justify-between mb-4 px-1">
-              <div>
-                <p className="text-sm font-bold" style={{ color: adminIsClass ? '#e11d48' : '#6b6b9a' }}>수업</p>
-                <p className="text-xs" style={{ color: '#b0b0cc' }}>체크 시 분홍으로 표시돼요</p>
+            <button onClick={() => setAdminIsClass(!adminIsClass)}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-2xl mb-3 border transition"
+              style={{ background: adminIsClass ? '#fde8ef' : '#f8f8fc', borderColor: adminIsClass ? '#fca5b8' : '#ebebf5' }}>
+              <span className="text-sm font-bold" style={{ color: adminIsClass ? '#e11d48' : '#a0a0c0' }}>수업</span>
+              <div className="rounded-full relative transition-all" style={{ background: adminIsClass ? '#fca5b8' : '#e4e4ef', width: 44, height: 24 }}>
+                <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all"
+                  style={{ left: adminIsClass ? 22 : 2 }} />
               </div>
-              <button onClick={() => setAdminIsClass(!adminIsClass)}
-                className="w-13 h-7 rounded-full transition-all relative flex-shrink-0"
-                style={{ background: adminIsClass ? '#fca5b8' : '#e4e4ef', width: 52, height: 28 }}>
-                <span className="absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-all"
-                  style={{ left: adminIsClass ? 28 : 4 }} />
-              </button>
-            </div>
+            </button>
 
-            {/* 종료 시간 (수업일 때만) */}
             {adminIsClass && (
               <select value={adminEndHour} onChange={e => setAdminEndHour(Number(e.target.value))}
-                className="w-full border rounded-2xl px-4 py-3.5 text-[15px] focus:outline-none mb-4 cursor-pointer"
+                className="w-full border rounded-2xl px-4 py-3 text-[14px] focus:outline-none mb-3 cursor-pointer"
                 style={{ borderColor: '#fca5b8', color: '#e11d48', background: '#fde8ef', colorScheme: 'light' }}>
                 {Array.from({ length: 11 }, (_, i) => i + 11)
-                  .filter(h => h > adminModal.hour)
-                  .concat([22])
+                  .filter(h => h > adminModal.hour).concat([22])
                   .map(h => <option key={h} value={h}>{h}:00 까지</option>)}
               </select>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button onClick={() => setAdminModal(null)}
-                className="flex-1 py-3.5 rounded-2xl font-semibold border"
-                style={{ background: '#f5f5fb', color: '#a0a0c0', borderColor: '#e8e8f2' }}>
-                취소
-              </button>
+                className="flex-1 py-3 rounded-2xl font-semibold text-sm border"
+                style={{ background: '#f5f5fb', color: '#a0a0c0', borderColor: '#e8e8f2' }}>취소</button>
               <button onClick={handleAdminConfirm} disabled={!adminName.trim()}
-                className="flex-1 py-3.5 rounded-2xl font-bold text-white transition disabled:opacity-40"
+                className="flex-1 py-3 rounded-2xl font-bold text-sm text-white transition disabled:opacity-40"
                 style={{ background: adminIsClass ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
                 {adminIsClass ? '수업 등록' : '예약'}
               </button>

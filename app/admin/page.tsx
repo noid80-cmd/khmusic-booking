@@ -308,7 +308,7 @@ export default function AdminPage() {
               <div className="flex gap-1">
                 {([['name','이름순'],['type','반별'],['date','등록일']] as const).map(([key, label]) => (
                   <button key={key} onClick={() => setMemberSort(key)}
-                    className="text-[11px] font-bold px-2.5 py-1 rounded-lg border transition"
+                    className="text-[13px] font-bold px-3 py-1.5 rounded-lg border transition"
                     style={{
                       background: memberSort === key ? '#eef2ff' : '#ffffff',
                       color: memberSort === key ? '#6366f1' : '#a0a0c0',
