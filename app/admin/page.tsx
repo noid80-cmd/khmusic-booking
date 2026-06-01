@@ -126,6 +126,24 @@ export default function AdminPage() {
     await loadSchedule()
   }
 
+  function getAnnexBooking(roomId: string, hour: number) {
+    return annexBookings.find(b => b.room_id === roomId && b.start_hour <= hour && hour < b.end_hour)
+  }
+
+  async function addAnnexFromGrid(roomId: string, hour: number) {
+    const name = window.prompt('예약자명')
+    if (!name?.trim()) return
+    const endInput = window.prompt('몇 시까지?', String(hour + 1))
+    const endHour = parseInt(endInput || '')
+    if (isNaN(endHour) || endHour <= hour || endHour > 22) { alert('올바른 종료 시간을 입력해주세요.'); return }
+    const { error } = await supabase.from('bookings').insert({
+      room_id: roomId, date, start_hour: hour, end_hour: endHour,
+      booking_type: 'external', external_name: name.trim(), note: null,
+    })
+    if (error) { alert('오류: ' + error.message); return }
+    await loadSchedule()
+  }
+
   async function addAnnexBooking() {
     if (!annexRoom || !annexName) return
     if (annexType === 'monthly') {
@@ -424,41 +442,73 @@ export default function AdminPage() {
               ))}
             </div>
 
-            <div className="p-5 rounded-2xl bg-white space-y-3" style={{ border: '1px solid #e8e8f2', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-              <p className="text-sm font-semibold" style={{ color: '#6b6b9a' }}>{annexType === 'monthly' ? '월렌탈 추가' : '시간제 예약 추가'}</p>
+            {/* 시간제: 그리드 */}
+            {annexType === 'external' && (
+              <div className="space-y-3">
+                <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                  className={inputCls} style={{ colorScheme: 'light' }} />
+                <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>빈 칸 탭 → 예약 등록 · 등록된 칸 탭 → 삭제</p>
+                <div className="overflow-x-auto -mx-4 px-4">
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: `36px repeat(${annexRooms.length}, minmax(56px, 1fr))`,
+                    gap: '3px',
+                    minWidth: `${annexRooms.length * 59 + 39}px`,
+                  }}>
+                    <div />
+                    {annexRooms.map(r => (
+                      <div key={`hdr-${r.id}`} className="flex items-center justify-center py-2.5 rounded-lg"
+                        style={{ background: '#f0fdf4', border: '1px solid #86efac' }}>
+                        <span className="text-[10px] font-bold" style={{ color: '#16a34a' }}>
+                          {r.name.replace('PIANO','P').replace('GUITAR & BASS','G&B')}
+                        </span>
+                      </div>
+                    ))}
+                    {HOURS.flatMap(h => [
+                      <div key={`t-${h}`} className="flex items-center justify-end pr-2">
+                        <span className="text-[11px] font-bold" style={{ color: '#a0a0c0' }}>{h}</span>
+                      </div>,
+                      ...annexRooms.map(r => {
+                        const bk = getAnnexBooking(r.id, h)
+                        if (bk) return (
+                          <button key={`${h}-${r.id}`} onClick={() => deleteAnnexBooking(bk.id)}
+                            className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
+                            style={{ background: '#bbf7d0', border: '1px solid #4ade80' }}>
+                            <span className="text-[9px] font-semibold truncate px-1" style={{ color: '#15803d' }}>
+                              {bk.external_name ?? '?'}
+                            </span>
+                          </button>
+                        )
+                        return (
+                          <button key={`${h}-${r.id}`} onClick={() => addAnnexFromGrid(r.id, h)}
+                            className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
+                            style={{ background: '#f8f8fc', border: '1px solid #ebebf5' }}>
+                            <span className="text-[14px] font-light" style={{ color: '#d0d0e8' }}>+</span>
+                          </button>
+                        )
+                      })
+                    ])}
+                  </div>
+                </div>
+              </div>
+            )}
 
+            {/* 월렌탈: 기존 폼 유지 */}
+            {annexType === 'monthly' && (
+            <div className="p-5 rounded-2xl bg-white space-y-3" style={{ border: '1px solid #e8e8f2', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+              <p className="text-sm font-semibold" style={{ color: '#6b6b9a' }}>월렌탈 추가</p>
               <select value={annexRoom} onChange={e => setAnnexRoom(e.target.value)}
                 className={selectCls} style={{ colorScheme: 'light' }}>
                 <option value="">연습실 선택</option>
                 {annexRooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
-
-              {annexType === 'monthly' ? (
-                <div className="flex gap-3 items-center">
-                  <input type="date" value={monthlyStart} onChange={e => setMonthlyStart(e.target.value)}
-                    className={inputCls + ' flex-1'} style={{ colorScheme: 'light' }} />
-                  <span className="text-lg" style={{ color: '#c0c0d8' }}>~</span>
-                  <input type="date" value={monthlyEnd} onChange={e => setMonthlyEnd(e.target.value)}
-                    className={inputCls + ' flex-1'} style={{ colorScheme: 'light' }} />
-                </div>
-              ) : (
-                <>
-                  <input type="date" value={annexDate} onChange={e => setAnnexDate(e.target.value)}
-                    className={inputCls} style={{ colorScheme: 'light' }} />
-                  <div className="flex gap-3">
-                    <select value={annexStart} onChange={e => setAnnexStart(Number(e.target.value))}
-                      className={selectCls} style={{ colorScheme: 'light' }}>
-                      {HOURS.map(h => <option key={h} value={h}>{h}:00</option>)}
-                    </select>
-                    <span className="self-center text-lg" style={{ color: '#c0c0d8' }}>~</span>
-                    <select value={annexEnd} onChange={e => setAnnexEnd(Number(e.target.value))}
-                      className={selectCls} style={{ colorScheme: 'light' }}>
-                      {HOURS.filter(h => h > annexStart).concat([22]).map(h => <option key={h} value={h}>{h}:00</option>)}
-                    </select>
-                  </div>
-                </>
-              )}
-
+              <div className="flex gap-3 items-center">
+                <input type="date" value={monthlyStart} onChange={e => setMonthlyStart(e.target.value)}
+                  className={inputCls + ' flex-1'} style={{ colorScheme: 'light' }} />
+                <span className="text-lg" style={{ color: '#c0c0d8' }}>~</span>
+                <input type="date" value={monthlyEnd} onChange={e => setMonthlyEnd(e.target.value)}
+                  className={inputCls + ' flex-1'} style={{ colorScheme: 'light' }} />
+              </div>
               <input value={annexName} onChange={e => setAnnexName(e.target.value)}
                 placeholder="예약자명" className={inputCls} />
               <input value={annexNote} onChange={e => setAnnexNote(e.target.value)}
@@ -469,6 +519,7 @@ export default function AdminPage() {
                 추가
               </button>
             </div>
+            )}
 
             {monthlyRentals.length > 0 && (
               <div>
@@ -492,28 +543,6 @@ export default function AdminPage() {
               </div>
             )}
 
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: '#b0b0cc' }}>시간제 예약 조회</p>
-              <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                className={inputCls} style={{ colorScheme: 'light' }} />
-              {annexBookings.length === 0
-                ? <p className="text-sm text-center py-6" style={{ color: '#c0c0d8' }}>해당 날짜 시간제 예약 없음</p>
-                : annexBookings.map(b => {
-                  const room = rooms.find(r => r.id === b.room_id)
-                  return (
-                    <div key={b.id} className="mt-2 flex items-center justify-between px-5 py-4 rounded-2xl bg-white"
-                      style={{ border: '1px solid #e8e8f2', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                      <div>
-                        <p className="font-semibold" style={{ color: '#1e1b4b' }}>{room?.name} · {b.external_name}</p>
-                        <p className="text-sm" style={{ color: '#9898b8' }}>{b.start_hour}:00 ~ {b.end_hour}:00</p>
-                        {b.note && <p className="text-xs mt-0.5" style={{ color: '#c0c0d8' }}>{b.note}</p>}
-                      </div>
-                      <button onClick={() => deleteAnnexBooking(b.id)} className="text-sm font-medium px-4 py-2 rounded-xl border"
-                        style={{ background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>삭제</button>
-                    </div>
-                  )
-                })}
-            </div>
           </div>
         )}
 
