@@ -253,6 +253,7 @@ export default function BookPage() {
   if (!account) return <div className="min-h-screen" style={{ background: '#f0f0f8' }} />
 
   return (
+    <>
     <div className="min-h-screen pb-28" style={{ background: '#f0f0f8' }}>
 
       {/* ── 헤더 ── */}
@@ -569,55 +570,50 @@ export default function BookPage() {
         )}
       </div>
 
-      {/* 어드민 예약/수업 등록 모달 */}
-      {adminModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(30,27,75,0.25)', backdropFilter: 'blur(6px)' }}
-          onClick={e => { if (e.target === e.currentTarget) setAdminModal(null) }}>
-          <div className="bg-white rounded-3xl p-5 w-full max-w-xs shadow-2xl" style={{ border: '1px solid #e8e8f2' }}>
+    </div>
 
-            <p className="text-xs font-bold mb-3" style={{ color: '#b0b0cc' }}>{adminModal.hour}:00</p>
+    {adminModal && (
+      <div
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(30,27,75,0.25)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+        onClick={e => { if (e.target === e.currentTarget) setAdminModal(null) }}>
+        <div style={{ background: 'white', borderRadius: 24, padding: 20, width: '100%', maxWidth: 320, boxShadow: '0 25px 50px rgba(0,0,0,0.12)', border: '1px solid #e8e8f2' }}>
 
-            <input value={adminName} onChange={e => setAdminName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleAdminConfirm()}
-              placeholder={adminIsClass ? '강사명' : '이름'}
-              autoFocus
-              className="w-full border rounded-2xl px-4 py-3 text-[15px] focus:outline-none mb-3 transition"
-              style={{ borderColor: adminIsClass ? '#fca5b8' : '#e4e4ef', color: '#1e1b4b' }} />
+          <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 12, color: '#b0b0cc' }}>{adminModal.hour}:00</p>
 
-            <button onClick={() => setAdminIsClass(!adminIsClass)}
-              className="w-full flex items-center justify-between px-4 py-3 rounded-2xl mb-3 border transition"
-              style={{ background: adminIsClass ? '#fde8ef' : '#f8f8fc', borderColor: adminIsClass ? '#fca5b8' : '#ebebf5' }}>
-              <span className="text-sm font-bold" style={{ color: adminIsClass ? '#e11d48' : '#a0a0c0' }}>수업</span>
-              <div className="rounded-full relative transition-all" style={{ background: adminIsClass ? '#fca5b8' : '#e4e4ef', width: 44, height: 24 }}>
-                <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all"
-                  style={{ left: adminIsClass ? 22 : 2 }} />
-              </div>
-            </button>
+          <input value={adminName} onChange={e => setAdminName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleAdminConfirm()}
+            placeholder={adminIsClass ? '강사명' : '이름'}
+            autoFocus
+            style={{ width: '100%', border: `1px solid ${adminIsClass ? '#fca5b8' : '#e4e4ef'}`, borderRadius: 16, padding: '12px 16px', fontSize: 15, outline: 'none', marginBottom: 12, color: '#1e1b4b', boxSizing: 'border-box' }} />
 
-            {adminIsClass && (
-              <select value={adminEndHour} onChange={e => setAdminEndHour(Number(e.target.value))}
-                className="w-full border rounded-2xl px-4 py-3 text-[14px] focus:outline-none mb-3 cursor-pointer"
-                style={{ borderColor: '#fca5b8', color: '#e11d48', background: '#fde8ef', colorScheme: 'light' }}>
-                {Array.from({ length: 11 }, (_, i) => i + 11)
-                  .filter(h => h > adminModal.hour).concat([22])
-                  .map(h => <option key={h} value={h}>{h}:00 까지</option>)}
-              </select>
-            )}
-
-            <div className="flex gap-2">
-              <button onClick={() => setAdminModal(null)}
-                className="flex-1 py-3 rounded-2xl font-semibold text-sm border"
-                style={{ background: '#f5f5fb', color: '#a0a0c0', borderColor: '#e8e8f2' }}>취소</button>
-              <button onClick={handleAdminConfirm} disabled={!adminName.trim()}
-                className="flex-1 py-3 rounded-2xl font-bold text-sm text-white transition disabled:opacity-40"
-                style={{ background: adminIsClass ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
-                {adminIsClass ? '수업 등록' : '예약'}
-              </button>
+          <button onClick={() => setAdminIsClass(!adminIsClass)}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: 16, marginBottom: 12, border: `1px solid ${adminIsClass ? '#fca5b8' : '#ebebf5'}`, background: adminIsClass ? '#fde8ef' : '#f8f8fc', cursor: 'pointer' }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: adminIsClass ? '#e11d48' : '#a0a0c0' }}>수업</span>
+            <div style={{ borderRadius: 999, position: 'relative', background: adminIsClass ? '#fca5b8' : '#e4e4ef', width: 44, height: 24, flexShrink: 0 }}>
+              <span style={{ position: 'absolute', top: 2, left: adminIsClass ? 22 : 2, width: 20, height: 20, borderRadius: 999, background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.15s' }} />
             </div>
+          </button>
+
+          {adminIsClass && (
+            <select value={adminEndHour} onChange={e => setAdminEndHour(Number(e.target.value))}
+              style={{ width: '100%', border: '1px solid #fca5b8', borderRadius: 16, padding: '12px 16px', fontSize: 14, outline: 'none', marginBottom: 12, color: '#e11d48', background: '#fde8ef', colorScheme: 'light', cursor: 'pointer', boxSizing: 'border-box' }}>
+              {Array.from({ length: 11 }, (_, i) => i + 11)
+                .filter(h => h > adminModal.hour).concat([22])
+                .map(h => <option key={h} value={h}>{h}:00 까지</option>)}
+            </select>
+          )}
+
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setAdminModal(null)}
+              style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 600, fontSize: 14, border: '1px solid #e8e8f2', background: '#f5f5fb', color: '#a0a0c0', cursor: 'pointer' }}>취소</button>
+            <button onClick={handleAdminConfirm} disabled={!adminName.trim()}
+              style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 700, fontSize: 14, color: 'white', border: 'none', cursor: 'pointer', opacity: adminName.trim() ? 1 : 0.4, background: adminIsClass ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
+              {adminIsClass ? '수업 등록' : '예약'}
+            </button>
           </div>
         </div>
-      )}
-    </div>
+      </div>
+    )}
+    </>
   )
 }
