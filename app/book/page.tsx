@@ -73,6 +73,8 @@ export default function BookPage() {
   const [adminName, setAdminName] = useState('')
   const [adminIsClass, setAdminIsClass] = useState(false)
   const [adminEndHour, setAdminEndHour] = useState(12)
+  const [studentModal, setStudentModal] = useState<{ roomId: string, hour: number } | null>(null)
+  const [studentEndHour, setStudentEndHour] = useState(12)
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 30000)
@@ -150,6 +152,15 @@ export default function BookPage() {
     return classes.find(c => c.room_id === roomId && c.start_hour <= hour && hour < c.end_hour)
   }
 
+  function getAvailableEndHours(roomId: string, startHour: number): number[] {
+    const results: number[] = []
+    for (let endH = startHour + 1; endH <= 22; endH++) {
+      if (endH - 1 > startHour && (getBooking(roomId, endH - 1) || getClass(roomId, endH - 1))) break
+      results.push(endH)
+    }
+    return results
+  }
+
   async function handleBook(roomId: string, hour: number) {
     if (!account || !canBook(roomId, hour)) return
     if (getBooking(roomId, hour)) return
@@ -160,12 +171,22 @@ export default function BookPage() {
       setAdminModal({ roomId, hour })
       return
     }
+    setStudentEndHour(hour + 1)
+    setStudentModal({ roomId, hour })
+  }
+
+  async function handleStudentConfirm() {
+    if (!studentModal || !account) return
+    const { roomId, hour } = studentModal
+    setStudentModal(null)
     setBooking(true)
-    const { error } = await supabase.from('bookings').insert({
-      account_id: account.id, room_id: roomId, date,
-      start_hour: hour, end_hour: hour + 1, booking_type: 'student',
-    })
-    if (error) alert('예약에 실패했어요. 다른 분이 먼저 예약했을 수 있어요.')
+    for (let h = hour; h < studentEndHour; h++) {
+      const { error } = await supabase.from('bookings').insert({
+        account_id: account.id, room_id: roomId, date,
+        start_hour: h, end_hour: h + 1, booking_type: 'student',
+      })
+      if (error) { alert('예약에 실패했어요. 다른 분이 먼저 예약했을 수 있어요.'); break }
+    }
     await loadData()
     setBooking(false)
   }
@@ -195,20 +216,23 @@ export default function BookPage() {
   async function handleAdminConfirm() {
     if (!adminModal || !adminName.trim()) return
     const { roomId, hour } = adminModal
+    const isClass = adminIsClass && isMain
     setAdminModal(null)
     setBooking(true)
-    if (adminIsClass) {
+    if (isClass) {
       const { error } = await supabase.from('class_schedules').insert({
         room_id: roomId, date, start_hour: hour, end_hour: adminEndHour, instructor: adminName.trim()
       })
       if (error) alert('수업 등록 실패: ' + error.message)
     } else {
-      const { error } = await supabase.from('bookings').insert({
-        account_id: null, room_id: roomId, date,
-        start_hour: hour, end_hour: hour + 1,
-        booking_type: 'external', external_name: adminName.trim(),
-      })
-      if (error) alert('예약 실패: ' + error.message)
+      for (let h = hour; h < adminEndHour; h++) {
+        const { error } = await supabase.from('bookings').insert({
+          account_id: null, room_id: roomId, date,
+          start_hour: h, end_hour: h + 1,
+          booking_type: 'external', external_name: adminName.trim(),
+        })
+        if (error) { alert('예약 실패: ' + error.message); break }
+      }
     }
     await loadData()
     setBooking(false)
@@ -572,48 +596,86 @@ export default function BookPage() {
 
     </div>
 
-    {adminModal && (
-      <div
-        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(30,27,75,0.25)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
-        onClick={e => { if (e.target === e.currentTarget) setAdminModal(null) }}>
-        <div style={{ background: 'white', borderRadius: 24, padding: 20, width: '100%', maxWidth: 320, boxShadow: '0 25px 50px rgba(0,0,0,0.12)', border: '1px solid #e8e8f2' }}>
+    {adminModal && (() => {
+      const isClass = adminIsClass && isMain
+      const endHours = getAvailableEndHours(adminModal.roomId, adminModal.hour)
+      return (
+        <div
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(30,27,75,0.25)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+          onClick={e => { if (e.target === e.currentTarget) setAdminModal(null) }}>
+          <div style={{ background: 'white', borderRadius: 24, padding: 20, width: '100%', maxWidth: 320, boxShadow: '0 25px 50px rgba(0,0,0,0.12)', border: '1px solid #e8e8f2' }}>
 
-          <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 12, color: '#b0b0cc' }}>{adminModal.hour}:00</p>
+            <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 12, color: '#b0b0cc' }}>{adminModal.hour}:00</p>
 
-          <input value={adminName} onChange={e => setAdminName(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleAdminConfirm()}
-            placeholder={adminIsClass ? '강사명' : '이름'}
-            autoFocus
-            style={{ width: '100%', border: `1px solid ${adminIsClass ? '#fca5b8' : '#e4e4ef'}`, borderRadius: 16, padding: '12px 16px', fontSize: 15, outline: 'none', marginBottom: 12, color: '#1e1b4b', boxSizing: 'border-box' }} />
+            <input value={adminName} onChange={e => setAdminName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAdminConfirm()}
+              placeholder={isClass ? '강사명' : '이름'}
+              autoFocus
+              style={{ width: '100%', border: `1px solid ${isClass ? '#fca5b8' : '#e4e4ef'}`, borderRadius: 16, padding: '12px 16px', fontSize: 15, outline: 'none', marginBottom: 12, color: '#1e1b4b', boxSizing: 'border-box' }} />
 
-          <button onClick={() => setAdminIsClass(!adminIsClass)}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: 16, marginBottom: 12, border: `1px solid ${adminIsClass ? '#fca5b8' : '#ebebf5'}`, background: adminIsClass ? '#fde8ef' : '#f8f8fc', cursor: 'pointer' }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: adminIsClass ? '#e11d48' : '#a0a0c0' }}>수업</span>
-            <div style={{ borderRadius: 999, position: 'relative', background: adminIsClass ? '#fca5b8' : '#e4e4ef', width: 44, height: 24, flexShrink: 0 }}>
-              <span style={{ position: 'absolute', top: 2, left: adminIsClass ? 22 : 2, width: 20, height: 20, borderRadius: 999, background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.15s' }} />
-            </div>
-          </button>
+            {isMain && (
+              <button onClick={() => setAdminIsClass(!adminIsClass)}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: 16, marginBottom: 12, border: `1px solid ${adminIsClass ? '#fca5b8' : '#ebebf5'}`, background: adminIsClass ? '#fde8ef' : '#f8f8fc', cursor: 'pointer' }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: adminIsClass ? '#e11d48' : '#a0a0c0' }}>수업</span>
+                <div style={{ borderRadius: 999, position: 'relative', background: adminIsClass ? '#fca5b8' : '#e4e4ef', width: 44, height: 24, flexShrink: 0 }}>
+                  <span style={{ position: 'absolute', top: 2, left: adminIsClass ? 22 : 2, width: 20, height: 20, borderRadius: 999, background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.15s' }} />
+                </div>
+              </button>
+            )}
 
-          {adminIsClass && (
             <select value={adminEndHour} onChange={e => setAdminEndHour(Number(e.target.value))}
-              style={{ width: '100%', border: '1px solid #fca5b8', borderRadius: 16, padding: '12px 16px', fontSize: 14, outline: 'none', marginBottom: 12, color: '#e11d48', background: '#fde8ef', colorScheme: 'light', cursor: 'pointer', boxSizing: 'border-box' }}>
-              {Array.from({ length: 11 }, (_, i) => i + 11)
-                .filter(h => h > adminModal.hour).concat([22])
-                .map(h => <option key={h} value={h}>{h}:00 까지</option>)}
+              style={{ width: '100%', border: `1px solid ${isClass ? '#fca5b8' : '#e4e4ef'}`, borderRadius: 16, padding: '12px 16px', fontSize: 14, outline: 'none', marginBottom: 12, color: isClass ? '#e11d48' : '#6366f1', background: isClass ? '#fde8ef' : '#eef2ff', colorScheme: 'light', cursor: 'pointer', boxSizing: 'border-box' }}>
+              {endHours.map(h => <option key={h} value={h}>{h}:00 까지</option>)}
             </select>
-          )}
 
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => setAdminModal(null)}
-              style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 600, fontSize: 14, border: '1px solid #e8e8f2', background: '#f5f5fb', color: '#a0a0c0', cursor: 'pointer' }}>취소</button>
-            <button onClick={handleAdminConfirm} disabled={!adminName.trim()}
-              style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 700, fontSize: 14, color: 'white', border: 'none', cursor: 'pointer', opacity: adminName.trim() ? 1 : 0.4, background: adminIsClass ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
-              {adminIsClass ? '수업 등록' : '예약'}
-            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => setAdminModal(null)}
+                style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 600, fontSize: 14, border: '1px solid #e8e8f2', background: '#f5f5fb', color: '#a0a0c0', cursor: 'pointer' }}>취소</button>
+              <button onClick={handleAdminConfirm} disabled={!adminName.trim()}
+                style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 700, fontSize: 14, color: 'white', border: 'none', cursor: 'pointer', opacity: adminName.trim() ? 1 : 0.4, background: isClass ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
+                {isClass ? '수업 등록' : '예약'}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )
+    })()}
+
+    {studentModal && (() => {
+      const todayBooked = myBookings.filter(b => b.date === date).length
+      const maxHours = account?.student_type === 'hobby' ? 1 : Math.max(1, 2 - todayBooked)
+      const endHours = getAvailableEndHours(studentModal.roomId, studentModal.hour).slice(0, maxHours)
+      return (
+        <div
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(30,27,75,0.25)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+          onClick={e => { if (e.target === e.currentTarget) setStudentModal(null) }}>
+          <div style={{ background: 'white', borderRadius: 24, padding: 20, width: '100%', maxWidth: 320, boxShadow: '0 25px 50px rgba(0,0,0,0.12)', border: '1px solid #e8e8f2' }}>
+
+            <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 12, color: '#b0b0cc' }}>{studentModal.hour}:00</p>
+
+            {endHours.length > 1 ? (
+              <select value={studentEndHour} onChange={e => setStudentEndHour(Number(e.target.value))}
+                style={{ width: '100%', border: `1px solid ${isMain ? '#a5b4fc' : '#86efac'}`, borderRadius: 16, padding: '12px 16px', fontSize: 14, outline: 'none', marginBottom: 12, color: isMain ? '#6366f1' : '#16a34a', background: isMain ? '#eef2ff' : '#f0fdf4', colorScheme: 'light', cursor: 'pointer', boxSizing: 'border-box' }}>
+                {endHours.map(h => <option key={h} value={h}>{h}:00 까지</option>)}
+              </select>
+            ) : (
+              <p style={{ fontSize: 15, fontWeight: 600, color: isMain ? '#6366f1' : '#16a34a', marginBottom: 12, padding: '12px 16px', background: isMain ? '#eef2ff' : '#f0fdf4', borderRadius: 16 }}>
+                {(endHours[0] ?? studentModal.hour + 1)}:00 까지
+              </p>
+            )}
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => setStudentModal(null)}
+                style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 600, fontSize: 14, border: '1px solid #e8e8f2', background: '#f5f5fb', color: '#a0a0c0', cursor: 'pointer' }}>취소</button>
+              <button onClick={handleStudentConfirm}
+                style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 700, fontSize: 14, color: 'white', border: 'none', cursor: 'pointer', background: isMain ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : 'linear-gradient(135deg,#16a34a,#22c55e)' }}>
+                예약
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    })()}
     </>
   )
 }
