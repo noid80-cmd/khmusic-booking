@@ -537,8 +537,12 @@ export default function BookPage() {
                           </button>
                         )
                         return (
-                          <div key={`${h}-${r.id}`} className="h-11 rounded-lg"
-                            style={{ background: '#f1f5f9', border: '1px solid #94a3b8' }} />
+                          <div key={`${h}-${r.id}`} className="h-11 rounded-lg flex items-center justify-center"
+                            style={{ background: '#f1f5f9', border: '1px solid #94a3b8' }}>
+                            <span className="text-[9px] font-medium truncate px-1.5" style={{ color: '#64748b' }}>
+                              {bk.external_name ?? bk.account?.name ?? ''}
+                            </span>
+                          </div>
                         )
                       }
 
