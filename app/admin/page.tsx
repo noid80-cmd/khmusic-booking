@@ -28,6 +28,7 @@ function TypeBadge({ type }: { type: string | null }) {
 
 export default function AdminPage() {
   const [tab, setTab] = useState<'users' | 'schedule' | 'annex' | 'admins' | 'locks'>('users')
+  const [memberSort, setMemberSort] = useState<'name' | 'type' | 'date'>('name')
   const [myEmail, setMyEmail] = useState('')
   const [pending, setPending] = useState<PendingAccount[]>([])
   const [approved, setApproved] = useState<Account[]>([])
@@ -284,8 +285,26 @@ export default function AdminPage() {
               </div>
             )}
 
-            <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: '#b0b0cc' }}>승인된 회원 {approved.length}명</p>
-            {approved.map(u => {
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#b0b0cc' }}>승인된 회원 {approved.length}명</p>
+              <div className="flex gap-1">
+                {([['name','이름순'],['type','반별'],['date','등록일']] as const).map(([key, label]) => (
+                  <button key={key} onClick={() => setMemberSort(key)}
+                    className="text-[11px] font-bold px-2.5 py-1 rounded-lg border transition"
+                    style={{
+                      background: memberSort === key ? '#eef2ff' : '#ffffff',
+                      color: memberSort === key ? '#6366f1' : '#a0a0c0',
+                      borderColor: memberSort === key ? '#c7d2fe' : '#e8e8f2',
+                    }}>{label}</button>
+                ))}
+              </div>
+            </div>
+            {[...approved].sort((a, b) => {
+              if (memberSort === 'name') return a.name.localeCompare(b.name, 'ko')
+              if (memberSort === 'date') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+              const order = ['exam','audition','professional','hobby','admin']
+              return order.indexOf(a.student_type ?? '') - order.indexOf(b.student_type ?? '')
+            }).map(u => {
               const isAdmin = adminUserIds.has(u.user_id)
               const adminRecord = admins.find(a => a.user_id === u.user_id)
               const typeColors: Record<string, { bg: string, color: string, border: string }> = {
