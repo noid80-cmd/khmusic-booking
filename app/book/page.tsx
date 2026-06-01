@@ -314,7 +314,7 @@ export default function BookPage() {
 
         {/* 건물 탭 */}
         <div className="flex gap-3" style={{ padding: '12px 16px 8px' }}>
-          {(['main', 'annex'] as const).map(b => {
+          {(['main', 'annex'] as const).filter(b => b === 'main' || account.student_type === 'exam' || account.student_type === 'audition' || account.student_type === 'admin').map(b => {
             const active = building === b
             const c = b === 'main'
               ? { color: '#6366f1', bg: '#eef2ff', border: '#c7d2fe' }
