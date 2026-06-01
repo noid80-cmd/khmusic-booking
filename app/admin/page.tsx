@@ -28,7 +28,10 @@ function TypeBadge({ type }: { type: string | null }) {
 
 export default function AdminPage() {
   const [tab, setTab] = useState<'users' | 'schedule' | 'annex' | 'admins' | 'locks'>('users')
-  const [memberSort, setMemberSort] = useState<'name' | 'type' | 'date'>('name')
+  const [memberSort, setMemberSort] = useState<'name' | 'type' | 'date'>(() => {
+    if (typeof window === 'undefined') return 'name'
+    return (localStorage.getItem('memberSort') as 'name' | 'type' | 'date') || 'name'
+  })
   const [myEmail, setMyEmail] = useState('')
   const [pending, setPending] = useState<PendingAccount[]>([])
   const [approved, setApproved] = useState<Account[]>([])
@@ -309,7 +312,7 @@ export default function AdminPage() {
               <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#b0b0cc' }}>승인된 회원 {approved.length}명</p>
               <div className="flex gap-1">
                 {([['name','이름순'],['type','반별'],['date','등록일']] as const).map(([key, label]) => (
-                  <button key={key} onClick={() => setMemberSort(key)}
+                  <button key={key} onClick={() => { setMemberSort(key); localStorage.setItem('memberSort', key) }}
                     className="text-[13px] font-bold px-3 py-1.5 rounded-lg border transition"
                     style={{
                       background: memberSort === key ? '#eef2ff' : '#ffffff',
