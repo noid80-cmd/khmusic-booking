@@ -137,7 +137,8 @@ export default function AdminPage() {
 
   function openSaveTemplateModal() {
     if (classes.length === 0) { alert('저장할 수업이 없어요.'); return }
-    setSaveTemplateDay(new Date(date).getDay())
+    const dow = new Date(date).getDay()
+    setSaveTemplateDay(dow === 0 ? 1 : dow)
     setSaveTemplateModal(true)
   }
 
@@ -711,12 +712,12 @@ export default function AdminPage() {
           <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 4, color: '#b0b0cc' }}>요일 선택</p>
           <p style={{ fontSize: 12, marginBottom: 14, color: '#c0c0d8' }}>저장: 현재 수업을 해당 요일 기본으로 덮어씌움 · 초기화: 해당 요일 기본 삭제</p>
           <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-            {['일','월','화','수','목','금','토'].map((label, i) => (
-              <button key={i} onClick={() => setSaveTemplateDay(i)}
+            {['월','화','수','목','금','토'].map((label, i) => (
+              <button key={i+1} onClick={() => setSaveTemplateDay(i+1)}
                 style={{
                   flex: 1, padding: '10px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', border: 'none',
-                  background: saveTemplateDay === i ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#f3f4f6',
-                  color: saveTemplateDay === i ? 'white' : '#9ca3af',
+                  background: saveTemplateDay === i+1 ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#f3f4f6',
+                  color: saveTemplateDay === i+1 ? 'white' : '#9ca3af',
                 }}>{label}</button>
             ))}
           </div>
