@@ -27,7 +27,8 @@ function TypeBadge({ type }: { type: string | null }) {
 }
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<'users' | 'schedule' | 'annex' | 'admins' | 'locks' | 'template'>('users')
+  const [tab, setTab] = useState<'users' | 'schedule' | 'annex' | 'admins' | 'locks'>('users')
+  const [scheduleMode, setScheduleMode] = useState<'daily' | 'template'>('daily')
   const [memberSort, setMemberSort] = useState<'name' | 'type' | 'date'>(() => {
     if (typeof window === 'undefined') return 'name'
     return (localStorage.getItem('memberSort') as 'name' | 'type' | 'date') || 'name'
@@ -299,7 +300,7 @@ export default function AdminPage() {
 
       {/* 탭 */}
       <div className="flex px-4 pt-5 mb-5 gap-2">
-        {([['users', '회원'], ['schedule', '본관 수업'], ['template', '기본 스케줄'], ['annex', '별관'], ['locks', '방 잠금'], ['admins', '관리자']] as const).map(([t, label]) => {
+        {([['users', '회원'], ['schedule', '본관 수업'], ['annex', '별관'], ['locks', '방 잠금'], ['admins', '관리자']] as const).map(([t, label]) => {
           const active = tab === t
           return (
             <button key={t} onClick={() => setTab(t)}
@@ -431,58 +432,139 @@ export default function AdminPage() {
         {/* ── 본관 수업 ── */}
         {tab === 'schedule' && (
           <div className="space-y-4">
-            <input type="date" value={date} onChange={e => setDate(e.target.value)}
-              className={inputCls} style={{ colorScheme: 'light' }} />
-            <div className="flex items-center justify-between">
-              <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>빈 칸 탭 → 수업 등록 · 등록된 수업 탭 → 삭제</p>
-              <button onClick={applyTemplate} disabled={applyingTemplate}
-                className="text-sm font-bold px-4 py-2 rounded-xl border transition"
-                style={{ background: '#eef2ff', color: '#6366f1', borderColor: '#c7d2fe', opacity: applyingTemplate ? 0.5 : 1 }}>
-                {applyingTemplate ? '적용 중...' : '기본 스케줄 불러오기'}
-              </button>
+            {/* 모드 토글 */}
+            <div className="flex gap-2">
+              {(['daily', 'template'] as const).map(mode => (
+                <button key={mode} onClick={() => setScheduleMode(mode)}
+                  className="flex-1 py-3.5 rounded-2xl text-sm font-bold transition border"
+                  style={{
+                    background: scheduleMode === mode ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#ffffff',
+                    color: scheduleMode === mode ? '#fff' : '#a0a0c0',
+                    border: scheduleMode === mode ? 'none' : '1px solid #e8e8f2',
+                    boxShadow: scheduleMode === mode ? '0 4px 14px rgba(99,102,241,0.28)' : '0 1px 3px rgba(0,0,0,0.04)',
+                  }}>
+                  {mode === 'daily' ? '날짜별' : '기본 스케줄'}
+                </button>
+              ))}
             </div>
-            <div className="overflow-x-auto -mx-4 px-4">
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: `36px repeat(${mainRooms.length}, minmax(48px, 1fr))`,
-                gap: '3px',
-                minWidth: `${mainRooms.length * 51 + 39}px`,
-              }}>
-                <div />
-                {mainRooms.map(r => (
-                  <div key={`hdr-${r.id}`} className="flex items-center justify-center py-2.5 rounded-lg"
-                    style={{ background: '#eef2ff', border: '1px solid #c7d2fe' }}>
-                    <span className="text-[10px] font-bold" style={{ color: '#6366f1' }}>
-                      {r.name.replace('PIANO','P').replace('MIDI','M').replace('GUITAR & BASS','G&B').replace('ENSEMBLE ROOM','ENS').replace('DRUMS','DR')}
-                    </span>
-                  </div>
-                ))}
-                {HOURS.flatMap(h => [
-                  <div key={`t-${h}`} className="flex items-center justify-end pr-2">
-                    <span className="text-[11px] font-bold" style={{ color: '#a0a0c0' }}>{h}</span>
-                  </div>,
-                  ...mainRooms.map(r => {
-                    const cls = classes.find(c => c.room_id === r.id && c.start_hour <= h && h < c.end_hour)
-                    if (cls) return (
-                      <button key={`${h}-${r.id}`} onClick={() => deleteClass(cls.id)}
-                        className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                        style={{ background: '#fde8ef', border: '1px solid #fca5b8' }}>
-                        <span className="text-[9px] font-semibold truncate px-1" style={{ color: '#e11d48' }}>
-                          {cls.instructor}
+
+            {/* 날짜별 */}
+            {scheduleMode === 'daily' && (
+              <>
+                <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                  className={inputCls} style={{ colorScheme: 'light' }} />
+                <div className="flex items-center justify-between">
+                  <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>빈 칸 탭 → 수업 등록 · 등록된 수업 탭 → 삭제</p>
+                  <button onClick={applyTemplate} disabled={applyingTemplate}
+                    className="text-sm font-bold px-4 py-2 rounded-xl border transition"
+                    style={{ background: '#eef2ff', color: '#6366f1', borderColor: '#c7d2fe', opacity: applyingTemplate ? 0.5 : 1 }}>
+                    {applyingTemplate ? '적용 중...' : '기본 스케줄 불러오기'}
+                  </button>
+                </div>
+                <div className="overflow-x-auto -mx-4 px-4">
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: `36px repeat(${mainRooms.length}, minmax(48px, 1fr))`,
+                    gap: '3px',
+                    minWidth: `${mainRooms.length * 51 + 39}px`,
+                  }}>
+                    <div />
+                    {mainRooms.map(r => (
+                      <div key={`hdr-${r.id}`} className="flex items-center justify-center py-2.5 rounded-lg"
+                        style={{ background: '#eef2ff', border: '1px solid #c7d2fe' }}>
+                        <span className="text-[10px] font-bold" style={{ color: '#6366f1' }}>
+                          {r.name.replace('PIANO','P').replace('MIDI','M').replace('GUITAR & BASS','G&B').replace('ENSEMBLE ROOM','ENS').replace('DRUMS','DR')}
                         </span>
-                      </button>
-                    )
-                    return (
-                      <button key={`${h}-${r.id}`} onClick={() => addClassFromGrid(r.id, h)}
-                        className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                        style={{ background: '#f8f8fc', border: '1px solid #ebebf5' }}>
-                        <span className="text-[14px] font-light" style={{ color: '#d0d0e8' }}>+</span>
-                      </button>
-                    )
-                  })
-                ])}
-              </div>
-            </div>
+                      </div>
+                    ))}
+                    {HOURS.flatMap(h => [
+                      <div key={`t-${h}`} className="flex items-center justify-end pr-2">
+                        <span className="text-[11px] font-bold" style={{ color: '#a0a0c0' }}>{h}</span>
+                      </div>,
+                      ...mainRooms.map(r => {
+                        const cls = classes.find(c => c.room_id === r.id && c.start_hour <= h && h < c.end_hour)
+                        if (cls) return (
+                          <button key={`${h}-${r.id}`} onClick={() => deleteClass(cls.id)}
+                            className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
+                            style={{ background: '#fde8ef', border: '1px solid #fca5b8' }}>
+                            <span className="text-[9px] font-semibold truncate px-1" style={{ color: '#e11d48' }}>
+                              {cls.instructor}
+                            </span>
+                          </button>
+                        )
+                        return (
+                          <button key={`${h}-${r.id}`} onClick={() => addClassFromGrid(r.id, h)}
+                            className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
+                            style={{ background: '#f8f8fc', border: '1px solid #ebebf5' }}>
+                            <span className="text-[14px] font-light" style={{ color: '#d0d0e8' }}>+</span>
+                          </button>
+                        )
+                      })
+                    ])}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* 기본 스케줄 */}
+            {scheduleMode === 'template' && (
+              <>
+                <div className="flex gap-1">
+                  {['일','월','화','수','목','금','토'].map((label, i) => (
+                    <button key={i} onClick={() => setTemplateDay(i)}
+                      className="flex-1 py-3 rounded-xl text-sm font-bold border transition"
+                      style={{
+                        background: templateDay === i ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#ffffff',
+                        color: templateDay === i ? '#fff' : '#a0a0c0',
+                        border: templateDay === i ? 'none' : '1px solid #e8e8f2',
+                      }}>{label}</button>
+                  ))}
+                </div>
+                <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>빈 칸 탭 → 기본 수업 등록 · 등록된 수업 탭 → 삭제</p>
+                <div className="overflow-x-auto -mx-4 px-4">
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: `36px repeat(${mainRooms.length}, minmax(48px, 1fr))`,
+                    gap: '3px',
+                    minWidth: `${mainRooms.length * 51 + 39}px`,
+                  }}>
+                    <div />
+                    {mainRooms.map(r => (
+                      <div key={`hdr-${r.id}`} className="flex items-center justify-center py-2.5 rounded-lg"
+                        style={{ background: '#eef2ff', border: '1px solid #c7d2fe' }}>
+                        <span className="text-[10px] font-bold" style={{ color: '#6366f1' }}>
+                          {r.name.replace('PIANO','P').replace('MIDI','M').replace('GUITAR & BASS','G&B').replace('ENSEMBLE ROOM','ENS').replace('DRUMS','DR')}
+                        </span>
+                      </div>
+                    ))}
+                    {HOURS.flatMap(h => [
+                      <div key={`t-${h}`} className="flex items-center justify-end pr-2">
+                        <span className="text-[11px] font-bold" style={{ color: '#a0a0c0' }}>{h}</span>
+                      </div>,
+                      ...mainRooms.map(r => {
+                        const tmpl = templates.find(t => t.room_id === r.id && t.start_hour <= h && h < t.end_hour)
+                        if (tmpl) return (
+                          <button key={`${h}-${r.id}`} onClick={() => deleteTemplate(tmpl.id)}
+                            className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
+                            style={{ background: '#fde8ef', border: '1px solid #fca5b8' }}>
+                            <span className="text-[9px] font-semibold truncate px-1" style={{ color: '#e11d48' }}>
+                              {tmpl.instructor}
+                            </span>
+                          </button>
+                        )
+                        return (
+                          <button key={`${h}-${r.id}`} onClick={() => addTemplateFromGrid(r.id, h)}
+                            className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
+                            style={{ background: '#f8f8fc', border: '1px solid #ebebf5' }}>
+                            <span className="text-[14px] font-light" style={{ color: '#d0d0e8' }}>+</span>
+                          </button>
+                        )
+                      })
+                    ])}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -645,66 +727,6 @@ export default function AdminPage() {
                 </button>
               </div>
             ))}
-          </div>
-        )}
-
-        {/* ── 기본 스케줄 ── */}
-        {tab === 'template' && (
-          <div className="space-y-4">
-            <div className="flex gap-1">
-              {['일','월','화','수','목','금','토'].map((label, i) => (
-                <button key={i} onClick={() => setTemplateDay(i)}
-                  className="flex-1 py-3 rounded-xl text-sm font-bold border transition"
-                  style={{
-                    background: templateDay === i ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#ffffff',
-                    color: templateDay === i ? '#fff' : '#a0a0c0',
-                    border: templateDay === i ? 'none' : '1px solid #e8e8f2',
-                  }}>{label}</button>
-              ))}
-            </div>
-            <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>빈 칸 탭 → 기본 수업 등록 · 등록된 수업 탭 → 삭제</p>
-            <div className="overflow-x-auto -mx-4 px-4">
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: `36px repeat(${mainRooms.length}, minmax(48px, 1fr))`,
-                gap: '3px',
-                minWidth: `${mainRooms.length * 51 + 39}px`,
-              }}>
-                <div />
-                {mainRooms.map(r => (
-                  <div key={`hdr-${r.id}`} className="flex items-center justify-center py-2.5 rounded-lg"
-                    style={{ background: '#eef2ff', border: '1px solid #c7d2fe' }}>
-                    <span className="text-[10px] font-bold" style={{ color: '#6366f1' }}>
-                      {r.name.replace('PIANO','P').replace('MIDI','M').replace('GUITAR & BASS','G&B').replace('ENSEMBLE ROOM','ENS').replace('DRUMS','DR')}
-                    </span>
-                  </div>
-                ))}
-                {HOURS.flatMap(h => [
-                  <div key={`t-${h}`} className="flex items-center justify-end pr-2">
-                    <span className="text-[11px] font-bold" style={{ color: '#a0a0c0' }}>{h}</span>
-                  </div>,
-                  ...mainRooms.map(r => {
-                    const tmpl = templates.find(t => t.room_id === r.id && t.start_hour <= h && h < t.end_hour)
-                    if (tmpl) return (
-                      <button key={`${h}-${r.id}`} onClick={() => deleteTemplate(tmpl.id)}
-                        className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                        style={{ background: '#fde8ef', border: '1px solid #fca5b8' }}>
-                        <span className="text-[9px] font-semibold truncate px-1" style={{ color: '#e11d48' }}>
-                          {tmpl.instructor}
-                        </span>
-                      </button>
-                    )
-                    return (
-                      <button key={`${h}-${r.id}`} onClick={() => addTemplateFromGrid(r.id, h)}
-                        className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                        style={{ background: '#f8f8fc', border: '1px solid #ebebf5' }}>
-                        <span className="text-[14px] font-light" style={{ color: '#d0d0e8' }}>+</span>
-                      </button>
-                    )
-                  })
-                ])}
-              </div>
-            </div>
           </div>
         )}
 
