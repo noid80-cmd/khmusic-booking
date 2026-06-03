@@ -56,6 +56,9 @@ export default function AdminPage() {
 
   const [applyingTemplate, setApplyingTemplate] = useState(false)
   const [savingTemplate, setSavingTemplate] = useState(false)
+  const [classModal, setClassModal] = useState<{ roomId: string, hour: number } | null>(null)
+  const [classInstructor, setClassInstructor] = useState('')
+  const [classEndHour, setClassEndHour] = useState(12)
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -113,14 +116,18 @@ export default function AdminPage() {
     await loadAll()
   }
 
-  async function addClassFromGrid(roomId: string, hour: number) {
-    const inst = window.prompt('강사명')
-    if (!inst?.trim()) return
-    const endInput = window.prompt('몇 시까지?', String(hour + 1))
-    const endHour = parseInt(endInput || '')
-    if (isNaN(endHour) || endHour <= hour || endHour > 22) { alert('올바른 종료 시간을 입력해주세요.'); return }
+  function addClassFromGrid(roomId: string, hour: number) {
+    setClassInstructor('')
+    setClassEndHour(hour + 1)
+    setClassModal({ roomId, hour })
+  }
+
+  async function confirmAddClass() {
+    if (!classModal || !classInstructor.trim()) return
+    const { roomId, hour } = classModal
+    setClassModal(null)
     const { error } = await supabase.from('class_schedules').insert({
-      room_id: roomId, date, start_hour: hour, end_hour: endHour, instructor: inst.trim()
+      room_id: roomId, date, start_hour: hour, end_hour: classEndHour, instructor: classInstructor.trim()
     })
     if (error) { alert('오류: ' + error.message); return }
     await loadSchedule()
@@ -680,5 +687,40 @@ export default function AdminPage() {
         )}
       </div>
     </div>
+
+    {classModal && (
+      <div
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(30,27,75,0.25)', backdropFilter: 'blur(6px)' }}
+        onClick={e => { if (e.target === e.currentTarget) setClassModal(null) }}>
+        <div style={{ background: 'white', borderRadius: 24, padding: 20, width: '100%', maxWidth: 320, boxShadow: '0 25px 50px rgba(0,0,0,0.12)', border: '1px solid #e8e8f2' }}>
+          <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 12, color: '#b0b0cc' }}>{classModal.hour}:00 수업 등록</p>
+          <input
+            value={classInstructor} onChange={e => setClassInstructor(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && confirmAddClass()}
+            placeholder="강사명" autoFocus
+            style={{ width: '100%', border: '1px solid #fca5b8', borderRadius: 16, padding: '12px 16px', fontSize: 15, outline: 'none', marginBottom: 12, color: '#1e1b4b', boxSizing: 'border-box' }} />
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {Array.from({ length: 22 - classModal.hour }, (_, i) => classModal.hour + i + 1).map(h => (
+              <button key={h} onClick={() => setClassEndHour(h)}
+                style={{
+                  padding: '6px 12px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', border: 'none',
+                  background: classEndHour === h ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : '#f3f4f6',
+                  color: classEndHour === h ? 'white' : '#9ca3af',
+                }}>
+                {h}시
+              </button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setClassModal(null)}
+              style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 600, fontSize: 14, border: '1px solid #e8e8f2', background: '#f5f5fb', color: '#a0a0c0', cursor: 'pointer' }}>취소</button>
+            <button onClick={confirmAddClass} disabled={!classInstructor.trim()}
+              style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 700, fontSize: 14, color: 'white', border: 'none', cursor: 'pointer', opacity: classInstructor.trim() ? 1 : 0.4, background: 'linear-gradient(135deg,#f43f5e,#e11d48)' }}>
+              등록
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
   )
 }
