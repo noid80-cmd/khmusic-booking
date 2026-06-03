@@ -56,6 +56,8 @@ export default function AdminPage() {
 
   const [applyingTemplate, setApplyingTemplate] = useState(false)
   const [savingTemplate, setSavingTemplate] = useState(false)
+  const [saveTemplateModal, setSaveTemplateModal] = useState(false)
+  const [saveTemplateDay, setSaveTemplateDay] = useState(0)
   const [classModal, setClassModal] = useState<{ roomId: string, hour: number } | null>(null)
   const [classInstructor, setClassInstructor] = useState('')
   const [classEndHour, setClassEndHour] = useState(12)
@@ -133,21 +135,25 @@ export default function AdminPage() {
     await loadSchedule()
   }
 
-  async function saveAsTemplate() {
-    const dow = new Date(date).getDay()
+  function openSaveTemplateModal() {
+    if (classes.length === 0) { alert('저장할 수업이 없어요.'); return }
+    setSaveTemplateDay(new Date(date).getDay())
+    setSaveTemplateModal(true)
+  }
+
+  async function confirmSaveTemplate() {
     const dayNames = ['일','월','화','수','목','금','토']
     const mainRoomIds = rooms.filter(r => r.building === 'main').map(r => r.id)
-    if (classes.length === 0) { alert('저장할 수업이 없어요.'); return }
-    if (!confirm(`현재 수업 ${classes.length}개를 ${dayNames[dow]}요일 기본 스케줄로 저장할까요?\n기존 ${dayNames[dow]}요일 기본 스케줄은 덮어씌워져요.`)) return
+    setSaveTemplateModal(false)
     setSavingTemplate(true)
-    await supabase.from('class_schedule_templates').delete().eq('day_of_week', dow).in('room_id', mainRoomIds)
+    await supabase.from('class_schedule_templates').delete().eq('day_of_week', saveTemplateDay).in('room_id', mainRoomIds)
     for (const c of classes) {
       await supabase.from('class_schedule_templates').insert({
-        room_id: c.room_id, day_of_week: dow, start_hour: c.start_hour, end_hour: c.end_hour, instructor: c.instructor
+        room_id: c.room_id, day_of_week: saveTemplateDay, start_hour: c.start_hour, end_hour: c.end_hour, instructor: c.instructor
       })
     }
     setSavingTemplate(false)
-    alert(`${dayNames[dow]}요일 기본 스케줄로 저장됐어요.`)
+    alert(`${dayNames[saveTemplateDay]}요일 기본 스케줄로 저장됐어요.`)
   }
 
   async function applyTemplate() {
@@ -433,7 +439,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between">
               <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>빈 칸 탭 → 수업 등록 · 등록된 수업 탭 → 삭제</p>
               <div className="flex gap-2">
-                <button onClick={saveAsTemplate} disabled={savingTemplate}
+                <button onClick={openSaveTemplateModal} disabled={savingTemplate}
                   className="text-sm font-bold px-4 py-2 rounded-xl border transition"
                   style={{ background: '#f0fdf4', color: '#16a34a', borderColor: '#86efac', opacity: savingTemplate ? 0.5 : 1 }}>
                   {savingTemplate ? '저장 중...' : '기본으로 저장'}
@@ -688,6 +694,35 @@ export default function AdminPage() {
         )}
       </div>
     </div>
+
+    {saveTemplateModal && (
+      <div
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(30,27,75,0.25)', backdropFilter: 'blur(6px)' }}
+        onClick={e => { if (e.target === e.currentTarget) setSaveTemplateModal(false) }}>
+        <div style={{ background: 'white', borderRadius: 24, padding: 20, width: '100%', maxWidth: 320, boxShadow: '0 25px 50px rgba(0,0,0,0.12)', border: '1px solid #e8e8f2' }}>
+          <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 4, color: '#b0b0cc' }}>어느 요일 기본 스케줄로 저장할까요?</p>
+          <p style={{ fontSize: 12, marginBottom: 14, color: '#c0c0d8' }}>기존 해당 요일 기본 스케줄은 덮어씌워져요</p>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+            {['일','월','화','수','목','금','토'].map((label, i) => (
+              <button key={i} onClick={() => setSaveTemplateDay(i)}
+                style={{
+                  flex: 1, padding: '10px 0', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', border: 'none',
+                  background: saveTemplateDay === i ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#f3f4f6',
+                  color: saveTemplateDay === i ? 'white' : '#9ca3af',
+                }}>{label}</button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setSaveTemplateModal(false)}
+              style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 600, fontSize: 14, border: '1px solid #e8e8f2', background: '#f5f5fb', color: '#a0a0c0', cursor: 'pointer' }}>취소</button>
+            <button onClick={confirmSaveTemplate}
+              style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 700, fontSize: 14, color: 'white', border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
+              저장
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
     {classModal && (
       <div
