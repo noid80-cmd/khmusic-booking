@@ -700,18 +700,12 @@ export default function AdminPage() {
             onKeyDown={e => e.key === 'Enter' && confirmAddClass()}
             placeholder="강사명" autoFocus
             style={{ width: '100%', border: '1px solid #fca5b8', borderRadius: 16, padding: '12px 16px', fontSize: 15, outline: 'none', marginBottom: 12, color: '#1e1b4b', boxSizing: 'border-box' }} />
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <select value={classEndHour} onChange={e => setClassEndHour(Number(e.target.value))}
+            style={{ width: '100%', border: '1px solid #fca5b8', borderRadius: 16, padding: '12px 16px', fontSize: 14, outline: 'none', marginBottom: 12, color: '#e11d48', background: '#fde8ef', colorScheme: 'light', cursor: 'pointer', boxSizing: 'border-box' }}>
             {Array.from({ length: 22 - classModal.hour }, (_, i) => classModal.hour + i + 1).map(h => (
-              <button key={h} onClick={() => setClassEndHour(h)}
-                style={{
-                  padding: '6px 12px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', border: 'none',
-                  background: classEndHour === h ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : '#f3f4f6',
-                  color: classEndHour === h ? 'white' : '#9ca3af',
-                }}>
-                {h}시
-              </button>
+              <option key={h} value={h}>{h}:00 까지</option>
             ))}
-          </div>
+          </select>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => setClassModal(null)}
               style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 600, fontSize: 14, border: '1px solid #e8e8f2', background: '#f5f5fb', color: '#a0a0c0', cursor: 'pointer' }}>취소</button>
