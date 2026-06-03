@@ -156,6 +156,14 @@ export default function AdminPage() {
     alert(`${dayNames[saveTemplateDay]}요일 기본 스케줄로 저장됐어요.`)
   }
 
+  async function resetTemplate() {
+    const dayNames = ['일','월','화','수','목','금','토']
+    const mainRoomIds = rooms.filter(r => r.building === 'main').map(r => r.id)
+    setSaveTemplateModal(false)
+    await supabase.from('class_schedule_templates').delete().eq('day_of_week', saveTemplateDay).in('room_id', mainRoomIds)
+    alert(`${dayNames[saveTemplateDay]}요일 기본 스케줄을 초기화했어요.`)
+  }
+
   async function applyTemplate() {
     const dow = new Date(date).getDay()
     const mainRoomIds = rooms.filter(r => r.building === 'main').map(r => r.id)
@@ -700,8 +708,8 @@ export default function AdminPage() {
         style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(30,27,75,0.25)', backdropFilter: 'blur(6px)' }}
         onClick={e => { if (e.target === e.currentTarget) setSaveTemplateModal(false) }}>
         <div style={{ background: 'white', borderRadius: 24, padding: 20, width: '100%', maxWidth: 320, boxShadow: '0 25px 50px rgba(0,0,0,0.12)', border: '1px solid #e8e8f2' }}>
-          <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 4, color: '#b0b0cc' }}>어느 요일 기본 스케줄로 저장할까요?</p>
-          <p style={{ fontSize: 12, marginBottom: 14, color: '#c0c0d8' }}>기존 해당 요일 기본 스케줄은 덮어씌워져요</p>
+          <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 4, color: '#b0b0cc' }}>요일 선택</p>
+          <p style={{ fontSize: 12, marginBottom: 14, color: '#c0c0d8' }}>저장: 현재 수업을 해당 요일 기본으로 덮어씌움 · 초기화: 해당 요일 기본 삭제</p>
           <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
             {['일','월','화','수','목','금','토'].map((label, i) => (
               <button key={i} onClick={() => setSaveTemplateDay(i)}
@@ -715,6 +723,10 @@ export default function AdminPage() {
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => setSaveTemplateModal(false)}
               style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 600, fontSize: 14, border: '1px solid #e8e8f2', background: '#f5f5fb', color: '#a0a0c0', cursor: 'pointer' }}>취소</button>
+            <button onClick={resetTemplate}
+              style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 700, fontSize: 14, color: '#ef4444', border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer' }}>
+              초기화
+            </button>
             <button onClick={confirmSaveTemplate}
               style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 700, fontSize: 14, color: 'white', border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
               저장
