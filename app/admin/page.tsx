@@ -276,6 +276,7 @@ export default function AdminPage() {
   )
 
   return (
+    <>
     <div className="min-h-screen pb-24" style={{ background: '#f0f0f8' }}>
       <style>{`select option { color: #1e1b4b !important; background: #ffffff !important; }`}</style>
 
@@ -722,5 +723,6 @@ export default function AdminPage() {
         </div>
       </div>
     )}
+    </>
   )
 }
