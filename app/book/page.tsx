@@ -447,11 +447,12 @@ export default function BookPage() {
             <p className="text-[11px] font-bold mb-3 uppercase tracking-widest" style={{ color: '#b0b0cc' }}>
               예약 현황
             </p>
-            <div>
+            <div className="overflow-x-auto -mx-4 px-4">
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: `28px repeat(${filteredRooms.length}, 1fr)`,
+                gridTemplateColumns: `36px repeat(${filteredRooms.length}, minmax(48px, 1fr))`,
                 gap: '3px',
+                minWidth: `${filteredRooms.length * 51 + 39}px`,
               }}>
 
                 {/* 헤더 */}
@@ -498,7 +499,7 @@ export default function BookPage() {
                       if (cls) {
                         if (account.student_type === 'admin') return (
                           <button key={`${h}-${r.id}`} onClick={() => handleDeleteClass(cls.id, cls.instructor)}
-                            className="h-14 rounded-lg flex items-center justify-center transition active:scale-95"
+                            className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
                             style={{ background: '#fde8ef', border: '1px solid #fca5b8' }}>
                             <span className="text-[9px] font-semibold truncate px-1.5" style={{ color: '#e11d48' }}>
                               {cls.instructor}
@@ -506,7 +507,7 @@ export default function BookPage() {
                           </button>
                         )
                         return (
-                          <div key={`${h}-${r.id}`} className="h-14 rounded-lg flex items-center justify-center"
+                          <div key={`${h}-${r.id}`} className="h-11 rounded-lg flex items-center justify-center"
                             style={{ background: '#fde8ef', border: '1px solid #fecdd3' }}>
                             <span className="text-[9px] font-semibold truncate px-1.5" style={{ color: '#e11d48', opacity: 0.8 }}>
                               {cls.instructor}
@@ -517,7 +518,7 @@ export default function BookPage() {
 
                       if (isMine) return (
                         <button key={`${h}-${r.id}`} onClick={() => handleCancel(bk!.id)}
-                          className="h-14 rounded-lg flex items-center justify-center transition active:scale-95"
+                          className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
                           style={{ background: color.mineBg, border: `2px solid ${color.mineBorder}` }}>
                           <span className="text-[9px] font-bold truncate px-1.5" style={{ color: 'white' }}>
                             {account.student_type === 'admin' ? 'X' : account.name}
@@ -528,7 +529,7 @@ export default function BookPage() {
                       if (bk) {
                         if (account.student_type === 'admin') return (
                           <button key={`${h}-${r.id}`} onClick={() => handleCancel(bk.id)}
-                            className="h-14 rounded-lg flex items-center justify-center transition active:scale-95"
+                            className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
                             style={{ background: '#f1f5f9', border: '1px solid #94a3b8' }}>
                             <span className="text-[9px] font-medium truncate px-1.5" style={{ color: '#475569' }}>
                               {bk.external_name ?? bk.account?.name ?? '?'}
@@ -536,7 +537,7 @@ export default function BookPage() {
                           </button>
                         )
                         return (
-                          <div key={`${h}-${r.id}`} className="h-14 rounded-lg flex items-center justify-center"
+                          <div key={`${h}-${r.id}`} className="h-11 rounded-lg flex items-center justify-center"
                             style={{ background: '#f1f5f9', border: '1px solid #94a3b8' }}>
                             <span className="text-[9px] font-medium truncate px-1.5" style={{ color: '#64748b' }}>
                               {bk.external_name ?? bk.account?.name ?? ''}
@@ -546,13 +547,13 @@ export default function BookPage() {
                       }
 
                       if (restricted || !bookable) return (
-                        <div key={`${h}-${r.id}`} className="h-14 rounded-lg"
+                        <div key={`${h}-${r.id}`} className="h-11 rounded-lg"
                           style={{ background: '#f3f4f6', border: '1px solid #e5e7eb' }} />
                       )
 
                       return (
                         <button key={`${h}-${r.id}`} onClick={() => handleBook(r.id, h)} disabled={booking}
-                          className="h-14 rounded-lg flex items-center justify-center transition active:scale-95 disabled:opacity-40"
+                          className="h-11 rounded-lg flex items-center justify-center transition active:scale-95 disabled:opacity-40"
                           style={{
                             background: isCurrent ? color.bookableHotBg : color.bookableBg,
                             border: `1px solid ${isCurrent ? color.bookableHotBorder : color.bookableBorder}`,
