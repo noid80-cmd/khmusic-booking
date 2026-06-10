@@ -296,26 +296,28 @@ export default function AdminPage() {
       <style>{`select option { color: #1e1b4b !important; background: #ffffff !important; }`}</style>
 
       {/* 헤더 */}
-      <div className="sticky top-0 z-20 px-5 py-4 flex items-center justify-between"
+      <div className="sticky top-0 z-20"
         style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)', borderBottom: '1px solid #e8e8f2' }}>
-        <div>
-          <h1 className="font-black text-lg leading-none" style={{ color: '#1e1b4b' }}>관리자</h1>
-          <p className="text-xs mt-0.5" style={{ color: '#a0a0c0' }}>{myEmail}</p>
+        <div className="max-w-2xl mx-auto px-5 py-5 flex items-center justify-between">
+          <div>
+            <h1 className="font-black text-lg leading-none" style={{ color: '#1e1b4b' }}>관리자</h1>
+            <p className="text-xs mt-0.5" style={{ color: '#a0a0c0' }}>{myEmail}</p>
+          </div>
+          <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
+            className="text-[11px] font-medium px-3 py-1.5 rounded-lg border"
+            style={{ color: '#a0a0c0', background: '#f5f5fb', borderColor: '#e8e8f2' }}>
+            로그아웃
+          </button>
         </div>
-        <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
-          className="text-[11px] font-medium px-3 py-1.5 rounded-lg border"
-          style={{ color: '#a0a0c0', background: '#f5f5fb', borderColor: '#e8e8f2' }}>
-          로그아웃
-        </button>
       </div>
 
       {/* 탭 */}
-      <div className="flex px-4 pt-5 mb-5 gap-2">
+      <div className="max-w-2xl mx-auto flex px-4 pt-5 mb-5 gap-2">
         {([['users', '회원'], ['schedule', '본관 수업'], ['annex', '별관'], ['locks', '방 잠금'], ['admins', '관리자']] as const).map(([t, label]) => {
           const active = tab === t
           return (
             <button key={t} onClick={() => setTab(t)}
-              className="flex-1 py-3.5 rounded-2xl text-[13px] font-bold transition-all relative"
+              className="flex-1 py-4 rounded-2xl text-[13px] font-bold transition-all relative"
               style={{
                 background: active ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#ffffff',
                 color: active ? '#fff' : '#a0a0c0',
@@ -333,7 +335,7 @@ export default function AdminPage() {
         })}
       </div>
 
-      <div className="px-4 space-y-3">
+      <div className="max-w-2xl mx-auto px-4 space-y-3">
 
         {/* ── 회원 관리 ── */}
         {tab === 'users' && (

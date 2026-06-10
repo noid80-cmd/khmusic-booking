@@ -284,7 +284,7 @@ export default function BookPage() {
       <div className="sticky top-0 z-20" style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(24px)', borderBottom: '1px solid #e8e8f2' }}>
 
         {/* 상단: 브랜드 + 로그아웃 */}
-        <div className="flex items-center justify-between"
+        <div className="max-w-2xl mx-auto flex items-center justify-between"
           style={{ padding: '16px 20px', borderBottom: '1px solid #f0f0f8' }}>
           <div className="flex items-center gap-4">
             <div className="relative">
@@ -305,15 +305,24 @@ export default function BookPage() {
               </div>
             </div>
           </div>
-          <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
-            className="text-[11px] font-medium px-3 py-1.5 rounded-lg border transition"
-            style={{ color: '#a0a0c0', background: '#f5f5fb', borderColor: '#e8e8f2' }}>
-            로그아웃
-          </button>
+          <div className="flex items-center gap-2">
+            {account.student_type === 'admin' && (
+              <button onClick={() => window.location.href = '/admin'}
+                className="text-[11px] font-bold px-3 py-1.5 rounded-lg border transition"
+                style={{ color: '#6366f1', background: '#eef2ff', borderColor: '#c7d2fe' }}>
+                관리자
+              </button>
+            )}
+            <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
+              className="text-[11px] font-medium px-3 py-1.5 rounded-lg border transition"
+              style={{ color: '#a0a0c0', background: '#f5f5fb', borderColor: '#e8e8f2' }}>
+              로그아웃
+            </button>
+          </div>
         </div>
 
         {/* 건물 탭 */}
-        <div className="flex gap-3" style={{ padding: '12px 16px 8px' }}>
+        <div className="max-w-2xl mx-auto flex gap-3" style={{ padding: '14px 16px 10px' }}>
           {(['main', 'annex'] as const).filter(b => b === 'main' || account.student_type === 'exam' || account.student_type === 'audition' || account.student_type === 'admin').map(b => {
             const active = building === b
             const c = b === 'main'
@@ -321,7 +330,7 @@ export default function BookPage() {
               : { color: '#16a34a', bg: '#f0fdf4', border: '#86efac' }
             return (
               <button key={b} onClick={() => setBuilding(b)}
-                className="flex-1 py-3.5 rounded-2xl text-base font-black transition-all border"
+                className="flex-1 py-5 rounded-2xl text-base font-black transition-all border"
                 style={{
                   background: active ? c.bg : '#ffffff',
                   color: active ? c.color : '#a0a0c0',
@@ -337,12 +346,12 @@ export default function BookPage() {
 
         {/* 방 종류 탭 (본관만) */}
         {building === 'main' && (
-          <div className="flex gap-2 px-4 py-3">
+          <div className="max-w-2xl mx-auto flex gap-2 px-4 py-3">
             {mainRoomTypes.map(t => {
               const active = roomType === t.key
               return (
                 <button key={t.key} onClick={() => setRoomType(t.key)}
-                  className="flex-1 py-3 rounded-xl text-[13px] font-bold transition-all border"
+                  className="flex-1 py-4 rounded-xl text-[13px] font-bold transition-all border"
                   style={{
                     background: active ? t.activeBg : '#ffffff',
                     color: active ? t.color : t.dimColor,
@@ -357,7 +366,7 @@ export default function BookPage() {
         )}
       </div>
 
-      <div className="px-4 pt-5 space-y-4">
+      <div className="max-w-2xl mx-auto px-4 pt-5 space-y-4">
 
         {/* 날짜 */}
         <input type="date" value={date} onChange={e => setDate(e.target.value)}
