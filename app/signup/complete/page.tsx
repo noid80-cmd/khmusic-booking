@@ -66,6 +66,11 @@ export default function SignupCompletePage() {
             style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
             {loading ? '처리 중...' : '가입 신청하기'}
           </button>
+          <button type="button" onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
+            className="w-full py-3 rounded-xl font-medium text-sm"
+            style={{ color: 'rgba(255,255,255,0.3)', background: 'transparent', border: 'none' }}>
+            다른 계정으로 로그인
+          </button>
         </form>
       </div>
     </div>
