@@ -148,7 +148,11 @@ export default function BookPage() {
   }
 
   function getBooking(roomId: string, hour: number) {
-    return bookings.find(b => b.room_id === roomId && b.start_hour === hour)
+    return bookings.find(b => b.room_id === roomId && (
+      b.booking_type === 'blocked'
+        ? b.start_hour <= hour && hour < b.end_hour
+        : b.start_hour === hour
+    ))
   }
 
   function getClass(roomId: string, hour: number) {

@@ -56,6 +56,8 @@ export default function AdminPage() {
 
   const [lockDate, setLockDate] = useState(todayStr())
   const [blockedSlots, setBlockedSlots] = useState<{ id: string, room_id: string, start_hour: number, end_hour: number }[]>([])
+  const [lockModal, setLockModal] = useState<{ roomId: string, roomName: string, hour: number } | null>(null)
+  const [lockEndHour, setLockEndHour] = useState(12)
 
   const [applyingTemplate, setApplyingTemplate] = useState(false)
   const [savingTemplate, setSavingTemplate] = useState(false)
@@ -274,18 +276,24 @@ export default function AdminPage() {
     setBlockedSlots(data || [])
   }
 
-  async function toggleHourLock(roomId: string, hour: number) {
-    const existing = blockedSlots.find(b => b.room_id === roomId && b.start_hour === hour)
-    if (existing) {
-      const { error } = await supabase.from('bookings').delete().eq('id', existing.id)
-      if (error) { alert('잠금 해제 오류: ' + error.message); return }
-    } else {
-      const { error } = await supabase.from('bookings').insert({
-        room_id: roomId, date: lockDate, start_hour: hour, end_hour: hour + 1,
-        booking_type: 'blocked', account_id: null, external_name: null, note: null, end_date: null,
-      })
-      if (error) { alert('시간 잠금 오류: ' + error.message); return }
-    }
+  async function confirmHourLock() {
+    if (!lockModal) return
+    const { roomId, hour } = lockModal
+    const endHour = lockEndHour <= hour ? hour + 1 : lockEndHour
+    const { error } = await supabase.from('bookings').insert({
+      room_id: roomId, date: lockDate, start_hour: hour, end_hour: endHour,
+      booking_type: 'blocked', account_id: null, external_name: null, note: null, end_date: null,
+    })
+    if (error) { alert('시간 잠금 오류: ' + error.message); return }
+    setLockModal(null)
+    await loadBlockedSlots(lockDate)
+  }
+
+  async function removeHourLock(roomId: string, hour: number) {
+    const existing = blockedSlots.find(b => b.room_id === roomId && b.start_hour <= hour && hour < b.end_hour)
+    if (!existing) return
+    const { error } = await supabase.from('bookings').delete().eq('id', existing.id)
+    if (error) { alert('잠금 해제 오류: ' + error.message); return }
     await loadBlockedSlots(lockDate)
   }
 
@@ -690,11 +698,15 @@ export default function AdminPage() {
                   </div>,
                   ...annexRooms.map(r => {
                     const isFullLocked = r.is_locked
-                    const isHourLocked = blockedSlots.some(b => b.room_id === r.id && b.start_hour === h)
+                    const isHourLocked = blockedSlots.some(b => b.room_id === r.id && b.start_hour <= h && h < b.end_hour)
                     const locked = isFullLocked || isHourLocked
                     return (
                       <button key={`${h}-${r.id}`}
-                        onClick={() => !isFullLocked && toggleHourLock(r.id, h)}
+                        onClick={() => {
+                          if (isFullLocked) return
+                          if (isHourLocked) { removeHourLock(r.id, h) }
+                          else { setLockEndHour(h + 1); setLockModal({ roomId: r.id, roomName: r.name, hour: h }) }
+                        }}
                         className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
                         style={locked
                           ? { background: isFullLocked ? '#f3f4f6' : '#fde8ef', border: `1px solid ${isFullLocked ? '#e5e7eb' : '#fca5b8'}`, cursor: isFullLocked ? 'default' : 'pointer' }
@@ -775,6 +787,36 @@ export default function AdminPage() {
             <button onClick={confirmSaveTemplate}
               style={{ flex: 1, padding: '12px 0', borderRadius: 16, fontWeight: 700, fontSize: 14, color: 'white', border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
               저장
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {lockModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.4)' }}>
+        <div className="rounded-3xl p-6 space-y-4 w-72" style={{ background: '#ffffff', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+          <div>
+            <p className="font-black text-base" style={{ color: '#1e1b4b' }}>{lockModal.roomName}</p>
+            <p className="text-sm mt-1" style={{ color: '#6b6b9a' }}>{lockModal.hour}:00부터 몇 시까지 잠금할까요?</p>
+          </div>
+          <select value={lockEndHour} onChange={e => setLockEndHour(Number(e.target.value))}
+            className="w-full rounded-2xl border border-[#e4e4ef] bg-white text-[#1e1b4b] text-[15px] focus:outline-none focus:border-indigo-400 transition"
+            style={{ padding: '12px 16px', fontFamily: 'inherit', colorScheme: 'light' }}>
+            {HOURS.filter(h => h > lockModal.hour).map(h => (
+              <option key={h} value={h}>{h}:00까지</option>
+            ))}
+          </select>
+          <div className="flex gap-2">
+            <button onClick={() => setLockModal(null)}
+              className="flex-1 py-3 rounded-2xl border font-bold text-sm transition"
+              style={{ background: '#f5f5fb', color: '#a0a0c0', borderColor: '#e8e8f2' }}>
+              취소
+            </button>
+            <button onClick={confirmHourLock}
+              className="flex-1 py-3 rounded-2xl font-bold text-sm text-white transition"
+              style={{ background: 'linear-gradient(135deg,#ef4444,#f97316)', boxShadow: '0 4px 14px rgba(239,68,68,0.3)' }}>
+              잠금
             </button>
           </div>
         </div>
