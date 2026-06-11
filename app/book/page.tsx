@@ -285,17 +285,17 @@ export default function BookPage() {
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {/* 상단: 브랜드 + 로그아웃 */}
-        <div className="flex items-center justify-between"
+        <div className="hdr-brand-row flex items-center justify-between"
           style={{ padding: '16px 20px', borderBottom: '1px solid #f0f0f8' }}>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="relative">
-              <img src="/logo.png" alt="KH Music" className="w-12 h-12 rounded-2xl object-cover"
-                style={{ boxShadow: '0 4px 16px rgba(99,102,241,0.2)' }} />
+              <img src="/logo.png" alt="KH Music" className="hdr-logo rounded-2xl object-cover"
+                style={{ width: 48, height: 48, boxShadow: '0 4px 16px rgba(99,102,241,0.2)' }} />
               <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white"
                 style={{ background: '#22c55e' }} />
             </div>
             <div>
-              <p className="font-black text-xl leading-none tracking-tight" style={{ color: '#1e1b4b' }}>연습실 예약</p>
+              <p className="hdr-title font-black leading-none tracking-tight" style={{ color: '#1e1b4b', fontSize: 20 }}>연습실 예약</p>
               <div className="flex items-center gap-1.5 mt-1.5">
                 <p className="text-[13px] font-semibold" style={{ color: '#6b6b9a' }}>{account.name}</p>
                 <span style={{ color: '#c0c0d8', fontSize: 10 }}>·</span>
@@ -323,7 +323,7 @@ export default function BookPage() {
         </div>
 
         {/* 필터 탭 — 좁게 중앙 정렬 */}
-        <div style={{ maxWidth: 700, margin: '0 auto', padding: '10px 16px 8px' }}>
+        <div className="hdr-filter-wrap" style={{ maxWidth: 700, margin: '0 auto', padding: '10px 16px 8px' }}>
 
           {/* 건물 탭 */}
           <div className="flex gap-3">
@@ -334,7 +334,7 @@ export default function BookPage() {
                 : { color: '#16a34a', bg: '#f0fdf4', border: '#86efac' }
               return (
                 <button key={b} onClick={() => setBuilding(b)}
-                  className="flex-1 rounded-2xl text-base font-black transition-all border"
+                  className="hdr-tab-btn flex-1 rounded-2xl text-base font-black transition-all border"
                   style={{
                     paddingTop: 10, paddingBottom: 10,
                     background: active ? c.bg : '#ffffff',
@@ -356,7 +356,7 @@ export default function BookPage() {
                 const active = roomType === t.key
                 return (
                   <button key={t.key} onClick={() => setRoomType(t.key)}
-                    className="flex-1 rounded-xl text-[13px] font-bold transition-all border"
+                    className="hdr-sub-tab-btn flex-1 rounded-xl text-[13px] font-bold transition-all border"
                     style={{
                       paddingTop: 8, paddingBottom: 8,
                       background: active ? t.activeBg : '#ffffff',

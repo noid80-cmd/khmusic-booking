@@ -300,7 +300,7 @@ export default function AdminPage() {
       {/* 헤더 */}
       <div className="sticky top-0 z-20"
         style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)', borderBottom: '1px solid #e8e8f2' }}>
-        <div className="flex items-center justify-between" style={{ maxWidth: 1100, margin: '0 auto', padding: '16px 20px' }}>
+        <div className="hdr-brand-row flex items-center justify-between" style={{ maxWidth: 1100, margin: '0 auto', padding: '16px 20px' }}>
           <div>
             <h1 className="font-black text-lg leading-none" style={{ color: '#1e1b4b' }}>관리자</h1>
             <p className="text-xs mt-0.5" style={{ color: '#a0a0c0' }}>{myEmail}</p>
@@ -321,12 +321,12 @@ export default function AdminPage() {
       </div>
 
       {/* 탭 */}
-      <div className="flex gap-2" style={{ maxWidth: 1100, margin: '0 auto', padding: '10px 16px 10px' }}>
+      <div className="hdr-filter-wrap flex gap-2" style={{ maxWidth: 1100, margin: '0 auto', padding: '10px 16px 10px' }}>
         {([['users', '회원'], ['schedule', '본관 수업'], ['annex', '별관'], ['locks', '방 잠금'], ['admins', '관리자']] as const).map(([t, label]) => {
           const active = tab === t
           return (
             <button key={t} onClick={() => setTab(t)}
-              className="flex-1 rounded-2xl text-[13px] font-bold transition-all relative"
+              className="hdr-tab-btn flex-1 rounded-2xl text-[13px] font-bold transition-all relative"
               style={{
                 paddingTop: 10, paddingBottom: 10,
                 background: active ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#ffffff',

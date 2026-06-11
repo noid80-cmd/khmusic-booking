@@ -6,3 +6,13 @@ html, body { height: 100%; background: #f0f0f8; color: #1e1b4b; font-family: -ap
 /* 스크롤바 숨기기 */
 ::-webkit-scrollbar { display: none; }
 * { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* 모바일 헤더 축소 */
+@media (max-width: 640px) {
+  .hdr-brand-row { padding: 10px 14px !important; }
+  .hdr-filter-wrap { padding: 7px 12px 6px !important; }
+  .hdr-logo { width: 36px !important; height: 36px !important; }
+  .hdr-title { font-size: 15px !important; }
+  .hdr-tab-btn { padding-top: 7px !important; padding-bottom: 7px !important; font-size: 13px !important; }
+  .hdr-sub-tab-btn { padding-top: 5px !important; padding-bottom: 5px !important; font-size: 11px !important; }
+}
