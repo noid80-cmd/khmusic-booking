@@ -628,51 +628,16 @@ export default function AdminPage() {
         {/* ── 방 잠금 ── */}
         {tab === 'locks' && (
           <div className="space-y-3">
-            <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#b0b0cc' }}>본관</p>
-            {mainRooms.map(r => (
-              <div key={r.id} className="flex items-center justify-between px-5 py-4 rounded-2xl"
-                style={{ background: r.is_locked ? '#fef2f2' : '#ffffff', border: `1px solid ${r.is_locked ? '#fecaca' : '#e8e8f2'}`, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                <div className="flex items-center gap-3">
-                  <span className="text-lg">{r.is_locked ? '🔒' : '🟢'}</span>
-                  <p className="font-semibold" style={{ color: '#1e1b4b' }}>{r.name}</p>
-                </div>
-                <button onClick={() => toggleRoomLock(r)}
-                  className="text-sm font-bold px-5 py-2.5 rounded-2xl border transition"
-                  style={r.is_locked
-                    ? { background: '#f0fdf4', color: '#16a34a', borderColor: '#86efac' }
-                    : { background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>
-                  {r.is_locked ? '잠금 해제' : '잠금'}
-                </button>
-              </div>
-            ))}
-            <p className="text-[11px] font-bold uppercase tracking-widest pt-2" style={{ color: '#b0b0cc' }}>별관 — 풀타임 잠금</p>
-            {annexRooms.map(r => (
-              <div key={r.id} className="flex items-center justify-between px-5 py-4 rounded-2xl"
-                style={{ background: r.is_locked ? '#fef2f2' : '#ffffff', border: `1px solid ${r.is_locked ? '#fecaca' : '#e8e8f2'}`, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                <div className="flex items-center gap-3">
-                  <span className="text-lg">{r.is_locked ? '🔒' : '🟢'}</span>
-                  <p className="font-semibold" style={{ color: '#1e1b4b' }}>{r.name}</p>
-                </div>
-                <button onClick={() => toggleRoomLock(r)}
-                  className="text-sm font-bold px-5 py-2.5 rounded-2xl border transition"
-                  style={r.is_locked
-                    ? { background: '#f0fdf4', color: '#16a34a', borderColor: '#86efac' }
-                    : { background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>
-                  {r.is_locked ? '잠금 해제' : '잠금'}
-                </button>
-              </div>
-            ))}
+            <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>헤더 토글 → 풀타임 잠금 · 빈 셀 탭 → 시간대 잠금 · 잠긴 셀 탭 → 해제</p>
 
-            <p className="text-[11px] font-bold uppercase tracking-widest pt-2" style={{ color: '#b0b0cc' }}>별관 — 시간대별 잠금</p>
-            <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>빈 칸 탭 → 잠금 · 잠긴 칸 탭 → 해제</p>
+            {/* 날짜 네비 */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <button
                 onClick={() => {
                   const d = new Date(lockDate + 'T00:00:00')
                   d.setDate(d.getDate() - 1)
                   const prev = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
-                  setLockDate(prev)
-                  loadBlockedSlots(prev)
+                  setLockDate(prev); loadBlockedSlots(prev)
                 }}
                 className="rounded-2xl border transition"
                 style={{ padding: '10px 14px', fontSize: 18, lineHeight: 1, background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', cursor: 'pointer', flexShrink: 0 }}
@@ -686,43 +651,54 @@ export default function AdminPage() {
                   const d = new Date(lockDate + 'T00:00:00')
                   d.setDate(d.getDate() + 1)
                   const next = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
-                  setLockDate(next)
-                  loadBlockedSlots(next)
+                  setLockDate(next); loadBlockedSlots(next)
                 }}
                 className="rounded-2xl border transition"
                 style={{ padding: '10px 14px', fontSize: 18, lineHeight: 1, background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', cursor: 'pointer', flexShrink: 0 }}
               >›</button>
             </div>
+
+            {/* 별관 그리드 */}
             <div className="overflow-x-auto">
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: `36px repeat(${annexRooms.length}, minmax(56px, 1fr))`,
+                gridTemplateColumns: `36px repeat(${annexRooms.length}, minmax(60px, 1fr))`,
                 gap: '3px',
-                minWidth: `${annexRooms.length * 59 + 39}px`,
+                minWidth: `${annexRooms.length * 63 + 39}px`,
               }}>
                 <div />
                 {annexRooms.map(r => (
-                  <div key={`hdr-${r.id}`} className="flex items-center justify-center py-2.5 rounded-lg"
-                    style={{ background: '#fef2f2', border: '1px solid #fecaca' }}>
-                    <span className="text-[10px] font-bold" style={{ color: '#ef4444' }}>
+                  <button key={`hdr-${r.id}`}
+                    onClick={() => toggleRoomLock(r)}
+                    className="flex flex-col items-center justify-center gap-0.5 rounded-lg transition"
+                    style={{
+                      height: 52,
+                      background: r.is_locked ? '#fde8ef' : '#f0fdf4',
+                      border: `1px solid ${r.is_locked ? '#fca5b8' : '#86efac'}`,
+                    }}>
+                    <span className="text-[10px] font-bold" style={{ color: r.is_locked ? '#e11d48' : '#16a34a' }}>
                       {r.name.replace('PIANO','P').replace('GUITAR & BASS','G&B')}
                     </span>
-                  </div>
+                    <span style={{ fontSize: 11 }}>{r.is_locked ? '🔒' : '🟢'}</span>
+                  </button>
                 ))}
                 {HOURS.flatMap(h => [
                   <div key={`t-${h}`} className="flex items-center justify-end pr-2">
                     <span className="text-[11px] font-bold" style={{ color: '#a0a0c0' }}>{h}</span>
                   </div>,
                   ...annexRooms.map(r => {
-                    const isBlocked = blockedSlots.some(b => b.room_id === r.id && b.start_hour === h)
+                    const isFullLocked = r.is_locked
+                    const isHourLocked = blockedSlots.some(b => b.room_id === r.id && b.start_hour === h)
+                    const locked = isFullLocked || isHourLocked
                     return (
-                      <button key={`${h}-${r.id}`} onClick={() => toggleHourLock(r.id, h)}
+                      <button key={`${h}-${r.id}`}
+                        onClick={() => !isFullLocked && toggleHourLock(r.id, h)}
                         className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                        style={isBlocked
-                          ? { background: '#fde8ef', border: '1px solid #fca5b8' }
-                          : { background: '#f8f8fc', border: '1px solid #ebebf5' }}>
-                        <span style={{ fontSize: isBlocked ? 12 : 14, color: isBlocked ? '#e11d48' : '#d0d0e8', fontWeight: isBlocked ? 700 : 300 }}>
-                          {isBlocked ? '🔒' : '+'}
+                        style={locked
+                          ? { background: isFullLocked ? '#f3f4f6' : '#fde8ef', border: `1px solid ${isFullLocked ? '#e5e7eb' : '#fca5b8'}`, cursor: isFullLocked ? 'default' : 'pointer' }
+                          : { background: '#f8f8fc', border: '1px solid #ebebf5', cursor: 'pointer' }}>
+                        <span style={{ fontSize: locked ? 12 : 14, color: isFullLocked ? '#c0c0d8' : isHourLocked ? '#e11d48' : '#d0d0e8', fontWeight: locked ? 700 : 300 }}>
+                          {locked ? '🔒' : '+'}
                         </span>
                       </button>
                     )
