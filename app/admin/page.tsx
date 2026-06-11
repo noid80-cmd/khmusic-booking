@@ -795,7 +795,7 @@ export default function AdminPage() {
 
     {lockModal && (
       <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.4)' }}>
-        <div className="rounded-3xl p-6 space-y-4 w-72" style={{ background: '#ffffff', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+        <div className="rounded-3xl p-8 space-y-5 w-96" style={{ background: '#ffffff', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
           <div>
             <p className="font-black text-base" style={{ color: '#1e1b4b' }}>{lockModal.roomName}</p>
             <p className="text-sm mt-1" style={{ color: '#6b6b9a' }}>{lockModal.hour}:00부터 몇 시까지 잠금할까요?</p>
