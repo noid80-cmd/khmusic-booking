@@ -282,9 +282,10 @@ export default function BookPage() {
 
       {/* ── 헤더 ── */}
       <div className="sticky top-0 z-20" style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(24px)', borderBottom: '1px solid #e8e8f2' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {/* 상단: 브랜드 + 로그아웃 */}
-        <div className="max-w-2xl mx-auto flex items-center justify-between"
+        <div className="flex items-center justify-between"
           style={{ padding: '16px 20px', borderBottom: '1px solid #f0f0f8' }}>
           <div className="flex items-center gap-4">
             <div className="relative">
@@ -321,63 +322,118 @@ export default function BookPage() {
           </div>
         </div>
 
-        {/* 건물 탭 */}
-        <div className="flex gap-3" style={{ padding: '14px 16px 10px' }}>
-          {(['main', 'annex'] as const).filter(b => b === 'main' || account.student_type === 'exam' || account.student_type === 'audition' || account.student_type === 'admin').map(b => {
-            const active = building === b
-            const c = b === 'main'
-              ? { color: '#6366f1', bg: '#eef2ff', border: '#c7d2fe' }
-              : { color: '#16a34a', bg: '#f0fdf4', border: '#86efac' }
-            return (
-              <button key={b} onClick={() => setBuilding(b)}
-                className="flex-1 py-5 rounded-2xl text-base font-black transition-all border"
-                style={{
-                  background: active ? c.bg : '#ffffff',
-                  color: active ? c.color : '#a0a0c0',
-                  borderColor: active ? c.border : '#e8e8f2',
-                  boxShadow: active ? `0 4px 14px ${b === 'main' ? 'rgba(99,102,241,0.18)' : 'rgba(22,163,74,0.18)'}` : '0 1px 3px rgba(0,0,0,0.04)',
-                  letterSpacing: '0.05em',
-                }}>
-                {b === 'main' ? '본관' : '별관'}
-              </button>
-            )
-          })}
-        </div>
+        {/* 필터 탭 — 좁게 중앙 정렬 */}
+        <div style={{ maxWidth: 700, margin: '0 auto', padding: '10px 16px 8px' }}>
 
-        {/* 방 종류 탭 (본관만) */}
-        {building === 'main' && (
-          <div className="flex gap-2 px-4 py-3">
-            {mainRoomTypes.map(t => {
-              const active = roomType === t.key
+          {/* 건물 탭 */}
+          <div className="flex gap-3">
+            {(['main', 'annex'] as const).filter(b => b === 'main' || account.student_type === 'exam' || account.student_type === 'audition' || account.student_type === 'admin').map(b => {
+              const active = building === b
+              const c = b === 'main'
+                ? { color: '#6366f1', bg: '#eef2ff', border: '#c7d2fe' }
+                : { color: '#16a34a', bg: '#f0fdf4', border: '#86efac' }
               return (
-                <button key={t.key} onClick={() => setRoomType(t.key)}
-                  className="flex-1 py-4 rounded-xl text-[13px] font-bold transition-all border"
+                <button key={b} onClick={() => setBuilding(b)}
+                  className="flex-1 rounded-2xl text-base font-black transition-all border"
                   style={{
-                    background: active ? t.activeBg : '#ffffff',
-                    color: active ? t.color : t.dimColor,
-                    borderColor: active ? t.activeBorder : t.dimBorder,
-                    boxShadow: active ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+                    paddingTop: 10, paddingBottom: 10,
+                    background: active ? c.bg : '#ffffff',
+                    color: active ? c.color : '#a0a0c0',
+                    borderColor: active ? c.border : '#e8e8f2',
+                    boxShadow: active ? `0 4px 14px ${b === 'main' ? 'rgba(99,102,241,0.18)' : 'rgba(22,163,74,0.18)'}` : '0 1px 3px rgba(0,0,0,0.04)',
+                    letterSpacing: '0.05em',
                   }}>
-                  {t.label}
+                  {b === 'main' ? '본관' : '별관'}
                 </button>
               )
             })}
           </div>
-        )}
+
+          {/* 방 종류 탭 (본관만) */}
+          {building === 'main' && (
+            <div className="flex gap-2" style={{ marginTop: 8 }}>
+              {mainRoomTypes.map(t => {
+                const active = roomType === t.key
+                return (
+                  <button key={t.key} onClick={() => setRoomType(t.key)}
+                    className="flex-1 rounded-xl text-[13px] font-bold transition-all border"
+                    style={{
+                      paddingTop: 8, paddingBottom: 8,
+                      background: active ? t.activeBg : '#ffffff',
+                      color: active ? t.color : t.dimColor,
+                      borderColor: active ? t.activeBorder : t.dimBorder,
+                      boxShadow: active ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+                    }}>
+                    {t.label}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+        </div>{/* /maxWidth wrapper */}
       </div>
 
-      <div className="px-4 pt-5 space-y-4">
+      <div className="pt-5 space-y-4" style={{ maxWidth: 1100, margin: '0 auto', padding: '20px 16px 0' }}>
 
         {/* 날짜 */}
-        <input type="date" value={date} onChange={e => setDate(e.target.value)}
-          min={todayStr()} max={account.student_type !== 'admin' ? todayStr() : undefined}
-          className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition border"
-          style={{
-            background: '#ffffff',
-            borderColor: '#e4e4ef',
-            color: '#1e1b4b',
-            colorScheme: 'light',
-          }} />
+        <div style={{ display: 'flex', alignItems: 'center', maxWidth: 700, margin: '0 auto', gap: 8 }}>
+          <button
+            onClick={() => {
+              const d = new Date(date + 'T00:00:00')
+              d.setDate(d.getDate() - 1)
+              const prev = d.toISOString().slice(0, 10)
+              if (prev >= todayStr()) setDate(prev)
+            }}
+            disabled={date <= todayStr()}
+            className="rounded-xl border transition"
+            style={{
+              padding: '12px 18px',
+              fontSize: 20,
+              lineHeight: 1,
+              fontFamily: 'inherit',
+              background: '#ffffff',
+              borderColor: '#e4e4ef',
+              color: date <= todayStr() ? '#c0c0d8' : '#1e1b4b',
+              cursor: date <= todayStr() ? 'default' : 'pointer',
+              flexShrink: 0,
+            }}
+          >‹</button>
+          <input type="date" value={date} onChange={e => setDate(e.target.value)}
+            min={todayStr()} max={account.student_type !== 'admin' ? todayStr() : undefined}
+            className="rounded-xl focus:outline-none transition border"
+            style={{
+              flex: 1,
+              minWidth: 0,
+              padding: '12px 16px',
+              fontSize: 15,
+              fontFamily: 'inherit',
+              background: '#ffffff',
+              borderColor: '#e4e4ef',
+              color: '#1e1b4b',
+              colorScheme: 'light',
+            }} />
+          <button
+            onClick={() => {
+              const d = new Date(date + 'T00:00:00')
+              d.setDate(d.getDate() + 1)
+              setDate(d.toISOString().slice(0, 10))
+            }}
+            disabled={account.student_type !== 'admin'}
+            className="rounded-xl border transition"
+            style={{
+              padding: '12px 18px',
+              fontSize: 20,
+              lineHeight: 1,
+              fontFamily: 'inherit',
+              background: '#ffffff',
+              borderColor: '#e4e4ef',
+              color: account.student_type !== 'admin' ? '#c0c0d8' : '#1e1b4b',
+              cursor: account.student_type !== 'admin' ? 'default' : 'pointer',
+              flexShrink: 0,
+            }}
+          >›</button>
+        </div>
 
         {/* 안내 */}
         {isExam && account.student_type !== 'admin' && date === todayStr() && (
@@ -456,7 +512,7 @@ export default function BookPage() {
             <p className="text-[11px] font-bold mb-3 uppercase tracking-widest" style={{ color: '#b0b0cc' }}>
               예약 현황
             </p>
-            <div className="overflow-x-auto -mx-4 px-4">
+            <div className="overflow-x-auto">
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: `36px repeat(${filteredRooms.length}, minmax(48px, 1fr))`,
@@ -469,21 +525,22 @@ export default function BookPage() {
                 {filteredRooms.map(r => {
                   const rc = getRoomColor(r.name)
                   return (
-                    <div key={`hdr-${r.id}`} className="flex flex-col items-center justify-center py-2.5 rounded-lg gap-0.5"
+                    <div key={`hdr-${r.id}`} className="flex flex-col items-center justify-center rounded-lg gap-0.5"
                       style={{
+                        height: 44,
                         background: r.is_locked ? '#f5f5fa' : rc.bg,
                         border: `1px solid ${r.is_locked ? '#e0e0ee' : rc.border}`,
                       }}>
                       <span className="text-[10px] font-bold" style={{ color: r.is_locked ? '#c0c0d8' : rc.text, letterSpacing: '0.02em' }}>
                         {r.is_locked ? '🔒' : shortName(r.name)}
                       </span>
+                      {r.is_locked && (
+                        <span className="text-[8px]" style={{ color: '#c0c0d8' }}>사용불가</span>
+                      )}
                       {!r.is_locked && getRoomSoftware(r.name) && (
                         <span className="text-[8px] font-medium" style={{ color: rc.text, opacity: 0.6 }}>
                           {getRoomSoftware(r.name)}
                         </span>
-                      )}
-                      {r.is_locked && (
-                        <span className="text-[8px]" style={{ color: '#c0c0d8' }}>사용불가</span>
                       )}
                     </div>
                   )

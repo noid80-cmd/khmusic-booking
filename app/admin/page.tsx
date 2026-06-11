@@ -279,6 +279,8 @@ export default function AdminPage() {
 
   const mainRooms = rooms.filter(r => r.building === 'main')
   const annexRooms = rooms.filter(r => r.building === 'annex')
+  const pianoRooms = mainRooms.filter(r => r.name.startsWith('PIANO') && parseInt(r.name.replace('PIANO ', '')) <= 13)
+  const otherMainRooms = mainRooms.filter(r => !r.name.startsWith('PIANO') || parseInt(r.name.replace('PIANO ', '')) > 13)
   const adminUserIds = new Set(admins.map(a => a.user_id).filter(Boolean))
 
   const inputCls = 'w-full bg-white border border-[#e4e4ef] rounded-2xl px-5 py-4 text-[#1e1b4b] text-[15px] focus:outline-none focus:border-indigo-400 transition placeholder:text-[#c0c0d8]'
@@ -298,27 +300,35 @@ export default function AdminPage() {
       {/* 헤더 */}
       <div className="sticky top-0 z-20"
         style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)', borderBottom: '1px solid #e8e8f2' }}>
-        <div className="max-w-2xl mx-auto px-5 py-5 flex items-center justify-between">
+        <div className="flex items-center justify-between" style={{ maxWidth: 1100, margin: '0 auto', padding: '16px 20px' }}>
           <div>
             <h1 className="font-black text-lg leading-none" style={{ color: '#1e1b4b' }}>관리자</h1>
             <p className="text-xs mt-0.5" style={{ color: '#a0a0c0' }}>{myEmail}</p>
           </div>
-          <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
-            className="text-[11px] font-medium px-3 py-1.5 rounded-lg border"
-            style={{ color: '#a0a0c0', background: '#f5f5fb', borderColor: '#e8e8f2' }}>
-            로그아웃
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => window.location.href = '/book'}
+              className="text-[11px] font-bold px-3 py-1.5 rounded-lg border"
+              style={{ color: '#6366f1', background: '#eef2ff', borderColor: '#c7d2fe' }}>
+              예약하기
+            </button>
+            <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')}
+              className="text-[11px] font-medium px-3 py-1.5 rounded-lg border"
+              style={{ color: '#a0a0c0', background: '#f5f5fb', borderColor: '#e8e8f2' }}>
+              로그아웃
+            </button>
+          </div>
         </div>
       </div>
 
       {/* 탭 */}
-      <div className="flex px-4 pt-5 mb-5 gap-2">
+      <div className="flex gap-2" style={{ maxWidth: 1100, margin: '0 auto', padding: '10px 16px 10px' }}>
         {([['users', '회원'], ['schedule', '본관 수업'], ['annex', '별관'], ['locks', '방 잠금'], ['admins', '관리자']] as const).map(([t, label]) => {
           const active = tab === t
           return (
             <button key={t} onClick={() => setTab(t)}
-              className="flex-1 py-4 rounded-2xl text-[13px] font-bold transition-all relative"
+              className="flex-1 rounded-2xl text-[13px] font-bold transition-all relative"
               style={{
+                paddingTop: 10, paddingBottom: 10,
                 background: active ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : '#ffffff',
                 color: active ? '#fff' : '#a0a0c0',
                 border: active ? 'none' : '1px solid #e8e8f2',
@@ -335,7 +345,7 @@ export default function AdminPage() {
         })}
       </div>
 
-      <div className="px-4 space-y-3">
+      <div className="space-y-3" style={{ maxWidth: 1100, margin: '0 auto', padding: '0 16px' }}>
 
         {/* ── 회원 관리 ── */}
         {tab === 'users' && (
@@ -403,20 +413,20 @@ export default function AdminPage() {
               }
               const tc = typeColors[u.student_type ?? ''] ?? { bg: '#f3f4f6', color: '#6b7280', border: '#e5e7eb' }
               return (
-                <div key={u.id} className="px-5 py-4 rounded-2xl bg-white"
-                  style={{ border: `1px solid ${isAdmin ? '#c7d2fe' : '#e8e8f2'}`, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                <div key={u.id} className="rounded-2xl bg-white"
+                  style={{ padding: '12px 20px', border: `1px solid ${isAdmin ? '#c7d2fe' : '#e8e8f2'}`, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-semibold" style={{ color: '#1e1b4b' }}>{u.name}</p>
                         {isAdmin && <TypeBadge type="admin" />}
                       </div>
-                      <p className="text-sm mt-0.5" style={{ color: '#9898b8' }}>{u.phone}</p>
+                      <p className="text-sm" style={{ color: '#9898b8', marginTop: 2 }}>{u.phone}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <select value={u.student_type ?? ''} onChange={e => changeStudentType(u.id, e.target.value as Account['student_type'])}
-                        className="text-[12px] font-bold px-3 py-2 rounded-xl focus:outline-none border cursor-pointer"
-                        style={{ background: tc.bg, color: tc.color, borderColor: tc.border, colorScheme: 'light', minWidth: '80px' }}>
+                        className="text-[12px] font-bold rounded-xl focus:outline-none border cursor-pointer"
+                        style={{ padding: '6px 10px', background: tc.bg, color: tc.color, borderColor: tc.border, colorScheme: 'light' }}>
                         <option value="exam">입시반</option>
                         <option value="audition">오디션반</option>
                         <option value="professional">전문반</option>
@@ -425,15 +435,15 @@ export default function AdminPage() {
                       </select>
                       {isAdmin
                         ? <button onClick={() => adminRecord && removeAdmin(adminRecord.id, adminRecord.email ?? null)}
-                            className="text-xs font-medium px-3 py-1.5 rounded-xl border"
-                            style={{ background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>해제</button>
+                            className="text-xs font-medium rounded-xl border"
+                            style={{ padding: '6px 10px', background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>해제</button>
                         : <button onClick={() => promoteToAdmin(u)}
-                            className="text-xs font-medium px-3 py-1.5 rounded-xl border"
-                            style={{ background: '#eef2ff', color: '#6366f1', borderColor: '#c7d2fe' }}>관리자</button>
+                            className="text-xs font-medium rounded-xl border"
+                            style={{ padding: '6px 10px', background: '#eef2ff', color: '#6366f1', borderColor: '#c7d2fe' }}>관리자</button>
                       }
                       <button onClick={() => deleteUser(u.id, u.name)}
-                        className="text-xs font-medium px-3 py-1.5 rounded-xl border"
-                        style={{ background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca', opacity: 0.7 }}>삭제</button>
+                        className="text-xs font-medium rounded-xl border"
+                        style={{ padding: '6px 10px', background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca', opacity: 0.7 }}>삭제</button>
                     </div>
                   </div>
                 </div>
@@ -445,8 +455,37 @@ export default function AdminPage() {
         {/* ── 본관 수업 ── */}
         {tab === 'schedule' && (
           <div className="space-y-4">
-            <input type="date" value={date} onChange={e => setDate(e.target.value)}
-              className={inputCls} style={{ colorScheme: 'light' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                onClick={() => {
+                  const d = new Date(date + 'T00:00:00')
+                  d.setDate(d.getDate() - 1)
+                  setDate(d.toISOString().slice(0, 10))
+                }}
+                className="rounded-2xl border transition"
+                style={{
+                  padding: '14px 18px', fontSize: 20, lineHeight: 1,
+                  background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b',
+                  cursor: 'pointer', flexShrink: 0,
+                }}
+              >‹</button>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                className="bg-white border border-[#e4e4ef] rounded-2xl text-[#1e1b4b] text-[15px] focus:outline-none focus:border-indigo-400 transition"
+                style={{ flex: 1, minWidth: 0, padding: '14px 16px', colorScheme: 'light', fontFamily: 'inherit' }} />
+              <button
+                onClick={() => {
+                  const d = new Date(date + 'T00:00:00')
+                  d.setDate(d.getDate() + 1)
+                  setDate(d.toISOString().slice(0, 10))
+                }}
+                className="rounded-2xl border transition"
+                style={{
+                  padding: '14px 18px', fontSize: 20, lineHeight: 1,
+                  background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b',
+                  cursor: 'pointer', flexShrink: 0,
+                }}
+              >›</button>
+            </div>
             <div className="flex items-center justify-between">
               <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>빈 칸 탭 → 수업 등록 · 등록된 수업 탭 → 삭제</p>
               <div className="flex gap-2">
@@ -462,48 +501,50 @@ export default function AdminPage() {
                 </button>
               </div>
             </div>
-            <div className="overflow-x-auto -mx-4 px-4">
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: `36px repeat(${mainRooms.length}, minmax(48px, 1fr))`,
-                gap: '3px',
-                minWidth: `${mainRooms.length * 51 + 39}px`,
-              }}>
-                <div />
-                {mainRooms.map(r => (
-                  <div key={`hdr-${r.id}`} className="flex items-center justify-center py-2.5 rounded-lg"
-                    style={{ background: '#eef2ff', border: '1px solid #c7d2fe' }}>
-                    <span className="text-[10px] font-bold" style={{ color: '#6366f1' }}>
-                      {r.name.replace('PIANO','P').replace('MIDI','M').replace('GUITAR & BASS','G&B').replace('ENSEMBLE ROOM','ENS').replace('DRUMS','DR')}
-                    </span>
-                  </div>
-                ))}
-                {HOURS.flatMap(h => [
-                  <div key={`t-${h}`} className="flex items-center justify-end pr-2">
-                    <span className="text-[11px] font-bold" style={{ color: '#a0a0c0' }}>{h}</span>
-                  </div>,
-                  ...mainRooms.map(r => {
-                    const cls = classes.find(c => c.room_id === r.id && c.start_hour <= h && h < c.end_hour)
-                    if (cls) return (
-                      <button key={`${h}-${r.id}`} onClick={() => deleteClass(cls.id)}
-                        className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                        style={{ background: '#fde8ef', border: '1px solid #fca5b8' }}>
-                        <span className="text-[9px] font-semibold truncate px-1" style={{ color: '#e11d48' }}>
-                          {cls.instructor}
-                        </span>
-                      </button>
-                    )
-                    return (
-                      <button key={`${h}-${r.id}`} onClick={() => addClassFromGrid(r.id, h)}
-                        className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                        style={{ background: '#f8f8fc', border: '1px solid #ebebf5' }}>
-                        <span className="text-[14px] font-light" style={{ color: '#d0d0e8' }}>+</span>
-                      </button>
-                    )
-                  })
-                ])}
+            {[pianoRooms, otherMainRooms].filter(g => g.length > 0).map((group, gi) => (
+              <div key={gi} className="overflow-x-auto">
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: `36px repeat(${group.length}, minmax(48px, 1fr))`,
+                  gap: '3px',
+                  minWidth: `${group.length * 51 + 39}px`,
+                }}>
+                  <div />
+                  {group.map(r => (
+                    <div key={`hdr-${r.id}`} className="flex items-center justify-center rounded-lg"
+                      style={{ height: 36, background: '#eef2ff', border: '1px solid #c7d2fe' }}>
+                      <span className="text-[10px] font-bold" style={{ color: '#6366f1' }}>
+                        {r.name.replace('PIANO','P').replace('MIDI','M').replace('GUITAR & BASS','G&B').replace('ENSEMBLE ROOM','ENS').replace('DRUMS','DR')}
+                      </span>
+                    </div>
+                  ))}
+                  {HOURS.flatMap(h => [
+                    <div key={`t-${h}`} className="flex items-center justify-end pr-2">
+                      <span className="text-[11px] font-bold" style={{ color: '#a0a0c0' }}>{h}</span>
+                    </div>,
+                    ...group.map(r => {
+                      const cls = classes.find(c => c.room_id === r.id && c.start_hour <= h && h < c.end_hour)
+                      if (cls) return (
+                        <button key={`${h}-${r.id}`} onClick={() => deleteClass(cls.id)}
+                          className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
+                          style={{ background: '#fde8ef', border: '1px solid #fca5b8' }}>
+                          <span className="text-[9px] font-semibold truncate px-1" style={{ color: '#e11d48' }}>
+                            {cls.instructor}
+                          </span>
+                        </button>
+                      )
+                      return (
+                        <button key={`${h}-${r.id}`} onClick={() => addClassFromGrid(r.id, h)}
+                          className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
+                          style={{ background: '#f8f8fc', border: '1px solid #ebebf5' }}>
+                          <span className="text-[14px] font-light" style={{ color: '#d0d0e8' }}>+</span>
+                        </button>
+                      )
+                    })
+                  ])}
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         )}
 
@@ -514,7 +555,7 @@ export default function AdminPage() {
                 <input type="date" value={date} onChange={e => setDate(e.target.value)}
                   className={inputCls} style={{ colorScheme: 'light' }} />
                 <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>빈 칸 탭 → 예약 등록 · 등록된 칸 탭 → 삭제</p>
-                <div className="overflow-x-auto -mx-4 px-4">
+                <div className="overflow-x-auto">
                   <div style={{
                     display: 'grid',
                     gridTemplateColumns: `36px repeat(${annexRooms.length}, minmax(56px, 1fr))`,
