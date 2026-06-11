@@ -794,28 +794,23 @@ export default function AdminPage() {
     )}
 
     {lockModal && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.4)' }}>
-        <div className="rounded-3xl p-8 space-y-5 w-96" style={{ background: '#ffffff', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-          <div>
-            <p className="font-black text-base" style={{ color: '#1e1b4b' }}>{lockModal.roomName}</p>
-            <p className="text-sm mt-1" style={{ color: '#6b6b9a' }}>{lockModal.hour}:00부터 몇 시까지 잠금할까요?</p>
-          </div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ background: 'rgba(0,0,0,0.4)' }}>
+        <div style={{ background: '#ffffff', borderRadius: 28, padding: 32, width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', boxSizing: 'border-box' }}>
+          <p style={{ fontWeight: 900, fontSize: 16, color: '#1e1b4b', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lockModal.roomName}</p>
+          <p style={{ fontSize: 14, color: '#6b6b9a', marginBottom: 20 }}>{lockModal.hour}:00부터 몇 시까지 잠금할까요?</p>
           <select value={lockEndHour} onChange={e => setLockEndHour(Number(e.target.value))}
-            className="w-full rounded-2xl border border-[#e4e4ef] bg-white text-[#1e1b4b] text-[15px] focus:outline-none focus:border-indigo-400 transition"
-            style={{ padding: '12px 16px', fontFamily: 'inherit', colorScheme: 'light' }}>
+            style={{ display: 'block', width: '100%', padding: '12px 16px', borderRadius: 16, border: '1px solid #e4e4ef', background: '#ffffff', color: '#1e1b4b', fontSize: 15, fontFamily: 'inherit', colorScheme: 'light', marginBottom: 20, boxSizing: 'border-box' }}>
             {HOURS.filter(h => h > lockModal.hour).map(h => (
               <option key={h} value={h}>{h}:00까지</option>
             ))}
           </select>
-          <div className="flex gap-2">
+          <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => setLockModal(null)}
-              className="flex-1 py-3 rounded-2xl border font-bold text-sm transition"
-              style={{ background: '#f5f5fb', color: '#a0a0c0', borderColor: '#e8e8f2' }}>
+              style={{ flex: 1, padding: '13px 0', borderRadius: 16, border: '1px solid #e8e8f2', background: '#f5f5fb', color: '#a0a0c0', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
               취소
             </button>
             <button onClick={confirmHourLock}
-              className="flex-1 py-3 rounded-2xl font-bold text-sm text-white transition"
-              style={{ background: 'linear-gradient(135deg,#ef4444,#f97316)', boxShadow: '0 4px 14px rgba(239,68,68,0.3)' }}>
+              style={{ flex: 1, padding: '13px 0', borderRadius: 16, border: 'none', background: 'linear-gradient(135deg,#ef4444,#f97316)', color: '#ffffff', fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 14px rgba(239,68,68,0.3)' }}>
               잠금
             </button>
           </div>
