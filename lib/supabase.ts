@@ -10,7 +10,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 export type StudentType = 'exam' | 'audition' | 'professional' | 'hobby' | 'admin'
 export type AccountStatus = 'pending' | 'approved' | 'rejected'
 export type Building = 'main' | 'annex'
-export type BookingType = 'student' | 'external' | 'monthly'
+export type BookingType = 'student' | 'external' | 'monthly' | 'blocked'
 
 export interface Account {
   id: string

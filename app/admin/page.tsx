@@ -54,6 +54,9 @@ export default function AdminPage() {
   const [monthlyEnd, setMonthlyEnd] = useState(todayStr())
   const [monthlyRentals, setMonthlyRentals] = useState<{ id: string, room_id: string, date: string, end_date: string, external_name: string | null, note: string | null }[]>([])
 
+  const [lockDate, setLockDate] = useState(todayStr())
+  const [blockedSlots, setBlockedSlots] = useState<{ id: string, room_id: string, start_hour: number, end_hour: number }[]>([])
+
   const [applyingTemplate, setApplyingTemplate] = useState(false)
   const [savingTemplate, setSavingTemplate] = useState(false)
   const [saveTemplateModal, setSaveTemplateModal] = useState(false)
@@ -264,6 +267,26 @@ export default function AdminPage() {
     await loadAll()
   }
 
+  async function loadBlockedSlots(d: string) {
+    const annexRoomIds = rooms.filter(r => r.building === 'annex').map(r => r.id)
+    const { data } = await supabase.from('bookings').select('id,room_id,start_hour,end_hour')
+      .eq('date', d).in('room_id', annexRoomIds).eq('booking_type', 'blocked')
+    setBlockedSlots(data || [])
+  }
+
+  async function toggleHourLock(roomId: string, hour: number) {
+    const existing = blockedSlots.find(b => b.room_id === roomId && b.start_hour === hour)
+    if (existing) {
+      await supabase.from('bookings').delete().eq('id', existing.id)
+    } else {
+      await supabase.from('bookings').insert({
+        room_id: roomId, date: lockDate, start_hour: hour, end_hour: hour + 1,
+        booking_type: 'blocked', account_id: null, external_name: null, note: null,
+      })
+    }
+    await loadBlockedSlots(lockDate)
+  }
+
   async function toggleRoomLock(room: Room) {
     const { error } = await supabase.from('rooms').update({ is_locked: !room.is_locked }).eq('id', room.id)
     if (error) { alert('잠금 오류: ' + error.message); return }
@@ -325,7 +348,7 @@ export default function AdminPage() {
         {([['users', '회원'], ['schedule', '본관 수업'], ['annex', '별관'], ['locks', '방 잠금'], ['admins', '관리자']] as const).map(([t, label]) => {
           const active = tab === t
           return (
-            <button key={t} onClick={() => setTab(t)}
+            <button key={t} onClick={() => { setTab(t); if (t === 'locks' && rooms.length) loadBlockedSlots(lockDate) }}
               className="hdr-tab-btn flex-1 rounded-2xl text-[13px] font-bold transition-all relative"
               style={{
                 paddingTop: 10, paddingBottom: 10,
@@ -622,7 +645,7 @@ export default function AdminPage() {
                 </button>
               </div>
             ))}
-            <p className="text-[11px] font-bold uppercase tracking-widest pt-2" style={{ color: '#b0b0cc' }}>별관</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest pt-2" style={{ color: '#b0b0cc' }}>별관 — 풀타임 잠금</p>
             {annexRooms.map(r => (
               <div key={r.id} className="flex items-center justify-between px-5 py-4 rounded-2xl"
                 style={{ background: r.is_locked ? '#fef2f2' : '#ffffff', border: `1px solid ${r.is_locked ? '#fecaca' : '#e8e8f2'}`, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
@@ -639,6 +662,74 @@ export default function AdminPage() {
                 </button>
               </div>
             ))}
+
+            <p className="text-[11px] font-bold uppercase tracking-widest pt-2" style={{ color: '#b0b0cc' }}>별관 — 시간대별 잠금</p>
+            <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>빈 칸 탭 → 잠금 · 잠긴 칸 탭 → 해제</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                onClick={() => {
+                  const d = new Date(lockDate + 'T00:00:00')
+                  d.setDate(d.getDate() - 1)
+                  const prev = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+                  setLockDate(prev)
+                  loadBlockedSlots(prev)
+                }}
+                className="rounded-2xl border transition"
+                style={{ padding: '10px 14px', fontSize: 18, lineHeight: 1, background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', cursor: 'pointer', flexShrink: 0 }}
+              >‹</button>
+              <input type="date" value={lockDate}
+                onChange={e => { setLockDate(e.target.value); loadBlockedSlots(e.target.value) }}
+                className="bg-white border border-[#e4e4ef] rounded-2xl text-[#1e1b4b] text-[15px] focus:outline-none transition"
+                style={{ flex: 1, minWidth: 0, padding: '10px 14px', colorScheme: 'light', fontFamily: 'inherit' }} />
+              <button
+                onClick={() => {
+                  const d = new Date(lockDate + 'T00:00:00')
+                  d.setDate(d.getDate() + 1)
+                  const next = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+                  setLockDate(next)
+                  loadBlockedSlots(next)
+                }}
+                className="rounded-2xl border transition"
+                style={{ padding: '10px 14px', fontSize: 18, lineHeight: 1, background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', cursor: 'pointer', flexShrink: 0 }}
+              >›</button>
+            </div>
+            <div className="overflow-x-auto">
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: `36px repeat(${annexRooms.length}, minmax(56px, 1fr))`,
+                gap: '3px',
+                minWidth: `${annexRooms.length * 59 + 39}px`,
+              }}>
+                <div />
+                {annexRooms.map(r => (
+                  <div key={`hdr-${r.id}`} className="flex items-center justify-center py-2.5 rounded-lg"
+                    style={{ background: '#fef2f2', border: '1px solid #fecaca' }}>
+                    <span className="text-[10px] font-bold" style={{ color: '#ef4444' }}>
+                      {r.name.replace('PIANO','P').replace('GUITAR & BASS','G&B')}
+                    </span>
+                  </div>
+                ))}
+                {HOURS.flatMap(h => [
+                  <div key={`t-${h}`} className="flex items-center justify-end pr-2">
+                    <span className="text-[11px] font-bold" style={{ color: '#a0a0c0' }}>{h}</span>
+                  </div>,
+                  ...annexRooms.map(r => {
+                    const isBlocked = blockedSlots.some(b => b.room_id === r.id && b.start_hour === h)
+                    return (
+                      <button key={`${h}-${r.id}`} onClick={() => toggleHourLock(r.id, h)}
+                        className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
+                        style={isBlocked
+                          ? { background: '#fde8ef', border: '1px solid #fca5b8' }
+                          : { background: '#f8f8fc', border: '1px solid #ebebf5' }}>
+                        <span style={{ fontSize: isBlocked ? 12 : 14, color: isBlocked ? '#e11d48' : '#d0d0e8', fontWeight: isBlocked ? 700 : 300 }}>
+                          {isBlocked ? '🔒' : '+'}
+                        </span>
+                      </button>
+                    )
+                  })
+                ])}
+              </div>
+            </div>
           </div>
         )}
 
