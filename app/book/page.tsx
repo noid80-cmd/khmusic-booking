@@ -5,7 +5,10 @@ import { supabase } from '@/lib/supabase'
 import type { Account, Room, Booking } from '@/lib/supabase'
 
 function fmt(h: number) { return `${h}:00` }
-function todayStr() { return new Date().toISOString().slice(0, 10) }
+function localDateStr(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+}
+function todayStr() { return localDateStr(new Date()) }
 
 const MAIN_CLOSED = new Set([
   '2025-01-01','2026-01-01','2027-01-01',
@@ -382,7 +385,7 @@ export default function BookPage() {
             onClick={() => {
               const d = new Date(date + 'T00:00:00')
               d.setDate(d.getDate() - 1)
-              const prev = d.toISOString().slice(0, 10)
+              const prev = localDateStr(d)
               if (prev >= todayStr()) setDate(prev)
             }}
             disabled={date <= todayStr()}
@@ -417,7 +420,7 @@ export default function BookPage() {
             onClick={() => {
               const d = new Date(date + 'T00:00:00')
               d.setDate(d.getDate() + 1)
-              setDate(d.toISOString().slice(0, 10))
+              setDate(localDateStr(d))
             }}
             disabled={account.student_type !== 'admin'}
             className="rounded-xl border transition"

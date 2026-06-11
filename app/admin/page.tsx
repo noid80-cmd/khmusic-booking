@@ -460,7 +460,7 @@ export default function AdminPage() {
                 onClick={() => {
                   const d = new Date(date + 'T00:00:00')
                   d.setDate(d.getDate() - 1)
-                  setDate(d.toISOString().slice(0, 10))
+                  setDate(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`)
                 }}
                 className="rounded-2xl border transition"
                 style={{
@@ -476,7 +476,7 @@ export default function AdminPage() {
                 onClick={() => {
                   const d = new Date(date + 'T00:00:00')
                   d.setDate(d.getDate() + 1)
-                  setDate(d.toISOString().slice(0, 10))
+                  setDate(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`)
                 }}
                 className="rounded-2xl border transition"
                 style={{
