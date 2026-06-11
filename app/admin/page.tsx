@@ -61,6 +61,7 @@ export default function AdminPage() {
   const [periodLockModal, setPeriodLockModal] = useState<{ roomId: string; roomName: string } | null>(null)
   const [periodLockStart, setPeriodLockStart] = useState(todayStr())
   const [periodLockEnd, setPeriodLockEnd] = useState(todayStr())
+  const [periodNoEnd, setPeriodNoEnd] = useState(false)
 
   const [applyingTemplate, setApplyingTemplate] = useState(false)
   const [savingTemplate, setSavingTemplate] = useState(false)
@@ -317,15 +318,17 @@ export default function AdminPage() {
     } else {
       setPeriodLockStart(todayStr())
       setPeriodLockEnd(todayStr())
+      setPeriodNoEnd(false)
       setPeriodLockModal({ roomId: room.id, roomName: room.name })
     }
   }
 
   async function confirmPeriodLock() {
     if (!periodLockModal) return
-    if (periodLockEnd < periodLockStart) { alert('종료일이 시작일보다 빠를 수 없어요.'); return }
+    const lockUntil = periodNoEnd ? '2099-12-31' : periodLockEnd
+    if (!periodNoEnd && periodLockEnd < periodLockStart) { alert('종료일이 시작일보다 빠를 수 없어요.'); return }
     const { error } = await supabase.from('rooms')
-      .update({ is_locked: false, lock_start_date: periodLockStart, lock_until: periodLockEnd })
+      .update({ is_locked: false, lock_start_date: periodLockStart, lock_until: lockUntil })
       .eq('id', periodLockModal.roomId)
     if (error) { alert('기간 잠금 오류: ' + error.message); return }
     setPeriodLockModal(null)
@@ -870,9 +873,25 @@ export default function AdminPage() {
                 style={{ width: '100%', border: '1px solid #e4e4ef', borderRadius: 14, padding: '11px 14px', fontSize: 15, outline: 'none', color: '#1e1b4b', colorScheme: 'light', fontFamily: 'inherit', boxSizing: 'border-box' }} />
             </div>
             <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#b0b0cc', marginBottom: 6 }}>종료일</p>
-              <input type="date" value={periodLockEnd} onChange={e => setPeriodLockEnd(e.target.value)} min={periodLockStart}
-                style={{ width: '100%', border: '1px solid #e4e4ef', borderRadius: 14, padding: '11px 14px', fontSize: 15, outline: 'none', color: '#1e1b4b', colorScheme: 'light', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#b0b0cc', margin: 0 }}>종료일</p>
+                <button onClick={() => setPeriodNoEnd(v => !v)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: periodNoEnd ? '#e11d48' : '#b0b0cc' }}>계속</span>
+                  <div style={{ width: 36, height: 20, borderRadius: 999, background: periodNoEnd ? '#fca5b8' : '#e4e4ef', position: 'relative', flexShrink: 0 }}>
+                    <span style={{ position: 'absolute', top: 2, left: periodNoEnd ? 18 : 2, width: 16, height: 16, borderRadius: 999, background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.15s' }} />
+                  </div>
+                </button>
+              </div>
+              {!periodNoEnd && (
+                <input type="date" value={periodLockEnd} onChange={e => setPeriodLockEnd(e.target.value)} min={periodLockStart}
+                  style={{ width: '100%', border: '1px solid #e4e4ef', borderRadius: 14, padding: '11px 14px', fontSize: 15, outline: 'none', color: '#1e1b4b', colorScheme: 'light', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+              )}
+              {periodNoEnd && (
+                <div style={{ padding: '11px 14px', borderRadius: 14, background: '#fde8ef', border: '1px solid #fca5b8', fontSize: 14, fontWeight: 700, color: '#e11d48' }}>
+                  해제할 때까지 계속 잠금
+                </div>
+              )}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
