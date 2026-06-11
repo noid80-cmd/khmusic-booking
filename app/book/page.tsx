@@ -566,6 +566,7 @@ export default function BookPage() {
                       const isMine = bk?.account_id === account.id
                       const bookable = canBook(r.id, h)
                       const restricted = building === 'annex' && account.student_type !== 'exam' && account.student_type !== 'audition' && account.student_type !== 'admin'
+                      const roomLocked = isRoomLocked(r)
 
                       if (cls) {
                         if (account.student_type === 'admin') return (
@@ -622,6 +623,13 @@ export default function BookPage() {
                           </div>
                         )
                       }
+
+                      if (roomLocked) return (
+                        <div key={`${h}-${r.id}`} className="h-11 rounded-lg flex items-center justify-center"
+                          style={{ background: '#fef2f2', border: '1px solid #fecaca' }}>
+                          <span style={{ fontSize: 11 }}>🔒</span>
+                        </div>
+                      )
 
                       if (restricted || !bookable) return (
                         <div key={`${h}-${r.id}`} className="h-11 rounded-lg"
