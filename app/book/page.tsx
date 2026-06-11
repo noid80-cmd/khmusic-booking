@@ -108,16 +108,21 @@ export default function BookPage() {
 
   async function loadData() {
     setLoading(true)
-    const [roomsRes, bookingsRes, classesRes, myRes] = await Promise.all([
+    const roomIds = (await supabase.from('rooms').select('id').eq('building', building)).data?.map(r => r.id) || []
+    const [roomsRes, regularRes, blockedRes, classesRes, myRes] = await Promise.all([
       supabase.from('rooms').select('*').eq('building', building).eq('is_active', true).order('display_order'),
-      supabase.from('bookings').select('*, account:accounts(name)').eq('date', date).in('room_id',
-        (await supabase.from('rooms').select('id').eq('building', building)).data?.map(r => r.id) || []
-      ),
+      supabase.from('bookings').select('*, account:accounts(name)')
+        .eq('date', date).in('room_id', roomIds).neq('booking_type', 'blocked'),
+      supabase.from('bookings').select('*, account:accounts(name)')
+        .lte('date', date).in('room_id', roomIds).eq('booking_type', 'blocked'),
       supabase.from('class_schedules').select('*').eq('date', date),
       supabase.from('bookings').select('*, room:rooms(*)').eq('account_id', account!.id).gte('date', todayStr()).order('date').order('start_hour'),
     ])
+    const validBlocked = (blockedRes.data || []).filter((b: any) =>
+      b.end_date === null ? b.date === date : b.end_date >= date
+    )
     setRooms(roomsRes.data || [])
-    setBookings(bookingsRes.data || [])
+    setBookings([...(regularRes.data || []), ...validBlocked])
     setClasses((classesRes as { data: { id: string, room_id: string, start_hour: number, end_hour: number, instructor: string }[] | null }).data || [])
     setMyBookings((myRes.data || []) as (Booking & { room: Room })[])
     setLoading(false)
