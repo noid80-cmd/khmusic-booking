@@ -39,6 +39,7 @@ export default function AdminPage() {
   const [date, setDate] = useState(todayStr())
   const [classes, setClasses] = useState<{ id: string, room_id: string, start_hour: number, end_hour: number, instructor: string }[]>([])
   const [annexBookings, setAnnexBookings] = useState<{ id: string, room_id: string, date: string, start_hour: number, end_hour: number, booking_type: string, external_name: string | null, note: string | null }[]>([])
+  const [annexViewBlocked, setAnnexViewBlocked] = useState<{ id: string, room_id: string, start_hour: number, end_hour: number }[]>([])
   const [loading, setLoading] = useState(true)
   const [admins, setAdmins] = useState<{ id: string, email: string | null, user_id: string | null }[]>([])
   const [newAdminEmail, setNewAdminEmail] = useState('')
@@ -107,14 +108,20 @@ export default function AdminPage() {
   async function loadSchedule() {
     const mainRoomIds = rooms.filter(r => r.building === 'main').map(r => r.id)
     const annexRoomIds = rooms.filter(r => r.building === 'annex').map(r => r.id)
-    const [clsRes, annexRes, monthlyRes] = await Promise.all([
+    const [clsRes, annexRes, monthlyRes, blockedRes] = await Promise.all([
       supabase.from('class_schedules').select('*').eq('date', date).in('room_id', mainRoomIds),
       supabase.from('bookings').select('*').eq('date', date).in('room_id', annexRoomIds).eq('booking_type', 'external'),
       supabase.from('bookings').select('*').in('room_id', annexRoomIds).eq('booking_type', 'monthly').order('date'),
+      supabase.from('bookings').select('id,room_id,start_hour,end_hour,end_date,date')
+        .lte('date', date).in('room_id', annexRoomIds).eq('booking_type', 'blocked'),
     ])
     setClasses(clsRes.data || [])
     setAnnexBookings(annexRes.data || [])
     setMonthlyRentals(monthlyRes.data || [])
+    const validBlocked = (blockedRes.data || []).filter((b: any) =>
+      b.end_date === null ? b.date === date : b.end_date >= date
+    )
+    setAnnexViewBlocked(validBlocked)
   }
 
   async function approveUser(id: string, type: Account['student_type']) {
@@ -648,6 +655,14 @@ export default function AdminPage() {
                       </div>,
                       ...annexRooms.map(r => {
                         const bk = getAnnexBooking(r.id, h)
+                        const isRoomLk = isRoomLocked(r)
+                        const isBlocked = isRoomLk || annexViewBlocked.some(b => b.room_id === r.id && b.start_hour <= h && h < b.end_hour)
+                        if (isBlocked) return (
+                          <div key={`${h}-${r.id}`} className="h-11 rounded-lg flex items-center justify-center"
+                            style={{ background: '#fef2f2', border: '1px solid #fecaca' }}>
+                            <span style={{ fontSize: 11 }}>🔒</span>
+                          </div>
+                        )
                         if (bk) return (
                           <button key={`${h}-${r.id}`} onClick={() => deleteAnnexBooking(bk.id)}
                             className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
