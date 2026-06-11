@@ -43,6 +43,13 @@ function getRoomSoftware(name: string): string {
   return ''
 }
 
+function isRoomLocked(r: Room): boolean {
+  if (r.is_locked) return true
+  if (!r.lock_start_date || !r.lock_until) return false
+  const t = todayStr()
+  return t >= r.lock_start_date && t <= r.lock_until
+}
+
 function getRoomColor(name: string) {
   if (name.startsWith('PIANO'))   return { bg: '#eef2ff', border: '#c7d2fe', text: '#6366f1' }
   if (name.startsWith('MIDI'))    return { bg: '#ecfeff', border: '#a5f3fc', text: '#0891b2' }
@@ -118,7 +125,8 @@ export default function BookPage() {
 
   function canBook(roomId: string, hour: number): boolean {
     if (!account) return false
-    if (rooms.find(r => r.id === roomId)?.is_locked) return false
+    const room = rooms.find(r => r.id === roomId)
+    if (room && isRoomLocked(room)) return false
     if (account.student_type === 'admin') return true
     const isToday = date === todayStr()
     if (account.student_type === 'hobby') {
@@ -515,20 +523,21 @@ export default function BookPage() {
                 <div />
                 {filteredRooms.map(r => {
                   const rc = getRoomColor(r.name)
+                  const locked = isRoomLocked(r)
                   return (
                     <div key={`hdr-${r.id}`} className="flex flex-col items-center justify-center rounded-lg gap-0.5"
                       style={{
                         height: 44,
-                        background: r.is_locked ? '#f5f5fa' : rc.bg,
-                        border: `1px solid ${r.is_locked ? '#e0e0ee' : rc.border}`,
+                        background: locked ? '#f5f5fa' : rc.bg,
+                        border: `1px solid ${locked ? '#e0e0ee' : rc.border}`,
                       }}>
-                      <span className="text-[10px] font-bold" style={{ color: r.is_locked ? '#c0c0d8' : rc.text, letterSpacing: '0.02em' }}>
-                        {r.is_locked ? '🔒' : shortName(r.name)}
+                      <span className="text-[10px] font-bold" style={{ color: locked ? '#c0c0d8' : rc.text, letterSpacing: '0.02em' }}>
+                        {locked ? '🔒' : shortName(r.name)}
                       </span>
-                      {r.is_locked && (
+                      {locked && (
                         <span className="text-[8px]" style={{ color: '#c0c0d8' }}>사용불가</span>
                       )}
-                      {!r.is_locked && getRoomSoftware(r.name) && (
+                      {!locked && getRoomSoftware(r.name) && (
                         <span className="text-[8px] font-medium" style={{ color: rc.text, opacity: 0.6 }}>
                           {getRoomSoftware(r.name)}
                         </span>

@@ -58,6 +58,9 @@ export default function AdminPage() {
   const [blockedSlots, setBlockedSlots] = useState<{ id: string, room_id: string, start_hour: number, end_hour: number }[]>([])
   const [lockModal, setLockModal] = useState<{ roomId: string, roomName: string, hour: number } | null>(null)
   const [lockEndHour, setLockEndHour] = useState(12)
+  const [periodLockModal, setPeriodLockModal] = useState<{ roomId: string; roomName: string } | null>(null)
+  const [periodLockStart, setPeriodLockStart] = useState(todayStr())
+  const [periodLockEnd, setPeriodLockEnd] = useState(todayStr())
 
   const [applyingTemplate, setApplyingTemplate] = useState(false)
   const [savingTemplate, setSavingTemplate] = useState(false)
@@ -297,9 +300,35 @@ export default function AdminPage() {
     await loadBlockedSlots(lockDate)
   }
 
-  async function toggleRoomLock(room: Room) {
-    const { error } = await supabase.from('rooms').update({ is_locked: !room.is_locked }).eq('id', room.id)
-    if (error) { alert('잠금 오류: ' + error.message); return }
+  function isRoomLocked(r: Room): boolean {
+    if (r.is_locked) return true
+    if (!r.lock_start_date || !r.lock_until) return false
+    const t = todayStr()
+    return t >= r.lock_start_date && t <= r.lock_until
+  }
+
+  async function handleRoomLockClick(room: Room) {
+    if (isRoomLocked(room)) {
+      const { error } = await supabase.from('rooms')
+        .update({ is_locked: false, lock_start_date: null, lock_until: null })
+        .eq('id', room.id)
+      if (error) { alert('잠금 해제 오류: ' + error.message); return }
+      await loadAll()
+    } else {
+      setPeriodLockStart(todayStr())
+      setPeriodLockEnd(todayStr())
+      setPeriodLockModal({ roomId: room.id, roomName: room.name })
+    }
+  }
+
+  async function confirmPeriodLock() {
+    if (!periodLockModal) return
+    if (periodLockEnd < periodLockStart) { alert('종료일이 시작일보다 빠를 수 없어요.'); return }
+    const { error } = await supabase.from('rooms')
+      .update({ is_locked: false, lock_start_date: periodLockStart, lock_until: periodLockEnd })
+      .eq('id', periodLockModal.roomId)
+    if (error) { alert('기간 잠금 오류: ' + error.message); return }
+    setPeriodLockModal(null)
     await loadAll()
   }
 
@@ -677,27 +706,36 @@ export default function AdminPage() {
                 minWidth: `${annexRooms.length * 63 + 39}px`,
               }}>
                 <div />
-                {annexRooms.map(r => (
-                  <button key={`hdr-${r.id}`}
-                    onClick={() => toggleRoomLock(r)}
-                    className="flex flex-col items-center justify-center gap-0.5 rounded-lg transition"
-                    style={{
-                      height: 52,
-                      background: r.is_locked ? '#fde8ef' : '#f0fdf4',
-                      border: `1px solid ${r.is_locked ? '#fca5b8' : '#86efac'}`,
-                    }}>
-                    <span className="text-[10px] font-bold" style={{ color: r.is_locked ? '#e11d48' : '#16a34a' }}>
-                      {r.name.replace('PIANO','P').replace('GUITAR & BASS','G&B')}
-                    </span>
-                    <span style={{ fontSize: 11 }}>{r.is_locked ? '🔒' : '🟢'}</span>
-                  </button>
-                ))}
+                {annexRooms.map(r => {
+                  const locked = isRoomLocked(r)
+                  const hasPeriod = !r.is_locked && !!r.lock_start_date && !!r.lock_until
+                  return (
+                    <button key={`hdr-${r.id}`}
+                      onClick={() => handleRoomLockClick(r)}
+                      className="flex flex-col items-center justify-center gap-0.5 rounded-lg transition"
+                      style={{
+                        height: 52,
+                        background: locked ? '#fde8ef' : '#f0fdf4',
+                        border: `1px solid ${locked ? '#fca5b8' : '#86efac'}`,
+                      }}>
+                      <span className="text-[10px] font-bold" style={{ color: locked ? '#e11d48' : '#16a34a' }}>
+                        {r.name.replace('PIANO','P').replace('GUITAR & BASS','G&B')}
+                      </span>
+                      <span style={{ fontSize: 11 }}>{locked ? '🔒' : '🟢'}</span>
+                      {hasPeriod && (
+                        <span style={{ fontSize: 8, color: '#e11d48', lineHeight: 1 }}>
+                          ~{r.lock_until?.slice(5)}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
                 {HOURS.flatMap(h => [
                   <div key={`t-${h}`} className="flex items-center justify-end pr-2">
                     <span className="text-[11px] font-bold" style={{ color: '#a0a0c0' }}>{h}</span>
                   </div>,
                   ...annexRooms.map(r => {
-                    const isFullLocked = r.is_locked
+                    const isFullLocked = isRoomLocked(r)
                     const isHourLocked = blockedSlots.some(b => b.room_id === r.id && b.start_hour <= h && h < b.end_hour)
                     const locked = isFullLocked || isHourLocked
                     return (
@@ -811,6 +849,39 @@ export default function AdminPage() {
             </button>
             <button onClick={confirmHourLock}
               style={{ flex: 1, padding: '13px 0', borderRadius: 16, border: 'none', background: 'linear-gradient(135deg,#ef4444,#f97316)', color: '#ffffff', fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 14px rgba(239,68,68,0.3)' }}>
+              잠금
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {periodLockModal && (
+      <div
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(30,27,75,0.25)', backdropFilter: 'blur(6px)' }}
+        onClick={e => { if (e.target === e.currentTarget) setPeriodLockModal(null) }}>
+        <div style={{ background: 'white', borderRadius: 24, padding: 24, width: '100%', maxWidth: 340, boxShadow: '0 25px 50px rgba(0,0,0,0.12)', border: '1px solid #e8e8f2' }}>
+          <p style={{ fontSize: 15, fontWeight: 900, marginBottom: 4, color: '#1e1b4b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{periodLockModal.roomName}</p>
+          <p style={{ fontSize: 13, color: '#9898b8', marginBottom: 20 }}>잠금 기간을 설정해주세요</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#b0b0cc', marginBottom: 6 }}>시작일</p>
+              <input type="date" value={periodLockStart} onChange={e => setPeriodLockStart(e.target.value)}
+                style={{ width: '100%', border: '1px solid #e4e4ef', borderRadius: 14, padding: '11px 14px', fontSize: 15, outline: 'none', color: '#1e1b4b', colorScheme: 'light', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#b0b0cc', marginBottom: 6 }}>종료일</p>
+              <input type="date" value={periodLockEnd} onChange={e => setPeriodLockEnd(e.target.value)} min={periodLockStart}
+                style={{ width: '100%', border: '1px solid #e4e4ef', borderRadius: 14, padding: '11px 14px', fontSize: 15, outline: 'none', color: '#1e1b4b', colorScheme: 'light', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setPeriodLockModal(null)}
+              style={{ flex: 1, padding: '13px 0', borderRadius: 16, fontWeight: 700, fontSize: 14, border: '1px solid #e8e8f2', background: '#f5f5fb', color: '#a0a0c0', cursor: 'pointer' }}>
+              취소
+            </button>
+            <button onClick={confirmPeriodLock}
+              style={{ flex: 1, padding: '13px 0', borderRadius: 16, fontWeight: 700, fontSize: 14, color: 'white', border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#ef4444,#f97316)', boxShadow: '0 4px 14px rgba(239,68,68,0.3)' }}>
               잠금
             </button>
           </div>
