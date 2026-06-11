@@ -55,9 +55,11 @@ export default function AdminPage() {
   const [monthlyRentals, setMonthlyRentals] = useState<{ id: string, room_id: string, date: string, end_date: string, external_name: string | null, note: string | null }[]>([])
 
   const [lockDate, setLockDate] = useState(todayStr())
-  const [blockedSlots, setBlockedSlots] = useState<{ id: string, room_id: string, start_hour: number, end_hour: number }[]>([])
+  const [blockedSlots, setBlockedSlots] = useState<{ id: string, room_id: string, start_hour: number, end_hour: number, end_date: string | null }[]>([])
   const [lockModal, setLockModal] = useState<{ roomId: string, roomName: string, hour: number } | null>(null)
   const [lockEndHour, setLockEndHour] = useState(12)
+  const [lockUntilDate, setLockUntilDate] = useState(todayStr())
+  const [lockNoEnd, setLockNoEnd] = useState(false)
   const [periodLockModal, setPeriodLockModal] = useState<{ roomId: string; roomName: string } | null>(null)
   const [periodLockStart, setPeriodLockStart] = useState(todayStr())
   const [periodLockEnd, setPeriodLockEnd] = useState(todayStr())
@@ -275,8 +277,11 @@ export default function AdminPage() {
 
   async function loadBlockedSlots(d: string) {
     const annexRoomIds = rooms.filter(r => r.building === 'annex').map(r => r.id)
-    const { data } = await supabase.from('bookings').select('id,room_id,start_hour,end_hour')
-      .eq('date', d).in('room_id', annexRoomIds).eq('booking_type', 'blocked')
+    const { data } = await supabase.from('bookings').select('id,room_id,start_hour,end_hour,end_date')
+      .lte('date', d)
+      .or(`end_date.gte.${d},end_date.is.null`)
+      .in('room_id', annexRoomIds)
+      .eq('booking_type', 'blocked')
     setBlockedSlots(data || [])
   }
 
@@ -284,9 +289,10 @@ export default function AdminPage() {
     if (!lockModal) return
     const { roomId, hour } = lockModal
     const endHour = lockEndHour <= hour ? hour + 1 : lockEndHour
+    const untilDate = lockNoEnd ? '2099-12-31' : lockUntilDate
     const { error } = await supabase.from('bookings').insert({
       room_id: roomId, date: lockDate, start_hour: hour, end_hour: endHour,
-      booking_type: 'blocked', account_id: null, external_name: null, note: null, end_date: null,
+      booking_type: 'blocked', account_id: null, external_name: null, note: null, end_date: untilDate,
     })
     if (error) { alert('시간 잠금 오류: ' + error.message); return }
     setLockModal(null)
@@ -746,7 +752,7 @@ export default function AdminPage() {
                         onClick={() => {
                           if (isFullLocked) return
                           if (isHourLocked) { removeHourLock(r.id, h) }
-                          else { setLockEndHour(h + 1); setLockModal({ roomId: r.id, roomName: r.name, hour: h }) }
+                          else { setLockEndHour(h + 1); setLockUntilDate(lockDate); setLockNoEnd(false); setLockModal({ roomId: r.id, roomName: r.name, hour: h }) }
                         }}
                         className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
                         style={locked
@@ -840,11 +846,29 @@ export default function AdminPage() {
           <p style={{ fontWeight: 900, fontSize: 16, color: '#1e1b4b', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lockModal.roomName}</p>
           <p style={{ fontSize: 14, color: '#6b6b9a', marginBottom: 20 }}>{lockModal.hour}:00부터 몇 시까지 잠금할까요?</p>
           <select value={lockEndHour} onChange={e => setLockEndHour(Number(e.target.value))}
-            style={{ display: 'block', width: '100%', padding: '12px 16px', borderRadius: 16, border: '1px solid #e4e4ef', background: '#ffffff', color: '#1e1b4b', fontSize: 15, fontFamily: 'inherit', colorScheme: 'light', marginBottom: 20, boxSizing: 'border-box' }}>
+            style={{ display: 'block', width: '100%', padding: '12px 16px', borderRadius: 16, border: '1px solid #e4e4ef', background: '#ffffff', color: '#1e1b4b', fontSize: 15, fontFamily: 'inherit', colorScheme: 'light', marginBottom: 14, boxSizing: 'border-box' }}>
             {HOURS.filter(h => h > lockModal.hour).map(h => (
               <option key={h} value={h}>{h}:00까지</option>
             ))}
           </select>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#6b6b9a' }}>종료일</span>
+            <button onClick={() => setLockNoEnd(v => !v)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: lockNoEnd ? '#e11d48' : '#b0b0cc' }}>계속</span>
+              <div style={{ width: 36, height: 20, borderRadius: 999, background: lockNoEnd ? '#fca5b8' : '#e4e4ef', position: 'relative', flexShrink: 0 }}>
+                <span style={{ position: 'absolute', top: 2, left: lockNoEnd ? 18 : 2, width: 16, height: 16, borderRadius: 999, background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.15s' }} />
+              </div>
+            </button>
+          </div>
+          {lockNoEnd ? (
+            <div style={{ padding: '11px 14px', borderRadius: 14, background: '#fde8ef', border: '1px solid #fca5b8', fontSize: 14, fontWeight: 700, color: '#e11d48', marginBottom: 20 }}>
+              해제할 때까지 계속 잠금
+            </div>
+          ) : (
+            <input type="date" value={lockUntilDate} onChange={e => setLockUntilDate(e.target.value)} min={lockDate}
+              style={{ display: 'block', width: '100%', padding: '11px 14px', borderRadius: 14, border: '1px solid #e4e4ef', background: '#ffffff', color: '#1e1b4b', fontSize: 15, fontFamily: 'inherit', colorScheme: 'light', marginBottom: 20, boxSizing: 'border-box', outline: 'none' }} />
+          )}
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => setLockModal(null)}
               style={{ flex: 1, padding: '13px 0', borderRadius: 16, border: '1px solid #e8e8f2', background: '#f5f5fb', color: '#a0a0c0', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
