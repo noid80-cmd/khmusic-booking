@@ -92,6 +92,12 @@ export default function BookPage() {
   }, [])
 
   useEffect(() => {
+    if (account && account.student_type !== 'admin') {
+      setDate(todayStr())
+    }
+  }, [now])
+
+  useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = '/login'; return }
       supabase.from('accounts').select('*').eq('user_id', session.user.id).maybeSingle().then(({ data }) => {
@@ -434,9 +440,10 @@ export default function BookPage() {
             >›</button>
           </div>
         ) : (
-          <input type="date" value={date} readOnly
-            className="rounded-xl border"
-            style={{ display: 'block', width: '100%', maxWidth: 700, margin: '0 auto', padding: '12px 16px', fontSize: 15, fontFamily: 'inherit', background: '#f5f5fb', borderColor: '#e4e4ef', color: '#1e1b4b', colorScheme: 'light' }} />
+          <div className="rounded-xl border text-center font-semibold"
+            style={{ maxWidth: 700, margin: '0 auto', padding: '12px 16px', fontSize: 15, background: '#f5f5fb', borderColor: '#e4e4ef', color: '#1e1b4b' }}>
+            {date}
+          </div>
         )}
 
         {/* 안내 */}
