@@ -312,7 +312,7 @@ export default function AdminPage() {
       </div>
 
       {/* 탭 */}
-      <div className="max-w-2xl mx-auto flex px-4 pt-5 mb-5 gap-2">
+      <div className="flex px-4 pt-5 mb-5 gap-2">
         {([['users', '회원'], ['schedule', '본관 수업'], ['annex', '별관'], ['locks', '방 잠금'], ['admins', '관리자']] as const).map(([t, label]) => {
           const active = tab === t
           return (
@@ -335,7 +335,7 @@ export default function AdminPage() {
         })}
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 space-y-3">
+      <div className="px-4 space-y-3">
 
         {/* ── 회원 관리 ── */}
         {tab === 'users' && (

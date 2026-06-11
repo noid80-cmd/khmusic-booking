@@ -322,7 +322,7 @@ export default function BookPage() {
         </div>
 
         {/* 건물 탭 */}
-        <div className="max-w-2xl mx-auto flex gap-3" style={{ padding: '14px 16px 10px' }}>
+        <div className="flex gap-3" style={{ padding: '14px 16px 10px' }}>
           {(['main', 'annex'] as const).filter(b => b === 'main' || account.student_type === 'exam' || account.student_type === 'audition' || account.student_type === 'admin').map(b => {
             const active = building === b
             const c = b === 'main'
@@ -346,7 +346,7 @@ export default function BookPage() {
 
         {/* 방 종류 탭 (본관만) */}
         {building === 'main' && (
-          <div className="max-w-2xl mx-auto flex gap-2 px-4 py-3">
+          <div className="flex gap-2 px-4 py-3">
             {mainRoomTypes.map(t => {
               const active = roomType === t.key
               return (
@@ -366,7 +366,7 @@ export default function BookPage() {
         )}
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 pt-5 space-y-4">
+      <div className="px-4 pt-5 space-y-4">
 
         {/* 날짜 */}
         <input type="date" value={date} onChange={e => setDate(e.target.value)}
