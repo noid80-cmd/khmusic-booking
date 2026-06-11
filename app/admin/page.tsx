@@ -277,12 +277,14 @@ export default function AdminPage() {
   async function toggleHourLock(roomId: string, hour: number) {
     const existing = blockedSlots.find(b => b.room_id === roomId && b.start_hour === hour)
     if (existing) {
-      await supabase.from('bookings').delete().eq('id', existing.id)
+      const { error } = await supabase.from('bookings').delete().eq('id', existing.id)
+      if (error) { alert('잠금 해제 오류: ' + error.message); return }
     } else {
-      await supabase.from('bookings').insert({
+      const { error } = await supabase.from('bookings').insert({
         room_id: roomId, date: lockDate, start_hour: hour, end_hour: hour + 1,
-        booking_type: 'blocked', account_id: null, external_name: null, note: null,
+        booking_type: 'blocked', account_id: null, external_name: null, note: null, end_date: null,
       })
+      if (error) { alert('시간 잠금 오류: ' + error.message); return }
     }
     await loadBlockedSlots(lockDate)
   }
