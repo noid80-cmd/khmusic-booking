@@ -588,8 +588,9 @@ export default function AdminPage() {
               <div key={gi} className="overflow-x-auto">
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: `36px repeat(${group.length}, 48px)`,
+                  gridTemplateColumns: `36px repeat(${group.length}, minmax(48px, 1fr))`,
                   gap: '3px',
+                  minWidth: `${group.length * 51 + 39}px`,
                 }}>
                   <div />
                   {group.map(r => (
@@ -640,8 +641,9 @@ export default function AdminPage() {
                 <div className="overflow-x-auto">
                   <div style={{
                     display: 'grid',
-                    gridTemplateColumns: `36px repeat(${annexRooms.length}, 48px)`,
+                    gridTemplateColumns: `36px repeat(${annexRooms.length}, minmax(48px, 1fr))`,
                     gap: '3px',
+                    minWidth: `${annexRooms.length * 51 + 39}px`,
                   }}>
                     <div />
                     {annexRooms.map(r => (
@@ -728,8 +730,9 @@ export default function AdminPage() {
             <div className="overflow-x-auto">
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: `36px repeat(${annexRooms.length}, 48px)`,
+                gridTemplateColumns: `36px repeat(${annexRooms.length}, minmax(48px, 1fr))`,
                 gap: '3px',
+                minWidth: `${annexRooms.length * 51 + 39}px`,
               }}>
                 <div />
                 {annexRooms.map(r => {
