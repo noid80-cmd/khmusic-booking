@@ -675,15 +675,14 @@ export default function BookPage() {
             )}
 
             {/* 범례 */}
-            <div className="flex gap-3 mt-4 flex-wrap px-1">
+            <div className="flex gap-4 mt-8 flex-wrap px-1">
               {[
-                { bg: color.bookableBg, border: color.bookableBorder, label: '예약 가능', textColor: color.text },
-                { bg: color.mineBg, border: color.mineBorder, label: '내 예약', textColor: 'white' },
-                { bg: '#f1f5f9', border: '#94a3b8', label: '예약됨', textColor: '#64748b' },
-                { bg: '#fde8ef', border: '#fca5b8', label: '수업', textColor: '#e11d48' },
+                { bg: color.bookableBg, border: color.bookableBorder, label: '예약 가능' },
+                { bg: color.mineBg, border: color.mineBorder, label: '내 예약' },
+                { bg: '#f1f5f9', border: '#94a3b8', label: '예약됨' },
+                { bg: '#fde8ef', border: '#fca5b8', label: '수업' },
               ].map(item => (
-                <div key={item.label} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border"
-                  style={{ borderColor: '#e8e8f2' }}>
+                <div key={item.label} className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-[3px] border" style={{ background: item.bg, borderColor: item.border }} />
                   <span className="text-[11px] font-medium" style={{ color: '#9898b8' }}>{item.label}</span>
                 </div>
