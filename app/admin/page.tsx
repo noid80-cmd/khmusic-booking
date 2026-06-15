@@ -573,13 +573,13 @@ export default function AdminPage() {
               <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>빈 칸 탭 → 수업 등록 · 등록된 수업 탭 → 삭제</p>
               <div className="flex gap-2">
                 <button onClick={openSaveTemplateModal} disabled={savingTemplate}
-                  className="text-sm font-bold px-4 py-2 rounded-xl border transition"
-                  style={{ background: '#f0fdf4', color: '#16a34a', borderColor: '#86efac', opacity: savingTemplate ? 0.5 : 1 }}>
+                  className="font-bold rounded-xl border transition"
+                  style={{ background: '#f0fdf4', color: '#16a34a', borderColor: '#86efac', opacity: savingTemplate ? 0.5 : 1, fontSize: 14, padding: '10px 16px' }}>
                   {savingTemplate ? '저장 중...' : '기본으로 저장'}
                 </button>
                 <button onClick={applyTemplate} disabled={applyingTemplate}
-                  className="text-sm font-bold px-4 py-2 rounded-xl border transition"
-                  style={{ background: '#eef2ff', color: '#6366f1', borderColor: '#c7d2fe', opacity: applyingTemplate ? 0.5 : 1 }}>
+                  className="font-bold rounded-xl border transition"
+                  style={{ background: '#eef2ff', color: '#6366f1', borderColor: '#c7d2fe', opacity: applyingTemplate ? 0.5 : 1, fontSize: 14, padding: '10px 16px' }}>
                   {applyingTemplate ? '적용 중...' : '기본 불러오기'}
                 </button>
               </div>
