@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'KH Music 연습실 예약',
   description: 'KH Music Academy 연습실 예약 시스템',
   manifest: '/manifest.webmanifest',
-  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'KH예약' },
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: '연습실예약' },
 }
 
 export const viewport: Viewport = {

@@ -3,7 +3,7 @@ import type { MetadataRoute } from 'next'
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'KH Music 연습실 예약',
-    short_name: 'KH예약',
+    short_name: '연습실예약',
     description: 'KH Music Academy 연습실 예약 시스템',
     start_url: '/',
     display: 'standalone',
