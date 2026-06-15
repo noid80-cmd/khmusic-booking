@@ -720,12 +720,12 @@ export default function AdminPage() {
                   setLockDate(prev); loadBlockedSlots(prev)
                 }}
                 className="rounded-2xl border transition"
-                style={{ padding: '10px 14px', fontSize: 18, lineHeight: 1, background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', cursor: 'pointer', flexShrink: 0 }}
+                style={{ padding: '14px 18px', fontSize: 20, lineHeight: 1, background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', cursor: 'pointer', flexShrink: 0 }}
               >‹</button>
               <input type="date" value={lockDate}
                 onChange={e => { setLockDate(e.target.value); loadBlockedSlots(e.target.value) }}
                 className="bg-white border border-[#e4e4ef] rounded-2xl text-[#1e1b4b] text-[15px] focus:outline-none transition"
-                style={{ flex: 1, minWidth: 0, padding: '10px 14px', colorScheme: 'light', fontFamily: 'inherit' }} />
+                style={{ flex: 1, minWidth: 0, padding: '14px 16px', colorScheme: 'light', fontFamily: 'inherit' }} />
               <button
                 onClick={() => {
                   const d = new Date(lockDate + 'T00:00:00')
@@ -734,7 +734,7 @@ export default function AdminPage() {
                   setLockDate(next); loadBlockedSlots(next)
                 }}
                 className="rounded-2xl border transition"
-                style={{ padding: '10px 14px', fontSize: 18, lineHeight: 1, background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', cursor: 'pointer', flexShrink: 0 }}
+                style={{ padding: '14px 18px', fontSize: 20, lineHeight: 1, background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', cursor: 'pointer', flexShrink: 0 }}
               >›</button>
             </div>
 
