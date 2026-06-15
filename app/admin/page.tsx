@@ -813,14 +813,14 @@ export default function AdminPage() {
 
         {/* ── 관리자 관리 ── */}
         {tab === 'admins' && (
-          <div className="space-y-3">
-            <div className="p-5 rounded-2xl bg-white space-y-3" style={{ border: '1px solid #e8e8f2', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-              <p className="text-sm font-semibold" style={{ color: '#6b6b9a' }}>관리자 추가</p>
+          <div>
+            <div className="rounded-2xl bg-white" style={{ padding: 20, marginBottom: 20, border: '1px solid #e8e8f2', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+              <p className="text-sm font-semibold" style={{ color: '#6b6b9a', marginBottom: 12 }}>관리자 추가</p>
               <input value={newAdminEmail} onChange={e => setNewAdminEmail(e.target.value)}
-                placeholder="이메일 주소" type="email" className={inputCls} />
+                placeholder="이메일 주소" type="email" className={inputCls} style={{ marginBottom: 12 }} />
               <button onClick={addAdmin}
-                className="w-full py-5 rounded-2xl text-white font-bold text-[16px]"
-                style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', boxShadow: '0 4px 14px rgba(99,102,241,0.28)' }}>
+                className="w-full rounded-2xl text-white font-bold"
+                style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', boxShadow: '0 4px 14px rgba(99,102,241,0.28)', padding: '18px 0', fontSize: 16 }}>
                 추가
               </button>
             </div>
