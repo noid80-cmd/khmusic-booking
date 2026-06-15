@@ -641,9 +641,9 @@ export default function AdminPage() {
                 <div className="overflow-x-auto">
                   <div style={{
                     display: 'grid',
-                    gridTemplateColumns: `36px repeat(${annexRooms.length}, minmax(56px, 1fr))`,
+                    gridTemplateColumns: `36px repeat(${annexRooms.length}, minmax(48px, 1fr))`,
                     gap: '3px',
-                    minWidth: `${annexRooms.length * 59 + 39}px`,
+                    minWidth: `${annexRooms.length * 51 + 39}px`,
                   }}>
                     <div />
                     {annexRooms.map(r => (
@@ -730,9 +730,9 @@ export default function AdminPage() {
             <div className="overflow-x-auto">
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: `36px repeat(${annexRooms.length}, minmax(60px, 1fr))`,
+                gridTemplateColumns: `36px repeat(${annexRooms.length}, minmax(48px, 1fr))`,
                 gap: '3px',
-                minWidth: `${annexRooms.length * 63 + 39}px`,
+                minWidth: `${annexRooms.length * 51 + 39}px`,
               }}>
                 <div />
                 {annexRooms.map(r => {
