@@ -560,8 +560,7 @@ export default function AdminPage() {
                 }}
               >›</button>
             </div>
-            <div className="flex items-center justify-between">
-              <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>빈 칸 탭 → 수업 등록 · 등록된 수업 탭 → 삭제</p>
+            <div className="flex items-center justify-end">
               <div className="flex gap-2">
                 <button onClick={openSaveTemplateModal} disabled={savingTemplate}
                   className="font-bold rounded-xl border transition"
@@ -649,7 +648,6 @@ export default function AdminPage() {
               >›</button>
             </div>
             <div className="space-y-3">
-                <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>빈 칸 탭 → 예약 등록 · 등록된 칸 탭 → 삭제</p>
                 <div className="overflow-x-auto">
                   <div style={{
                     display: 'grid',
@@ -708,7 +706,6 @@ export default function AdminPage() {
         {/* ── 방 잠금 ── */}
         {tab === 'locks' && (
           <div className="space-y-3">
-            <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>헤더 토글 → 풀타임 잠금 · 빈 셀 탭 → 시간대 잠금 · 잠긴 셀 탭 → 해제</p>
 
             {/* 날짜 네비 */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
