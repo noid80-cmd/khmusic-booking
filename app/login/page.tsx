@@ -63,7 +63,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm flex flex-col items-center" style={{ marginTop: '8vh' }}>
 
         {/* 로고 */}
-        <div className="flex flex-col items-center" style={{ marginBottom: 56 }}>
+        <div className="flex flex-col items-center" style={{ marginBottom: 32 }}>
           <img src="/logo.png" alt="KH Music" className="w-20 h-20 rounded-3xl object-cover"
             style={{ boxShadow: '0 8px 32px rgba(99,102,241,0.2)', marginBottom: 20 }} />
           <h1 className="text-3xl font-black tracking-tight" style={{ color: '#1e1b4b' }}>연습실 예약</h1>
