@@ -432,28 +432,32 @@ export default function AdminPage() {
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: '#b0b0cc' }}>승인 대기 {pending.length}명</p>
                 {pending.map(u => (
-                  <div key={u.id} className="mb-3 p-5 rounded-2xl bg-white"
-                    style={{ border: '1px solid #e8e8f2', boxShadow: '0 2px 10px rgba(99,102,241,0.08)' }}>
-                    <p className="font-bold text-base" style={{ color: '#1e1b4b' }}>{u.name}</p>
-                    <p className="text-sm mt-0.5" style={{ color: '#9898b8' }}>{u.phone}</p>
-                    <p className="text-xs mt-0.5" style={{ color: '#c0c0d8' }}>{new Date(u.created_at).toLocaleDateString('ko')}</p>
-                    <div className="flex gap-2 mt-4">
-                      <select onChange={e => approveUser(u.id, e.target.value as Account['student_type'])}
-                        className="flex-1 rounded-xl text-[13px] font-bold focus:outline-none border cursor-pointer"
-                        style={{ background: '#eef2ff', borderColor: '#c7d2fe', color: '#6366f1', colorScheme: 'light', padding: '8px 12px' }}
-                        defaultValue="">
-                        <option value="" disabled>반 선택 후 승인</option>
-                        <option value="exam">입시반</option>
-                        <option value="audition">오디션반</option>
-                        <option value="professional">전문반</option>
-                        <option value="hobby">취미반</option>
-                        <option value="admin">관리자</option>
-                      </select>
-                      <button onClick={() => rejectUser(u.id)}
-                        className="rounded-xl text-[12px] font-medium border"
-                        style={{ padding: '8px 12px', background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>
-                        거절
-                      </button>
+                  <div key={u.id} className="rounded-2xl bg-white"
+                    style={{ padding: '12px 20px', marginBottom: 12, border: '1px solid #e8e8f2', boxShadow: '0 2px 10px rgba(99,102,241,0.08)' }}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-bold" style={{ color: '#1e1b4b' }}>{u.name}</p>
+                        <p className="text-sm" style={{ color: '#9898b8', marginTop: 2 }}>{u.phone}</p>
+                        <p className="text-xs" style={{ color: '#c0c0d8', marginTop: 1 }}>{new Date(u.created_at).toLocaleDateString('ko')}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <select onChange={e => approveUser(u.id, e.target.value as Account['student_type'])}
+                          className="rounded-xl text-[12px] font-bold focus:outline-none border cursor-pointer"
+                          style={{ background: '#eef2ff', borderColor: '#c7d2fe', color: '#6366f1', colorScheme: 'light', padding: '6px 10px' }}
+                          defaultValue="">
+                          <option value="" disabled>반 선택</option>
+                          <option value="exam">입시반</option>
+                          <option value="audition">오디션반</option>
+                          <option value="professional">전문반</option>
+                          <option value="hobby">취미반</option>
+                          <option value="admin">관리자</option>
+                        </select>
+                        <button onClick={() => rejectUser(u.id)}
+                          className="rounded-xl text-[12px] font-medium border"
+                          style={{ padding: '6px 10px', background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>
+                          거절
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
