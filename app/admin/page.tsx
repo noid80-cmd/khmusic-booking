@@ -560,6 +560,7 @@ export default function AdminPage() {
                 }}
               >›</button>
             </div>
+            <div style={{ borderTop: '1px solid #e8e8f2', margin: '4px 0' }} />
             <div className="flex items-center justify-end">
               <div className="flex gap-2">
                 <button onClick={openSaveTemplateModal} disabled={savingTemplate}
@@ -647,6 +648,7 @@ export default function AdminPage() {
                 style={{ padding: '14px 18px', fontSize: 20, lineHeight: 1, background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', cursor: 'pointer', flexShrink: 0 }}
               >›</button>
             </div>
+            <div style={{ borderTop: '1px solid #e8e8f2', margin: '4px 0' }} />
             <div className="space-y-3">
                 <div className="overflow-x-auto">
                   <div style={{
@@ -734,6 +736,7 @@ export default function AdminPage() {
                 style={{ padding: '14px 18px', fontSize: 20, lineHeight: 1, background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', cursor: 'pointer', flexShrink: 0 }}
               >›</button>
             </div>
+            <div style={{ borderTop: '1px solid #e8e8f2', margin: '4px 0' }} />
 
             {/* 별관 그리드 */}
             <div className="overflow-x-auto">
