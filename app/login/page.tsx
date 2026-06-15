@@ -44,7 +44,7 @@ export default function LoginPage() {
 
   const inputStyle = {
     width: '100%', background: '#ffffff', border: '1px solid #e4e4ef',
-    borderRadius: 16, padding: '18px 18px', fontSize: 15, outline: 'none',
+    borderRadius: 16, padding: '14px 18px', fontSize: 15, outline: 'none',
     color: '#1e1b4b', colorScheme: 'light' as const,
   }
 
@@ -70,12 +70,12 @@ export default function LoginPage() {
         </div>
 
         {/* 폼 */}
-        <div className="w-full flex flex-col gap-5">
+        <div className="w-full flex flex-col gap-6">
 
           {/* Google 로그인 */}
           <button onClick={handleGoogle}
             className="w-full flex items-center justify-center gap-3 font-bold rounded-2xl transition active:scale-95"
-            style={{ background: '#ffffff', color: '#1e1b4b', fontSize: 17, border: '1px solid #d8d8ec', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', minHeight: 64, padding: '0 20px' }}>
+            style={{ background: '#ffffff', color: '#1e1b4b', fontSize: 16, border: '1px solid #d8d8ec', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', minHeight: 54, padding: '0 20px' }}>
             <svg width="24" height="24" viewBox="0 0 48 48">
               <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/>
               <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.5 15.8 18.9 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
@@ -94,7 +94,7 @@ export default function LoginPage() {
 
           {/* 이메일 폼 */}
           {!resetMode ? (
-            <form onSubmit={handleLogin} className="flex flex-col gap-4">
+            <form onSubmit={handleLogin} className="flex flex-col gap-3">
               <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="이메일" required style={inputStyle} />
               <input type="password" value={password} onChange={e => setPassword(e.target.value)}
@@ -102,7 +102,7 @@ export default function LoginPage() {
               {error && <p className="text-red-500 text-sm text-center pt-1">{error}</p>}
               <button type="submit" disabled={loading}
                 className="w-full rounded-2xl text-white font-bold text-[17px] disabled:opacity-50 transition active:scale-95 mt-1"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 4px 16px rgba(99,102,241,0.35)', minHeight: 64 }}>
+                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 4px 16px rgba(99,102,241,0.35)', minHeight: 54 }}>
                 {loading ? '로그인 중...' : '로그인'}
               </button>
               <button type="button" onClick={() => { setResetMode(true); setError('') }}
