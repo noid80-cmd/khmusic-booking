@@ -27,7 +27,7 @@ function TypeBadge({ type }: { type: string | null }) {
 }
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<'users' | 'schedule' | 'annex' | 'admins' | 'locks'>('users')
+  const [tab, setTab] = useState<'users' | 'schedule' | 'annex' | 'locks'>('users')
   const [memberSort, setMemberSort] = useState<'name' | 'type' | 'date'>(() => {
     if (typeof window === 'undefined') return 'name'
     return (localStorage.getItem('memberSort') as 'name' | 'type' | 'date') || 'name'
@@ -42,7 +42,6 @@ export default function AdminPage() {
   const [annexViewBlocked, setAnnexViewBlocked] = useState<{ id: string, room_id: string, start_hour: number, end_hour: number }[]>([])
   const [loading, setLoading] = useState(true)
   const [admins, setAdmins] = useState<{ id: string, email: string | null, user_id: string | null }[]>([])
-  const [newAdminEmail, setNewAdminEmail] = useState('')
 
   const [annexRoom, setAnnexRoom] = useState('')
   const [annexDate, setAnnexDate] = useState(todayStr())
@@ -253,14 +252,6 @@ export default function AdminPage() {
     await loadSchedule()
   }
 
-  async function addAdmin() {
-    const email = newAdminEmail.trim()
-    if (!email) return
-    const { error } = await supabase.from('admins').insert({ email })
-    if (error) { alert('오류: ' + error.message); return }
-    setNewAdminEmail('')
-    await loadAll()
-  }
 
   async function changeStudentType(id: string, type: Account['student_type']) {
     const { error } = await supabase.from('accounts').update({ student_type: type }).eq('id', id)
@@ -400,7 +391,7 @@ export default function AdminPage() {
 
       {/* 탭 */}
       <div className="hdr-filter-wrap flex gap-2" style={{ maxWidth: 1100, margin: '0 auto', padding: '10px 16px 10px' }}>
-        {([['users', '회원'], ['schedule', '본관 수업'], ['annex', '별관'], ['locks', '방 잠금'], ['admins', '관리자']] as const).map(([t, label]) => {
+        {([['users', '회원'], ['schedule', '본관 수업'], ['annex', '별관'], ['locks', '방 잠금']] as const).map(([t, label]) => {
           const active = tab === t
           return (
             <button key={t} onClick={() => { setTab(t); if (t === 'locks' && rooms.length) loadBlockedSlots(lockDate) }}
@@ -811,39 +802,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ── 관리자 관리 ── */}
-        {tab === 'admins' && (
-          <div>
-            <div className="rounded-2xl bg-white" style={{ padding: 20, marginBottom: 20, border: '1px solid #e8e8f2', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-              <p className="text-sm font-semibold" style={{ color: '#6b6b9a', marginBottom: 12 }}>관리자 추가</p>
-              <input value={newAdminEmail} onChange={e => setNewAdminEmail(e.target.value)}
-                placeholder="이메일 주소" type="email" className={inputCls} style={{ marginBottom: 12 }} />
-              <button onClick={addAdmin}
-                className="w-full rounded-2xl text-white font-bold"
-                style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', boxShadow: '0 4px 14px rgba(99,102,241,0.28)', padding: '18px 0', fontSize: 16 }}>
-                추가
-              </button>
-            </div>
-
-            {admins.map(a => {
-              const memberName = approved.find(u => u.user_id === a.user_id)?.name
-              return (
-                <div key={a.id} className="flex items-center justify-between rounded-2xl bg-white"
-                  style={{ padding: '14px 20px', marginBottom: 12, border: '1px solid #e8e8f2', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                  <div>
-                    <p className="font-medium" style={{ color: '#1e1b4b' }}>{memberName ?? a.email ?? '알 수 없음'}</p>
-                    {a.email && <p className="text-xs" style={{ color: '#c0c0d8', marginTop: 3 }}>{a.email}</p>}
-                  </div>
-                  {a.email === SUPER_ADMIN
-                    ? <span className="text-[11px] font-bold" style={{ color: '#c0c0d8' }}>최고 관리자</span>
-                    : <button onClick={() => removeAdmin(a.id, a.email ?? null)}
-                        style={{ background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca', border: '1px solid #fecaca', borderRadius: 12, padding: '8px 14px', fontSize: 14, fontWeight: 600 }}>삭제</button>
-                  }
-                </div>
-              )
-            })}
-          </div>
-        )}
       </div>
     </div>
 
