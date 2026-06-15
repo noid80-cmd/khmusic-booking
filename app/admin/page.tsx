@@ -633,10 +633,31 @@ export default function AdminPage() {
 
         {/* ── 별관 예약 ── */}
         {tab === 'annex' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                onClick={() => {
+                  const d = new Date(date + 'T00:00:00')
+                  d.setDate(d.getDate() - 1)
+                  setDate(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`)
+                }}
+                className="rounded-2xl border transition"
+                style={{ padding: '14px 18px', fontSize: 20, lineHeight: 1, background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', cursor: 'pointer', flexShrink: 0 }}
+              >‹</button>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                className="bg-white border border-[#e4e4ef] rounded-2xl text-[#1e1b4b] text-[15px] focus:outline-none focus:border-indigo-400 transition"
+                style={{ flex: 1, minWidth: 0, padding: '14px 16px', colorScheme: 'light', fontFamily: 'inherit' }} />
+              <button
+                onClick={() => {
+                  const d = new Date(date + 'T00:00:00')
+                  d.setDate(d.getDate() + 1)
+                  setDate(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`)
+                }}
+                className="rounded-2xl border transition"
+                style={{ padding: '14px 18px', fontSize: 20, lineHeight: 1, background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', cursor: 'pointer', flexShrink: 0 }}
+              >›</button>
+            </div>
             <div className="space-y-3">
-                <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                  className={inputCls} style={{ colorScheme: 'light' }} />
                 <p className="text-xs px-1" style={{ color: '#c0c0d8' }}>빈 칸 탭 → 예약 등록 · 등록된 칸 탭 → 삭제</p>
                 <div className="overflow-x-auto">
                   <div style={{
@@ -647,8 +668,8 @@ export default function AdminPage() {
                   }}>
                     <div />
                     {annexRooms.map(r => (
-                      <div key={`hdr-${r.id}`} className="flex items-center justify-center py-2.5 rounded-lg"
-                        style={{ background: '#f0fdf4', border: '1px solid #86efac' }}>
+                      <div key={`hdr-${r.id}`} className="flex items-center justify-center rounded-lg"
+                        style={{ height: 36, background: '#f0fdf4', border: '1px solid #86efac' }}>
                         <span className="text-[10px] font-bold" style={{ color: '#16a34a' }}>
                           {r.name.replace('PIANO','P').replace('GUITAR & BASS','G&B')}
                         </span>
