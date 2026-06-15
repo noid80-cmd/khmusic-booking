@@ -439,8 +439,8 @@ export default function AdminPage() {
                     <p className="text-xs mt-0.5" style={{ color: '#c0c0d8' }}>{new Date(u.created_at).toLocaleDateString('ko')}</p>
                     <div className="flex gap-2 mt-4">
                       <select onChange={e => approveUser(u.id, e.target.value as Account['student_type'])}
-                        className="flex-1 rounded-2xl px-4 py-4 text-sm font-semibold focus:outline-none border cursor-pointer"
-                        style={{ background: '#eef2ff', borderColor: '#c7d2fe', color: '#6366f1', colorScheme: 'light' }}
+                        className="flex-1 rounded-2xl text-sm font-semibold focus:outline-none border cursor-pointer"
+                        style={{ background: '#eef2ff', borderColor: '#c7d2fe', color: '#6366f1', colorScheme: 'light', padding: '16px', minHeight: 56 }}
                         defaultValue="">
                         <option value="" disabled>반 선택 후 승인</option>
                         <option value="exam">입시반</option>
@@ -465,7 +465,7 @@ export default function AdminPage() {
               <div className="flex gap-1">
                 {([['name','이름순'],['type','반별'],['date','등록일']] as const).map(([key, label]) => (
                   <button key={key} onClick={() => { setMemberSort(key); localStorage.setItem('memberSort', key) }}
-                    className="text-[13px] font-bold px-3 py-1.5 rounded-lg border transition"
+                    className="text-[13px] font-bold px-4 py-2.5 rounded-lg border transition"
                     style={{
                       background: memberSort === key ? '#eef2ff' : '#ffffff',
                       color: memberSort === key ? '#6366f1' : '#a0a0c0',
