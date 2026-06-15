@@ -66,8 +66,7 @@ export default function LoginPage() {
         <div className="flex flex-col items-center mb-14">
           <img src="/logo.png" alt="KH Music" className="w-20 h-20 rounded-3xl mb-4 object-cover"
             style={{ boxShadow: '0 8px 32px rgba(99,102,241,0.2)' }} />
-          <h1 className="text-3xl font-black tracking-tight mb-1" style={{ color: '#1e1b4b' }}>연습실 예약</h1>
-          <p className="text-sm font-medium" style={{ color: '#8b8baa' }}>KH Music & Studio</p>
+          <h1 className="text-3xl font-black tracking-tight" style={{ color: '#1e1b4b' }}>연습실 예약</h1>
         </div>
 
         {/* 폼 */}
