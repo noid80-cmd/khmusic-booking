@@ -675,7 +675,7 @@ export default function BookPage() {
             )}
 
             {/* 범례 */}
-            <div className="flex gap-4 flex-wrap" style={{ marginTop: 24, paddingLeft: 39 }}>
+            <div className="flex gap-4 flex-wrap" style={{ marginTop: 12, paddingLeft: 39 }}>
               {[
                 { bg: color.bookableBg, border: color.bookableBorder, label: '예약 가능' },
                 { bg: color.mineBg, border: color.mineBorder, label: '내 예약' },
