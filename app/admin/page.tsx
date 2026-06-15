@@ -828,17 +828,16 @@ export default function AdminPage() {
             {admins.map(a => {
               const memberName = approved.find(u => u.user_id === a.user_id)?.name
               return (
-                <div key={a.id} className="flex items-center justify-between px-5 py-4 rounded-2xl bg-white"
-                  style={{ border: '1px solid #e8e8f2', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                <div key={a.id} className="flex items-center justify-between rounded-2xl bg-white"
+                  style={{ padding: '14px 20px', marginBottom: 12, border: '1px solid #e8e8f2', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                   <div>
                     <p className="font-medium" style={{ color: '#1e1b4b' }}>{memberName ?? a.email ?? '알 수 없음'}</p>
-                    {a.email && <p className="text-xs mt-0.5" style={{ color: '#c0c0d8' }}>{a.email}</p>}
+                    {a.email && <p className="text-xs" style={{ color: '#c0c0d8', marginTop: 3 }}>{a.email}</p>}
                   </div>
                   {a.email === SUPER_ADMIN
                     ? <span className="text-[11px] font-bold" style={{ color: '#c0c0d8' }}>최고 관리자</span>
                     : <button onClick={() => removeAdmin(a.id, a.email ?? null)}
-                        className="text-sm font-medium px-4 py-2 rounded-xl border"
-                        style={{ background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' }}>삭제</button>
+                        style={{ background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca', border: '1px solid #fecaca', borderRadius: 12, padding: '8px 14px', fontSize: 14, fontWeight: 600 }}>삭제</button>
                   }
                 </div>
               )
