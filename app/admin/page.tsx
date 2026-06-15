@@ -565,12 +565,12 @@ export default function AdminPage() {
               <div className="flex gap-2">
                 <button onClick={openSaveTemplateModal} disabled={savingTemplate}
                   className="font-bold rounded-xl border transition"
-                  style={{ background: '#f0fdf4', color: '#16a34a', borderColor: '#86efac', opacity: savingTemplate ? 0.5 : 1, fontSize: 14, padding: '10px 16px' }}>
+                  style={{ background: '#f0fdf4', color: '#16a34a', borderColor: '#86efac', opacity: savingTemplate ? 0.5 : 1, fontSize: 12, padding: '8px 12px', whiteSpace: 'nowrap' }}>
                   {savingTemplate ? '저장 중...' : '기본으로 저장'}
                 </button>
                 <button onClick={applyTemplate} disabled={applyingTemplate}
                   className="font-bold rounded-xl border transition"
-                  style={{ background: '#eef2ff', color: '#6366f1', borderColor: '#c7d2fe', opacity: applyingTemplate ? 0.5 : 1, fontSize: 14, padding: '10px 16px' }}>
+                  style={{ background: '#eef2ff', color: '#6366f1', borderColor: '#c7d2fe', opacity: applyingTemplate ? 0.5 : 1, fontSize: 12, padding: '8px 12px', whiteSpace: 'nowrap' }}>
                   {applyingTemplate ? '적용 중...' : '기본 불러오기'}
                 </button>
               </div>
