@@ -396,55 +396,58 @@ export default function BookPage() {
               })}
             </div>
           )}
+
+          {/* 날짜 */}
+          <div style={{ marginTop: 8 }}>
+            {account.student_type === 'admin' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  onClick={() => {
+                    const d = new Date(date + 'T00:00:00')
+                    d.setDate(d.getDate() - 1)
+                    const prev = localDateStr(d)
+                    if (prev >= todayStr()) setDate(prev)
+                  }}
+                  disabled={date <= todayStr()}
+                  className="rounded-xl border transition"
+                  style={{
+                    padding: '8px 14px', fontSize: 18, lineHeight: 1, fontFamily: 'inherit',
+                    background: '#ffffff', borderColor: '#e4e4ef',
+                    color: date <= todayStr() ? '#c0c0d8' : '#1e1b4b',
+                    cursor: date <= todayStr() ? 'default' : 'pointer', flexShrink: 0,
+                  }}
+                >‹</button>
+                <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                  min={todayStr()}
+                  className="rounded-xl focus:outline-none transition border"
+                  style={{ flex: 1, minWidth: 0, padding: '8px 14px', fontSize: 14, fontFamily: 'inherit', background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', colorScheme: 'light' }} />
+                <button
+                  onClick={() => {
+                    const d = new Date(date + 'T00:00:00')
+                    d.setDate(d.getDate() + 1)
+                    setDate(localDateStr(d))
+                  }}
+                  className="rounded-xl border transition"
+                  style={{
+                    padding: '8px 14px', fontSize: 18, lineHeight: 1, fontFamily: 'inherit',
+                    background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b',
+                    cursor: 'pointer', flexShrink: 0,
+                  }}
+                >›</button>
+              </div>
+            ) : (
+              <div className="rounded-xl border text-center font-semibold"
+                style={{ padding: '8px 14px', fontSize: 13, background: '#f5f5fb', borderColor: '#e4e4ef', color: '#6b6b9a' }}>
+                {date}
+              </div>
+            )}
+          </div>
         </div>
         </div>{/* /maxWidth wrapper */}
       </div>
 
       <div className="pt-5 space-y-4" style={{ maxWidth: 1100, margin: '0 auto', padding: '20px 16px 0' }}>
 
-        {/* 날짜 */}
-        {account.student_type === 'admin' ? (
-          <div style={{ display: 'flex', alignItems: 'center', maxWidth: 700, margin: '0 auto', gap: 8 }}>
-            <button
-              onClick={() => {
-                const d = new Date(date + 'T00:00:00')
-                d.setDate(d.getDate() - 1)
-                const prev = localDateStr(d)
-                if (prev >= todayStr()) setDate(prev)
-              }}
-              disabled={date <= todayStr()}
-              className="rounded-xl border transition"
-              style={{
-                padding: '12px 18px', fontSize: 20, lineHeight: 1, fontFamily: 'inherit',
-                background: '#ffffff', borderColor: '#e4e4ef',
-                color: date <= todayStr() ? '#c0c0d8' : '#1e1b4b',
-                cursor: date <= todayStr() ? 'default' : 'pointer', flexShrink: 0,
-              }}
-            >‹</button>
-            <input type="date" value={date} onChange={e => setDate(e.target.value)}
-              min={todayStr()}
-              className="rounded-xl focus:outline-none transition border"
-              style={{ flex: 1, minWidth: 0, padding: '12px 16px', fontSize: 15, fontFamily: 'inherit', background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', colorScheme: 'light' }} />
-            <button
-              onClick={() => {
-                const d = new Date(date + 'T00:00:00')
-                d.setDate(d.getDate() + 1)
-                setDate(localDateStr(d))
-              }}
-              className="rounded-xl border transition"
-              style={{
-                padding: '12px 18px', fontSize: 20, lineHeight: 1, fontFamily: 'inherit',
-                background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b',
-                cursor: 'pointer', flexShrink: 0,
-              }}
-            >›</button>
-          </div>
-        ) : (
-          <div className="rounded-xl border text-center font-semibold"
-            style={{ maxWidth: 700, margin: '0 auto', padding: '12px 16px', fontSize: 15, background: '#f5f5fb', borderColor: '#e4e4ef', color: '#1e1b4b' }}>
-            {date}
-          </div>
-        )}
 
         {/* 안내 */}
         {isExam && account.student_type !== 'admin' && date === todayStr() && (
