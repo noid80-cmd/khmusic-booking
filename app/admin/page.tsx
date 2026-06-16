@@ -7,7 +7,7 @@ import type { Account, Room } from '@/lib/supabase'
 const SUPER_ADMIN = 'noid80@hanmail.net'
 const HOURS = Array.from({ length: 11 }, (_, i) => i + 11)
 
-function todayStr() { return new Date().toISOString().slice(0, 10) }
+function todayStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 
 type PendingAccount = Account & { email?: string }
 

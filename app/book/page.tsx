@@ -101,7 +101,8 @@ export default function BookPage() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { window.location.href = '/login'; return }
       supabase.from('accounts').select('*').eq('user_id', session.user.id).maybeSingle().then(({ data }) => {
-        if (!data || data.status !== 'approved') { window.location.href = '/pending'; return }
+        if (!data) { window.location.href = '/signup/complete'; return }
+        if (data.status !== 'approved') { window.location.href = '/pending'; return }
         setAccount(data)
       })
     })
