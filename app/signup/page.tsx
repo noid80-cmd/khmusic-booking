@@ -4,19 +4,9 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
-const STUDENT_TYPES = [
-  { value: 'exam',         label: '입시반' },
-  { value: 'audition',     label: '오디션반' },
-  { value: 'professional', label: '전문반' },
-  { value: 'hobby',        label: '취미반' },
-] as const
-
-type StudentType = typeof STUDENT_TYPES[number]['value']
-
 export default function SignupPage() {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
-  const [studentType, setStudentType] = useState<StudentType | null>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -25,7 +15,6 @@ export default function SignupPage() {
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
-    if (!studentType) { setError('반을 선택해주세요.'); return }
     setError(''); setLoading(true)
 
     const { data, error: authError } = await supabase.auth.signUp({ email, password })
@@ -43,7 +32,6 @@ export default function SignupPage() {
         user_id: data.user.id,
         name: name.trim(),
         phone: phone.trim(),
-        student_type: studentType,
       })
       if (accError) { setError('오류가 발생했어요.'); setLoading(false); return }
     }
@@ -81,25 +69,6 @@ export default function SignupPage() {
         </div>
 
         <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-
-          {/* 학생 유형 */}
-          <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.5)', marginBottom: 10 }}>반 선택</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {STUDENT_TYPES.map(t => (
-                <button key={t.value} type="button" onClick={() => setStudentType(t.value)}
-                  style={{
-                    padding: '14px 10px', borderRadius: 14, fontSize: 15, fontWeight: 700,
-                    cursor: 'pointer', transition: 'all 0.15s',
-                    background: studentType === t.value ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)',
-                    border: `2px solid ${studentType === t.value ? '#6366f1' : 'rgba(255,255,255,0.08)'}`,
-                    color: studentType === t.value ? '#a5b4fc' : 'rgba(255,255,255,0.5)',
-                  }}>
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
 
           <input type="text" value={name} onChange={e => setName(e.target.value)}
             placeholder="이름" required style={inputStyle} />
