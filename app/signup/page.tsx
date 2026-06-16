@@ -34,6 +34,12 @@ export default function SignupPage() {
         phone: phone.trim(),
       })
       if (accError) { setError('오류가 발생했어요.'); setLoading(false); return }
+
+      fetch('/api/notify-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim(), email, phone: phone.trim() }),
+      }).catch(() => {})
     }
 
     setDone(true)
