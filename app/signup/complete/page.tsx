@@ -30,6 +30,8 @@ export default function SignupCompletePage() {
       phone: phone.trim(),
     })
     if (error) { alert('오류가 발생했어요.'); setLoading(false); return }
+    const email = (await supabase.auth.getSession()).data.session?.user.email ?? ''
+    fetch('/api/notify-signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name.trim(), email, phone: phone.trim() }) }).catch(() => {})
     setDone(true)
     setLoading(false)
   }
@@ -56,7 +58,7 @@ export default function SignupCompletePage() {
 
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <h1 style={{ fontSize: 26, fontWeight: 900, color: '#fff', marginBottom: 8 }}>정보 입력</h1>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14 }}>이름·연락처·반을 입력해주세요</p>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14 }}>이름과 연락처를 입력해주세요</p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

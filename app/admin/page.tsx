@@ -154,7 +154,7 @@ export default function AdminPage() {
 
   function openSaveTemplateModal() {
     if (classes.length === 0) { alert('저장할 수업이 없어요.'); return }
-    const dow = new Date(date).getDay()
+    const dow = new Date(date + 'T00:00:00').getDay()
     setSaveTemplateDay(dow === 0 ? 1 : dow)
     setSaveTemplateModal(true)
   }
@@ -183,7 +183,7 @@ export default function AdminPage() {
   }
 
   async function applyTemplate() {
-    const dow = new Date(date).getDay()
+    const dow = new Date(date + 'T00:00:00').getDay()
     const mainRoomIds = rooms.filter(r => r.building === 'main').map(r => r.id)
     const { data: tmpl } = await supabase.from('class_schedule_templates').select('*').eq('day_of_week', dow).in('room_id', mainRoomIds)
     if (!tmpl || tmpl.length === 0) { alert('이 요일의 기본 스케줄이 없어요.\n먼저 기본 스케줄 탭에서 설정해주세요.'); return }
