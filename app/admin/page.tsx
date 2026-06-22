@@ -54,6 +54,10 @@ export default function AdminPage() {
   const [monthlyEnd, setMonthlyEnd] = useState(todayStr())
   const [monthlyRentals, setMonthlyRentals] = useState<{ id: string, room_id: string, date: string, end_date: string, external_name: string | null, note: string | null }[]>([])
 
+  const [editModal, setEditModal] = useState<Account | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editPhone, setEditPhone] = useState('')
+
   const [lockDate, setLockDate] = useState(todayStr())
   const [blockedSlots, setBlockedSlots] = useState<{ id: string, room_id: string, start_hour: number, end_hour: number, end_date: string | null }[]>([])
   const [lockModal, setLockModal] = useState<{ roomId: string, roomName: string, hour: number } | null>(null)
@@ -270,6 +274,17 @@ export default function AdminPage() {
     if (!confirm(`${name} 회원을 삭제할까요? 이 작업은 되돌릴 수 없어요.`)) return
     const { error } = await supabase.from('accounts').delete().eq('id', id)
     if (error) { alert('삭제 오류: ' + error.message); return }
+    await loadAll()
+  }
+
+  async function updateStudentInfo() {
+    if (!editModal) return
+    const name = editName.trim()
+    const phone = editPhone.trim()
+    if (!name) { alert('이름을 입력해주세요.'); return }
+    const { error } = await supabase.from('accounts').update({ name, phone }).eq('id', editModal.id)
+    if (error) { alert('수정 오류: ' + error.message); return }
+    setEditModal(null)
     await loadAll()
   }
 
@@ -498,6 +513,9 @@ export default function AdminPage() {
                       <p className="text-sm" style={{ color: '#9898b8', marginTop: 2 }}>{u.phone}</p>
                     </div>
                     <div className="flex items-center gap-2">
+                      <button onClick={() => { setEditName(u.name); setEditPhone(u.phone); setEditModal(u) }}
+                        className="text-xs font-medium rounded-xl border"
+                        style={{ padding: '6px 10px', background: '#f5f5fb', color: '#6b6b9a', borderColor: '#e8e8f2' }}>수정</button>
                       <select value={u.student_type ?? ''} onChange={e => changeStudentType(u.id, e.target.value as Account['student_type'])}
                         className="text-[12px] font-bold rounded-xl focus:outline-none border cursor-pointer"
                         style={{ padding: '6px 10px', background: tc.bg, color: tc.color, borderColor: tc.border, colorScheme: 'light' }}>
@@ -924,6 +942,43 @@ export default function AdminPage() {
             <button onClick={confirmPeriodLock}
               style={{ flex: 1, padding: '13px 0', borderRadius: 16, fontWeight: 700, fontSize: 14, color: 'white', border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#ef4444,#f97316)', boxShadow: '0 4px 14px rgba(239,68,68,0.3)' }}>
               잠금
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {editModal && (
+      <div
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(30,27,75,0.25)', backdropFilter: 'blur(6px)' }}
+        onClick={e => { if (e.target === e.currentTarget) setEditModal(null) }}>
+        <div style={{ background: 'white', borderRadius: 24, padding: 24, width: '100%', maxWidth: 340, boxShadow: '0 25px 50px rgba(0,0,0,0.12)', border: '1px solid #e8e8f2' }}>
+          <p style={{ fontSize: 15, fontWeight: 900, marginBottom: 4, color: '#1e1b4b' }}>회원 정보 수정</p>
+          <p style={{ fontSize: 13, color: '#9898b8', marginBottom: 20 }}>{editModal.name}</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#b0b0cc', marginBottom: 6 }}>이름</p>
+              <input
+                value={editName} onChange={e => setEditName(e.target.value)}
+                placeholder="이름"
+                style={{ width: '100%', border: '1px solid #e4e4ef', borderRadius: 14, padding: '11px 14px', fontSize: 15, outline: 'none', color: '#1e1b4b', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#b0b0cc', marginBottom: 6 }}>전화번호</p>
+              <input
+                value={editPhone} onChange={e => setEditPhone(e.target.value)}
+                placeholder="전화번호"
+                style={{ width: '100%', border: '1px solid #e4e4ef', borderRadius: 14, padding: '11px 14px', fontSize: 15, outline: 'none', color: '#1e1b4b', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setEditModal(null)}
+              style={{ flex: 1, padding: '13px 0', borderRadius: 16, fontWeight: 700, fontSize: 14, border: '1px solid #e8e8f2', background: '#f5f5fb', color: '#a0a0c0', cursor: 'pointer' }}>
+              취소
+            </button>
+            <button onClick={updateStudentInfo} disabled={!editName.trim()}
+              style={{ flex: 1, padding: '13px 0', borderRadius: 16, fontWeight: 700, fontSize: 14, color: 'white', border: 'none', cursor: editName.trim() ? 'pointer' : 'default', opacity: editName.trim() ? 1 : 0.4, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
+              저장
             </button>
           </div>
         </div>
