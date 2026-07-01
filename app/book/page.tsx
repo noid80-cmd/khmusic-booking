@@ -619,17 +619,17 @@ export default function BookPage() {
                         if (account.student_type === 'admin') return (
                           <button key={`${h}-${r.id}`} onClick={() => handleCancel(bk.id)}
                             className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
-                            style={{ background: '#f1f5f9', border: '1px solid #94a3b8' }}>
-                            <span className="text-[9px] font-medium truncate px-1.5" style={{ color: '#475569' }}>
-                              {bk.external_name ?? bk.account?.name ?? '?'}
+                            style={{ background: '#e2e8f0', border: '1px solid #94a3b8' }}>
+                            <span className="text-[11px] font-bold truncate px-1.5" style={{ color: '#334155' }}>
+                              {bk.external_name ?? bk.account?.name ?? '예약됨'}
                             </span>
                           </button>
                         )
                         return (
                           <div key={`${h}-${r.id}`} className="h-11 rounded-lg flex items-center justify-center"
-                            style={{ background: '#f1f5f9', border: '1px solid #94a3b8' }}>
-                            <span className="text-[9px] font-medium truncate px-1.5" style={{ color: '#64748b' }}>
-                              {bk.external_name ?? bk.account?.name ?? ''}
+                            style={{ background: '#e2e8f0', border: '1px solid #94a3b8' }}>
+                            <span className="text-[11px] font-bold truncate px-1.5" style={{ color: '#334155' }}>
+                              {bk.external_name ?? bk.account?.name ?? '예약됨'}
                             </span>
                           </div>
                         )
