@@ -16,7 +16,7 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset`,
+      redirectTo: `${window.location.origin}/auth/callback`,
     })
     setLoading(false)
     if (error) { setError('이메일을 확인해주세요.'); return }
@@ -29,7 +29,10 @@ export default function LoginPage() {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) { setError('이메일 또는 비밀번호가 올바르지 않아요.'); setLoading(false); return }
     const { data: acc } = await supabase.from('accounts').select('id').eq('user_id', data.user.id).maybeSingle()
-    window.location.href = acc ? '/' : '/signup/complete'
+    if (acc) { window.location.href = '/'; return }
+    const { data: adminData } = await supabase.from('admins').select('id')
+      .or(`email.eq.${data.user.email},user_id.eq.${data.user.id}`).maybeSingle()
+    window.location.href = adminData ? '/admin' : '/signup/complete'
   }
 
   async function handleGoogle() {
