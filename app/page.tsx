@@ -10,8 +10,13 @@ export default function Root() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { router.replace('/login'); return }
-      supabase.from('accounts').select('status').eq('user_id', session.user.id).maybeSingle().then(({ data }) => {
-        if (!data) { router.replace('/signup/complete'); return }
+      supabase.from('accounts').select('status').eq('user_id', session.user.id).maybeSingle().then(async ({ data }) => {
+        if (!data) {
+          const { data: adminData } = await supabase.from('admins').select('id')
+            .or(`email.eq.${session.user.email},user_id.eq.${session.user.id}`).maybeSingle()
+          router.replace(adminData ? '/admin' : '/signup/complete')
+          return
+        }
         if (data.status === 'pending') { router.replace('/pending'); return }
         router.replace('/book')
       })

@@ -98,13 +98,21 @@ export default function BookPage() {
   }, [now])
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { window.location.href = '/login'; return }
-      supabase.from('accounts').select('*').eq('user_id', session.user.id).maybeSingle().then(({ data }) => {
-        if (!data) { window.location.href = '/signup/complete'; return }
-        if (data.status !== 'approved') { window.location.href = '/pending'; return }
-        setAccount(data)
-      })
+      const { data } = await supabase.from('accounts').select('*').eq('user_id', session.user.id).maybeSingle()
+      if (!data) {
+        const { data: adminData } = await supabase.from('admins').select('id')
+          .or(`email.eq.${session.user.email},user_id.eq.${session.user.id}`).maybeSingle()
+        if (adminData) {
+          setAccount({ id: '', user_id: session.user.id, name: session.user.email ?? '관리자', phone: '', student_type: 'admin', status: 'approved', created_at: '' })
+        } else {
+          window.location.href = '/signup/complete'
+        }
+        return
+      }
+      if (data.status !== 'approved') { window.location.href = '/pending'; return }
+      setAccount(data)
     })
   }, [])
 
