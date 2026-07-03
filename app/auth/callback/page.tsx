@@ -6,10 +6,19 @@ import { supabase } from '@/lib/supabase'
 export default function AuthCallback() {
   useEffect(() => {
     const run = async () => {
+      const params = new URLSearchParams(window.location.search)
+      const code = params.get('code')
+      const type = params.get('type')
+
       // PKCE: URL에 code 파라미터가 있는 경우
-      const code = new URLSearchParams(window.location.search).get('code')
       if (code) {
         await supabase.auth.exchangeCodeForSession(code).catch(() => {})
+      }
+
+      // 비밀번호 재설정 플로우 → /auth/reset으로 이동
+      if (type === 'recovery') {
+        window.location.href = '/auth/reset'
+        return
       }
 
       // 세션 확인 (최대 5초 대기)
