@@ -26,7 +26,10 @@ export default function AuthCallback() {
         const { data: { session } } = await supabase.auth.getSession()
         if (session) {
           const { data } = await supabase.from('accounts').select('id').eq('user_id', session.user.id).maybeSingle()
-          window.location.href = data ? '/' : '/signup/complete'
+          if (data) { window.location.href = '/'; return }
+          const { data: adminData } = await supabase.from('admins').select('id')
+            .or(`email.eq.${session.user.email},user_id.eq.${session.user.id}`).maybeSingle()
+          window.location.href = adminData ? '/admin' : '/signup/complete'
           return
         }
         await new Promise(r => setTimeout(r, 500))
