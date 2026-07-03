@@ -270,10 +270,18 @@ export default function AdminPage() {
     await loadAll()
   }
 
-  async function deleteUser(id: string, name: string) {
+  async function deleteUser(authUserId: string, name: string) {
     if (!confirm(`${name} 회원을 삭제할까요? 이 작업은 되돌릴 수 없어요.`)) return
-    const { error } = await supabase.from('accounts').delete().eq('id', id)
-    if (error) { alert('삭제 오류: ' + error.message); return }
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
+    if (!token) { alert('세션 오류. 다시 로그인해주세요.'); return }
+    const res = await fetch('/api/admin/delete-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ authUserId }),
+    })
+    const result = await res.json()
+    if (!res.ok) { alert('삭제 오류: ' + result.error); return }
     await loadAll()
   }
 
@@ -533,7 +541,7 @@ export default function AdminPage() {
                             className="text-xs font-medium rounded-xl border"
                             style={{ padding: '6px 10px', background: '#eef2ff', color: '#6366f1', borderColor: '#c7d2fe' }}>관리자</button>
                       }
-                      <button onClick={() => deleteUser(u.id, u.name)}
+                      <button onClick={() => deleteUser(u.user_id, u.name)}
                         className="text-xs font-medium rounded-xl border"
                         style={{ padding: '6px 10px', background: '#fef2f2', color: '#ef4444', borderColor: '#fecaca', opacity: 0.7 }}>삭제</button>
                     </div>
