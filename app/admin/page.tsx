@@ -702,13 +702,26 @@ export default function AdminPage() {
                       ...annexRooms.map(r => {
                         const bk = getAnnexBooking(r.id, h)
                         const isRoomLk = isRoomLocked(r)
-                        const isBlocked = isRoomLk || annexViewBlocked.some(b => b.room_id === r.id && b.start_hour <= h && h < b.end_hour)
-                        if (isBlocked) return (
-                          <div key={`${h}-${r.id}`} className="h-11 rounded-lg flex items-center justify-center"
-                            style={{ background: '#fef2f2', border: '1px solid #fecaca' }}>
-                            <span style={{ fontSize: 11 }}>🔒</span>
-                          </div>
-                        )
+                        const blockedEntry = annexViewBlocked.find(b => b.room_id === r.id && b.start_hour <= h && h < b.end_hour)
+                        const isBlocked = isRoomLk || !!blockedEntry
+                        if (isBlocked) {
+                          if (blockedEntry && !isRoomLk) return (
+                            <button key={`${h}-${r.id}`} onClick={async () => {
+                              if (!confirm('잠금을 해제할까요?')) return
+                              await supabase.from('bookings').delete().eq('id', blockedEntry.id)
+                              await loadSchedule()
+                            }} className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
+                              style={{ background: '#fef2f2', border: '1px solid #fecaca' }}>
+                              <span style={{ fontSize: 11 }}>🔒</span>
+                            </button>
+                          )
+                          return (
+                            <div key={`${h}-${r.id}`} className="h-11 rounded-lg flex items-center justify-center"
+                              style={{ background: '#fef2f2', border: '1px solid #fecaca' }}>
+                              <span style={{ fontSize: 11 }}>🔒</span>
+                            </div>
+                          )
+                        }
                         if (bk) return (
                           <button key={`${h}-${r.id}`} onClick={() => deleteAnnexBooking(bk.id)}
                             className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
