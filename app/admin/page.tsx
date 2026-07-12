@@ -773,10 +773,15 @@ export default function AdminPage() {
                 className="rounded-2xl border transition"
                 style={{ padding: '14px 18px', fontSize: 20, lineHeight: 1, background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', cursor: 'pointer', flexShrink: 0 }}
               >‹</button>
-              <input type="date" value={lockDate}
-                onChange={e => { setLockDate(e.target.value); loadBlockedSlots(e.target.value) }}
-                className="bg-white border border-[#e4e4ef] rounded-2xl text-[#1e1b4b] text-[15px] focus:outline-none transition"
-                style={{ flex: 1, minWidth: 0, padding: '14px 16px', colorScheme: 'light', fontFamily: 'inherit' }} />
+              <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+                <input type="date" value={lockDate}
+                  onChange={e => { setLockDate(e.target.value); loadBlockedSlots(e.target.value) }}
+                  className="bg-white border border-[#e4e4ef] rounded-2xl text-[#1e1b4b] text-[15px] focus:outline-none transition"
+                  style={{ width: '100%', padding: '14px 16px', colorScheme: 'light', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                {lockDate === todayStr() && (
+                  <span style={{ position: 'absolute', top: '50%', right: 12, transform: 'translateY(-50%)', fontSize: 11, fontWeight: 700, color: '#6366f1', background: '#eef2ff', borderRadius: 8, padding: '2px 7px', pointerEvents: 'none' }}>오늘</span>
+                )}
+              </div>
               <button
                 onClick={() => {
                   const d = new Date(lockDate + 'T00:00:00')

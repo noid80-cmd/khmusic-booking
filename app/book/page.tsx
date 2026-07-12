@@ -426,10 +426,15 @@ export default function BookPage() {
                     cursor: date <= todayStr() ? 'default' : 'pointer', flexShrink: 0,
                   }}
                 >‹</button>
-                <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                  min={todayStr()}
-                  className="rounded-xl focus:outline-none transition border"
-                  style={{ flex: 1, minWidth: 0, padding: '8px 14px', fontSize: 14, fontFamily: 'inherit', background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', colorScheme: 'light' }} />
+                <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+                  <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                    min={todayStr()}
+                    className="rounded-xl focus:outline-none transition border"
+                    style={{ width: '100%', padding: '8px 14px', fontSize: 14, fontFamily: 'inherit', background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', colorScheme: 'light', boxSizing: 'border-box' }} />
+                  {date === todayStr() && (
+                    <span style={{ position: 'absolute', top: '50%', right: 12, transform: 'translateY(-50%)', fontSize: 11, fontWeight: 700, color: '#6366f1', background: '#eef2ff', borderRadius: 8, padding: '2px 7px', pointerEvents: 'none' }}>오늘</span>
+                  )}
+                </div>
                 <button
                   onClick={() => {
                     const d = new Date(date + 'T00:00:00')
