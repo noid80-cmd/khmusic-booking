@@ -163,7 +163,11 @@ export default function BookPage() {
     if (curHour < 10 || (curHour === 10 && curMin < 50)) return false
     if (myBookings.some(b => b.date === date && b.start_hour === hour)) return false
     if (building === 'annex' && (account.student_type === 'exam' || account.student_type === 'audition')) {
-      return hour > curHour || (hour === curHour && curMin < 50)
+      if (myBookings.some(b => b.date === date && b.start_hour === hour)) return false
+      const effectiveHour = curMin >= 50 ? curHour + 1 : curHour
+      const active = myBookings.find(b => b.date === date && b.start_hour === effectiveHour)
+      if (active) return hour === effectiveHour + 1
+      return hour === effectiveHour
     }
     const todayCount = myBookings.filter(b => b.date === date).length
     const effectiveHour = curMin >= 50 ? curHour + 1 : curHour
