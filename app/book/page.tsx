@@ -43,11 +43,10 @@ function getRoomSoftware(name: string): string {
   return ''
 }
 
-function isRoomLocked(r: Room): boolean {
+function isRoomLocked(r: Room, checkDate: string = todayStr()): boolean {
   if (r.is_locked) return true
   if (!r.lock_start_date || !r.lock_until) return false
-  const t = todayStr()
-  return t >= r.lock_start_date && t <= r.lock_until
+  return checkDate >= r.lock_start_date && checkDate <= r.lock_until
 }
 
 function getRoomColor(name: string) {
@@ -146,7 +145,7 @@ export default function BookPage() {
   function canBook(roomId: string, hour: number): boolean {
     if (!account) return false
     const room = rooms.find(r => r.id === roomId)
-    if (room && isRoomLocked(room)) return false
+    if (room && isRoomLocked(room, date)) return false
     if (account.student_type === 'admin') return true
     const isToday = date === todayStr()
     if (account.student_type === 'hobby') {
@@ -554,7 +553,7 @@ export default function BookPage() {
                 <div />
                 {filteredRooms.map(r => {
                   const rc = getRoomColor(r.name)
-                  const locked = isRoomLocked(r)
+                  const locked = isRoomLocked(r, date)
                   return (
                     <div key={`hdr-${r.id}`} className="flex flex-col items-center justify-center rounded-lg gap-0.5"
                       style={{
@@ -592,7 +591,7 @@ export default function BookPage() {
                       const isMine = bk?.account_id === account.id
                       const bookable = canBook(r.id, h)
                       const restricted = building === 'annex' && account.student_type !== 'exam' && account.student_type !== 'audition' && account.student_type !== 'admin'
-                      const roomLocked = isRoomLocked(r)
+                      const roomLocked = isRoomLocked(r, date)
 
                       if (cls) {
                         if (account.student_type === 'admin') return (

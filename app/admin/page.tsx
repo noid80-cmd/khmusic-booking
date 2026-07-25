@@ -331,15 +331,14 @@ export default function AdminPage() {
     await loadBlockedSlots(lockDate)
   }
 
-  function isRoomLocked(r: Room): boolean {
+  function isRoomLocked(r: Room, checkDate: string = todayStr()): boolean {
     if (r.is_locked) return true
     if (!r.lock_start_date || !r.lock_until) return false
-    const t = todayStr()
-    return t >= r.lock_start_date && t <= r.lock_until
+    return checkDate >= r.lock_start_date && checkDate <= r.lock_until
   }
 
   async function handleRoomLockClick(room: Room) {
-    if (isRoomLocked(room)) {
+    if (isRoomLocked(room, lockDate)) {
       const { error } = await supabase.from('rooms')
         .update({ is_locked: false, lock_start_date: null, lock_until: null })
         .eq('id', room.id)
@@ -711,7 +710,7 @@ export default function AdminPage() {
                       </div>,
                       ...annexRooms.map(r => {
                         const bk = getAnnexBooking(r.id, h)
-                        const isRoomLk = isRoomLocked(r)
+                        const isRoomLk = isRoomLocked(r, date)
                         const blockedEntry = annexViewBlocked.find(b => b.room_id === r.id && b.start_hour <= h && h < b.end_hour)
                         const isBlocked = isRoomLk || !!blockedEntry
                         if (isBlocked) {
@@ -805,7 +804,7 @@ export default function AdminPage() {
               }}>
                 <div />
                 {annexRooms.map(r => {
-                  const locked = isRoomLocked(r)
+                  const locked = isRoomLocked(r, lockDate)
                   const hasPeriod = !r.is_locked && !!r.lock_start_date && !!r.lock_until
                   return (
                     <button key={`hdr-${r.id}`}
@@ -833,7 +832,7 @@ export default function AdminPage() {
                     <span className="text-[11px] font-bold" style={{ color: '#a0a0c0' }}>{h}</span>
                   </div>,
                   ...annexRooms.map(r => {
-                    const isFullLocked = isRoomLocked(r)
+                    const isFullLocked = isRoomLocked(r, lockDate)
                     const isHourLocked = blockedSlots.some(b => b.room_id === r.id && b.start_hour <= h && h < b.end_hour)
                     const locked = isFullLocked || isHourLocked
                     return (
