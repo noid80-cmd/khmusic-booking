@@ -417,20 +417,16 @@ export default function BookPage() {
                   onClick={() => {
                     const d = new Date(date + 'T00:00:00')
                     d.setDate(d.getDate() - 1)
-                    const prev = localDateStr(d)
-                    if (prev >= todayStr()) setDate(prev)
+                    setDate(localDateStr(d))
                   }}
-                  disabled={date <= todayStr()}
                   className="rounded-xl border transition"
                   style={{
                     padding: '8px 14px', fontSize: 18, lineHeight: 1, fontFamily: 'inherit',
-                    background: '#ffffff', borderColor: '#e4e4ef',
-                    color: date <= todayStr() ? '#c0c0d8' : '#1e1b4b',
-                    cursor: date <= todayStr() ? 'default' : 'pointer', flexShrink: 0,
+                    background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b',
+                    cursor: 'pointer', flexShrink: 0,
                   }}
                 >‹</button>
                 <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                  min={todayStr()}
                   className="rounded-xl focus:outline-none transition border"
                   style={{ flex: 1, minWidth: 0, width: 0, padding: '8px 14px', fontSize: 14, fontFamily: 'inherit', background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', colorScheme: 'light', boxSizing: 'border-box' }} />
                 {date === todayStr() && (
