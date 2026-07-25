@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { height: 100%; background: #f0f0f8; color: #1e1b4b; font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+html, body { height: 100%; background: #f0f0f8; color: #1e1b4b; font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; overflow-x: hidden; }
 
 /* 스크롤바 숨기기 */
 ::-webkit-scrollbar { display: none; }
