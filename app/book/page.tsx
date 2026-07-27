@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Account, Room, Booking } from '@/lib/supabase'
+import { RoomRulesList } from '@/components/RoomRules'
 
 function fmt(h: number) { return `${h}:00` }
 function localDateStr(d: Date) {
@@ -79,6 +80,7 @@ export default function BookPage() {
   const [booking, setBooking] = useState(false)
   const [now, setNow] = useState(new Date())
   const [adminModal, setAdminModal] = useState<{ roomId: string, hour: number } | null>(null)
+  const [rulesOpen, setRulesOpen] = useState(false)
   const [adminName, setAdminName] = useState('')
   const [adminIsClass, setAdminIsClass] = useState(false)
   const [adminEndHour, setAdminEndHour] = useState(12)
@@ -345,6 +347,11 @@ export default function BookPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button onClick={() => setRulesOpen(true)}
+              className="text-[11px] font-medium px-3 py-1.5 rounded-lg border transition"
+              style={{ color: '#a0a0c0', background: '#f5f5fb', borderColor: '#e8e8f2' }}>
+              이용수칙
+            </button>
             {account.student_type === 'admin' && (
               <button onClick={() => window.location.href = '/admin'}
                 className="text-[11px] font-bold px-3 py-1.5 rounded-lg border transition"
@@ -704,6 +711,21 @@ export default function BookPage() {
       </div>
 
     </div>
+
+    {rulesOpen && (
+      <div
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(30,27,75,0.25)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+        onClick={e => { if (e.target === e.currentTarget) setRulesOpen(false) }}>
+        <div style={{ background: 'white', borderRadius: 24, padding: 24, width: '100%', maxWidth: 360, boxShadow: '0 25px 50px rgba(0,0,0,0.12)', border: '1px solid #e8e8f2' }}>
+          <p style={{ fontSize: 16, fontWeight: 900, marginBottom: 16, color: '#1e1b4b' }}>연습실 이용수칙</p>
+          <RoomRulesList />
+          <button onClick={() => setRulesOpen(false)}
+            style={{ width: '100%', marginTop: 20, padding: '12px 0', borderRadius: 16, border: 'none', background: '#f5f5fb', color: '#6b6b9a', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+            확인
+          </button>
+        </div>
+      </div>
+    )}
 
     {adminModal && (() => {
       const isClass = adminIsClass && isMain

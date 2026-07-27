@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { RoomRulesList } from '@/components/RoomRules'
 
 export default function SignupCompletePage() {
   const [name, setName] = useState('')
@@ -42,6 +43,11 @@ export default function SignupCompletePage() {
         <div style={{ width: 64, height: 64, borderRadius: 20, background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 28 }}>✅</div>
         <h2 style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginBottom: 10 }}>가입 신청 완료!</h2>
         <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, lineHeight: 1.8 }}>관리자 승인 후 이용 가능해요.</p>
+
+        <div style={{ marginTop: 28, padding: '20px 22px', borderRadius: 18, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <p style={{ fontSize: 13, fontWeight: 800, color: 'rgba(255,255,255,0.7)', marginBottom: 14 }}>연습실 이용수칙</p>
+          <RoomRulesList dark />
+        </div>
       </div>
     </div>
   )

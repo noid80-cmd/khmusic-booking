@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import { RoomRulesList } from '@/components/RoomRules'
 
 export default function SignupPage() {
   const [name, setName] = useState('')
@@ -54,6 +55,12 @@ export default function SignupPage() {
         <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, lineHeight: 1.8 }}>
           관리자 승인 후 이용 가능해요.<br />승인되면 로그인해주세요.
         </p>
+
+        <div style={{ marginTop: 28, padding: '20px 22px', borderRadius: 18, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <p style={{ fontSize: 13, fontWeight: 800, color: 'rgba(255,255,255,0.7)', marginBottom: 14 }}>연습실 이용수칙</p>
+          <RoomRulesList dark />
+        </div>
+
         <Link href="/login" style={{ marginTop: 24, display: 'inline-block', color: '#818cf8', fontSize: 14 }}>로그인으로 이동</Link>
       </div>
     </div>
