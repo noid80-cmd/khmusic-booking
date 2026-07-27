@@ -5,6 +5,7 @@ export const ROOM_RULES = [
   '5분 이상 방을 비워선 안되며 사용하지 않을 시 즉시 예약 취소를 해주세요',
   '방을 선점하기 위해 등원전 미리 예약하는 것을 금지합니다',
   '방 사용 후 개인방 소등, 에어컨 점검을 꼭 해주세요(별관)',
+  '연습실을 예약한 사람 외에는 출입을 금합니다. (외부인/2인1실 금지)',
 ]
 
 export function RoomRulesList({ dark = false }: { dark?: boolean }) {
