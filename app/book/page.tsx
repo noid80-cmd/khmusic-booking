@@ -11,6 +11,8 @@ function localDateStr(d: Date) {
 }
 function todayStr() { return localDateStr(new Date()) }
 
+const ANNEX_CAP_START = '2026-07-28'
+
 const MAIN_CLOSED = new Set([
   '2025-01-01','2026-01-01','2027-01-01',
   '2025-01-28','2025-01-29','2025-01-30',
@@ -164,6 +166,12 @@ export default function BookPage() {
     const curMin = now.getMinutes()
     if (curHour < 10 || (curHour === 10 && curMin < 50)) return false
     if (myBookings.some(b => b.date === date && b.start_hour === hour)) return false
+    if (building === 'annex' && (account.student_type === 'exam' || account.student_type === 'audition') && date < ANNEX_CAP_START) {
+      const effectiveHour = curMin >= 50 ? curHour + 1 : curHour
+      const active = myBookings.find(b => b.date === date && b.start_hour === effectiveHour)
+      if (active) return hour === effectiveHour + 1
+      return hour === effectiveHour
+    }
     const todayCount = myBookings.filter(b => b.date === date).length
     const effectiveHour = curMin >= 50 ? curHour + 1 : curHour
     const active = myBookings.find(b => b.date === date && b.start_hour === effectiveHour)
@@ -768,7 +776,8 @@ export default function BookPage() {
 
     {studentModal && (() => {
       const todayBooked = myBookings.filter(b => b.date === date).length
-      const maxHours = account?.student_type === 'hobby' ? 1 : Math.max(1, 2 - todayBooked)
+      const isAnnexExam = building === 'annex' && (account?.student_type === 'exam' || account?.student_type === 'audition') && date < ANNEX_CAP_START
+      const maxHours = account?.student_type === 'hobby' ? 1 : isAnnexExam ? 99 : Math.max(1, 2 - todayBooked)
       const endHours = getAvailableEndHours(studentModal.roomId, studentModal.hour).slice(0, maxHours)
       return (
         <div
