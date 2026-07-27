@@ -164,13 +164,6 @@ export default function BookPage() {
     const curMin = now.getMinutes()
     if (curHour < 10 || (curHour === 10 && curMin < 50)) return false
     if (myBookings.some(b => b.date === date && b.start_hour === hour)) return false
-    if (building === 'annex' && (account.student_type === 'exam' || account.student_type === 'audition')) {
-      if (myBookings.some(b => b.date === date && b.start_hour === hour)) return false
-      const effectiveHour = curMin >= 50 ? curHour + 1 : curHour
-      const active = myBookings.find(b => b.date === date && b.start_hour === effectiveHour)
-      if (active) return hour === effectiveHour + 1
-      return hour === effectiveHour
-    }
     const todayCount = myBookings.filter(b => b.date === date).length
     const effectiveHour = curMin >= 50 ? curHour + 1 : curHour
     const active = myBookings.find(b => b.date === date && b.start_hour === effectiveHour)
@@ -775,8 +768,7 @@ export default function BookPage() {
 
     {studentModal && (() => {
       const todayBooked = myBookings.filter(b => b.date === date).length
-      const isAnnexExam = building === 'annex' && (account?.student_type === 'exam' || account?.student_type === 'audition')
-      const maxHours = account?.student_type === 'hobby' ? 1 : isAnnexExam ? 99 : Math.max(1, 2 - todayBooked)
+      const maxHours = account?.student_type === 'hobby' ? 1 : Math.max(1, 2 - todayBooked)
       const endHours = getAvailableEndHours(studentModal.roomId, studentModal.hour).slice(0, maxHours)
       return (
         <div
