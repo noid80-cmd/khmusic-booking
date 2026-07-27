@@ -700,7 +700,7 @@ export default function AdminPage() {
                       <div key={`hdr-${r.id}`} className="flex items-center justify-center rounded-lg"
                         style={{ height: 36, background: '#f0fdf4', border: '1px solid #86efac' }}>
                         <span className="text-[10px] font-bold" style={{ color: '#16a34a' }}>
-                          {r.name.replace('PIANO','P').replace('GUITAR & BASS','G&B')}
+                          {r.name.replace('PIANO','P').replace('GUITAR & BASS','G&B').replace('DRUMS','DR')}
                         </span>
                       </div>
                     ))}
@@ -816,7 +816,7 @@ export default function AdminPage() {
                         border: `1px solid ${locked ? '#fca5b8' : '#86efac'}`,
                       }}>
                       <span className="text-[10px] font-bold" style={{ color: locked ? '#e11d48' : '#16a34a' }}>
-                        {r.name.replace('PIANO','P').replace('GUITAR & BASS','G&B')}
+                        {r.name.replace('PIANO','P').replace('GUITAR & BASS','G&B').replace('DRUMS','DR')}
                       </span>
                       <span style={{ fontSize: 11 }}>{locked ? '🔒' : '🟢'}</span>
                       {hasPeriod && (

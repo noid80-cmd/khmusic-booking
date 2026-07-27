@@ -41,6 +41,7 @@ function getRoomSoftware(name: string): string {
   if (name === 'MIDI 1' || name === 'MIDI 2') return 'Logic · Ableton'
   if (name === 'MIDI 3') return 'Ableton · Cubase'
   if (name === 'MIDI 4') return 'Ableton'
+  if (name === 'DRUMS1' || name === 'DRUMS2') return '전자드럼'
   return ''
 }
 
