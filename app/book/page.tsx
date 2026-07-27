@@ -350,8 +350,8 @@ export default function BookPage() {
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => setRulesOpen(true)}
-              className="text-[11px] font-medium px-3 py-1.5 rounded-lg border transition"
-              style={{ color: '#a0a0c0', background: '#f5f5fb', borderColor: '#e8e8f2' }}>
+              className="text-[11px] font-bold px-3 py-1.5 rounded-lg border transition"
+              style={{ color: '#d97706', background: '#fffbeb', borderColor: '#fde68a' }}>
               이용수칙
             </button>
             {account.student_type === 'admin' && (
