@@ -775,9 +775,7 @@ export default function BookPage() {
     })()}
 
     {studentModal && (() => {
-      const todayBooked = myBookings.filter(b => b.date === date).length
-      const isAnnexExam = building === 'annex' && (account?.student_type === 'exam' || account?.student_type === 'audition') && date < ANNEX_CAP_START
-      const maxHours = account?.student_type === 'hobby' ? 1 : isAnnexExam ? 99 : Math.max(1, 2 - todayBooked)
+      const maxHours = account?.student_type === 'hobby' ? 1 : 2
       const endHours = getAvailableEndHours(studentModal.roomId, studentModal.hour).slice(0, maxHours)
       return (
         <div
