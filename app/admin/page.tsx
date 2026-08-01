@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Account, Room } from '@/lib/supabase'
+import { useHolidays, getMainHours } from '@/lib/holidays'
 
 const SUPER_ADMIN = 'noid80@hanmail.net'
 const HOURS = Array.from({ length: 11 }, (_, i) => i + 11)
@@ -27,6 +28,7 @@ function TypeBadge({ type }: { type: string | null }) {
 }
 
 export default function AdminPage() {
+  const holidays = useHolidays()
   const [tab, setTab] = useState<'users' | 'schedule' | 'annex' | 'locks'>('users')
   const [memberSort, setMemberSort] = useState<'name' | 'type' | 'date'>(() => {
     if (typeof window === 'undefined') return 'name'
@@ -376,6 +378,7 @@ export default function AdminPage() {
   const pianoRooms = mainRooms.filter(r => r.name.startsWith('PIANO') && parseInt(r.name.replace('PIANO ', '')) <= 13)
   const otherMainRooms = mainRooms.filter(r => !r.name.startsWith('PIANO') || parseInt(r.name.replace('PIANO ', '')) > 13)
   const adminUserIds = new Set(admins.map(a => a.user_id).filter(Boolean))
+  const mainHoursToday = getMainHours(date, holidays)
 
   const inputCls = 'w-full bg-white border border-[#e4e4ef] rounded-2xl px-5 py-4 text-[#1e1b4b] text-[15px] focus:outline-none focus:border-indigo-400 transition placeholder:text-[#c0c0d8]'
   const selectCls = inputCls + ' cursor-pointer'
@@ -608,7 +611,15 @@ export default function AdminPage() {
                 </button>
               </div>
             </div>
-            {[pianoRooms, otherMainRooms].filter(g => g.length > 0).map((group, gi) => (
+            {mainHoursToday === null ? (
+              <div className="py-16 text-center rounded-2xl bg-white border" style={{ borderColor: '#e8e8f2' }}>
+                <p className="text-2xl mb-3">🔒</p>
+                <p className="text-sm font-semibold" style={{ color: '#6b6b9a' }}>본관 휴무일이에요</p>
+                <p className="text-xs mt-1" style={{ color: '#b0b0cc' }}>
+                  {new Date(date + 'T00:00:00').getDay() === 0 ? '일요일은 본관이 운영하지 않아요' : '해당일은 휴무예요'}
+                </p>
+              </div>
+            ) : [pianoRooms, otherMainRooms].filter(g => g.length > 0).map((group, gi) => (
               <div key={gi} className="overflow-x-auto">
                 <div style={{
                   display: 'grid',
@@ -625,7 +636,7 @@ export default function AdminPage() {
                       </span>
                     </div>
                   ))}
-                  {HOURS.flatMap(h => [
+                  {mainHoursToday.flatMap(h => [
                     <div key={`t-${h}`} className="flex items-center justify-end pr-2">
                       <span className="text-[11px] font-bold" style={{ color: '#a0a0c0' }}>{h}</span>
                     </div>,

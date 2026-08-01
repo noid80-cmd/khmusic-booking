@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Account, Room, Booking } from '@/lib/supabase'
 import { RoomRulesList } from '@/components/RoomRules'
+import { useHolidays, getMainHours, getAnnexHours, type HolidaySets } from '@/lib/holidays'
 
 function fmt(h: number) { return `${h}:00` }
 function localDateStr(d: Date) {
@@ -13,21 +14,9 @@ function todayStr() { return localDateStr(new Date()) }
 
 const ANNEX_CAP_START = '2026-07-28'
 
-const MAIN_CLOSED = new Set([
-  '2025-01-01','2026-01-01','2027-01-01',
-  '2025-01-28','2025-01-29','2025-01-30',
-  '2026-02-16','2026-02-17','2026-02-18',
-  '2025-10-05','2025-10-06','2025-10-07',
-  '2026-09-24','2026-09-25','2026-09-26',
-  '2025-12-25','2026-12-25','2027-12-25',
-])
-
-function getHours(date: string, building: 'main' | 'annex'): number[] | null {
-  if (building === 'annex') return Array.from({ length: 11 }, (_, i) => i + 11)
-  const day = new Date(date + 'T00:00:00').getDay()
-  if (day === 0 || MAIN_CLOSED.has(date)) return null
-  if (day === 6) return Array.from({ length: 8 }, (_, i) => i + 11)
-  return Array.from({ length: 11 }, (_, i) => i + 11)
+function getHours(date: string, building: 'main' | 'annex', holidays: HolidaySets): number[] | null {
+  if (building === 'annex') return getAnnexHours()
+  return getMainHours(date, holidays)
 }
 
 function shortName(name: string) {
@@ -71,6 +60,7 @@ function typeLabel(t: string | null) {
 }
 
 export default function BookPage() {
+  const holidays = useHolidays()
   const [account, setAccount] = useState<Account | null>(null)
   const [building, setBuilding] = useState<'main' | 'annex'>('main')
   const [roomType, setRoomType] = useState<'piano' | 'midi' | 'guitar' | 'etc'>('piano')
@@ -289,7 +279,7 @@ export default function BookPage() {
   const isExam = account?.student_type === 'exam' || account?.student_type === 'audition' || account?.student_type === 'professional' || account?.student_type === 'admin'
   const currentHour = now.getHours()
   const isMain = building === 'main'
-  const operatingHours = getHours(date, building)
+  const operatingHours = getHours(date, building, holidays)
 
   const color = isMain
     ? { primary: '#6366f1', bookableBg: '#e0e7ff', bookableBorder: '#a5b4fc', bookableHotBg: '#c7d2fe', bookableHotBorder: '#818cf8', text: '#4f46e5', mineBg: '#6366f1', mineBorder: '#4f46e5' }
