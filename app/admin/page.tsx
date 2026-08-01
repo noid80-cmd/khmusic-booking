@@ -6,7 +6,7 @@ import type { Account, Room } from '@/lib/supabase'
 import { useHolidays, getMainHours } from '@/lib/holidays'
 
 const SUPER_ADMIN = 'noid80@hanmail.net'
-const HOURS = Array.from({ length: 11 }, (_, i) => i + 11)
+const HOURS = Array.from({ length: 13 }, (_, i) => i + 9) // 별관 전용 (본관은 lib/holidays.ts getMainHours)
 
 function todayStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 
@@ -47,7 +47,7 @@ export default function AdminPage() {
 
   const [annexRoom, setAnnexRoom] = useState('')
   const [annexDate, setAnnexDate] = useState(todayStr())
-  const [annexStart, setAnnexStart] = useState(11)
+  const [annexStart, setAnnexStart] = useState(9)
   const [annexEnd, setAnnexEnd] = useState(12)
   const [annexType, setAnnexType] = useState<'external' | 'monthly'>('external')
   const [annexName, setAnnexName] = useState('')

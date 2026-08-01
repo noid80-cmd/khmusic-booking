@@ -55,5 +55,5 @@ export function getMainHours(date: string, holidays: HolidaySets): number[] | nu
 }
 
 export function getAnnexHours(): number[] {
-  return Array.from({ length: 11 }, (_, i) => i + 11)
+  return Array.from({ length: 13 }, (_, i) => i + 9)
 }
