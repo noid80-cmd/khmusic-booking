@@ -66,7 +66,7 @@ export default function AdminPage() {
   const [lockEndHour, setLockEndHour] = useState(12)
   const [lockUntilDate, setLockUntilDate] = useState(todayStr())
   const [lockNoEnd, setLockNoEnd] = useState(false)
-  const [periodLockModal, setPeriodLockModal] = useState<{ roomId: string; roomName: string } | null>(null)
+  const [periodLockModal, setPeriodLockModal] = useState<{ roomId?: string; building?: 'main' | 'annex'; roomName: string } | null>(null)
   const [periodLockStart, setPeriodLockStart] = useState(todayStr())
   const [periodLockEnd, setPeriodLockEnd] = useState(todayStr())
   const [periodNoEnd, setPeriodNoEnd] = useState(false)
@@ -354,13 +354,35 @@ export default function AdminPage() {
     }
   }
 
+  // 셧다운: 방 하나가 아니라 본관/별관 전체 방을 한 번에 잠금
+  function isBuildingLocked(building: 'main' | 'annex', checkDate: string = lockDate): boolean {
+    const roomsInBuilding = rooms.filter(r => r.building === building)
+    return roomsInBuilding.length > 0 && roomsInBuilding.every(r => isRoomLocked(r, checkDate))
+  }
+
+  async function handleBuildingLockClick(building: 'main' | 'annex') {
+    if (isBuildingLocked(building, lockDate)) {
+      const { error } = await supabase.from('rooms')
+        .update({ is_locked: false, lock_start_date: null, lock_until: null })
+        .eq('building', building)
+      if (error) { alert('잠금 해제 오류: ' + error.message); return }
+      await loadAll()
+    } else {
+      setPeriodLockStart(lockDate)
+      setPeriodLockEnd(lockDate)
+      setPeriodNoEnd(false)
+      setPeriodLockModal({ building, roomName: building === 'main' ? '본관 전체' : '별관 전체' })
+    }
+  }
+
   async function confirmPeriodLock() {
     if (!periodLockModal) return
     const lockUntil = periodNoEnd ? '2099-12-31' : periodLockEnd
     if (!periodNoEnd && periodLockEnd < periodLockStart) { alert('종료일이 시작일보다 빠를 수 없어요.'); return }
-    const { error } = await supabase.from('rooms')
-      .update({ is_locked: false, lock_start_date: periodLockStart, lock_until: lockUntil })
-      .eq('id', periodLockModal.roomId)
+    const query = supabase.from('rooms').update({ is_locked: false, lock_start_date: periodLockStart, lock_until: lockUntil })
+    const { error } = periodLockModal.building
+      ? await query.eq('building', periodLockModal.building)
+      : await query.eq('id', periodLockModal.roomId!)
     if (error) { alert('기간 잠금 오류: ' + error.message); return }
     setPeriodLockModal(null)
     await loadAll()
@@ -770,6 +792,31 @@ export default function AdminPage() {
         {/* ── 방 잠금 ── */}
         {tab === 'locks' && (
           <div className="space-y-3">
+
+            {/* 셧다운: 본관/별관 전체 잠금 */}
+            <div className="grid grid-cols-2 gap-3">
+              {(['main', 'annex'] as const).map(b => {
+                const locked = isBuildingLocked(b, lockDate)
+                return (
+                  <button key={b} onClick={() => handleBuildingLockClick(b)}
+                    className="rounded-2xl border transition text-left"
+                    style={{
+                      padding: '16px 18px',
+                      background: locked ? '#fde8ef' : '#ffffff',
+                      borderColor: locked ? '#fca5b8' : '#e4e4ef',
+                      cursor: 'pointer',
+                    }}>
+                    <p className="text-[11px] font-bold" style={{ color: locked ? '#e11d48' : '#b0b0cc' }}>
+                      {b === 'main' ? '본관' : '별관'} 셧다운
+                    </p>
+                    <p className="text-sm font-black mt-1" style={{ color: locked ? '#e11d48' : '#1e1b4b' }}>
+                      {locked ? '🔒 전체 잠금됨' : '전체 잠그기'}
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
+            <div style={{ borderTop: '1px solid #e8e8f2', margin: '4px 0' }} />
 
             {/* 날짜 네비 */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
