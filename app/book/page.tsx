@@ -154,7 +154,11 @@ export default function BookPage() {
     if (!isToday) return false
     const curHour = now.getHours()
     const curMin = now.getMinutes()
-    if (curHour < 10 || (curHour === 10 && curMin < 50)) return false
+    // 예약 가능 시작 시각은 건물의 첫 운영 시간(본관 11시, 별관 9시) 10분
+    // 전부터. 예전엔 본관 기준(10시 50분)으로 고정돼 있어서, 별관이 9시부터
+    // 운영하도록 바뀐 뒤에도 별관 9시 슬롯이 똑같이 10시 50분까지 막혀있는
+    // 버그가 있었음.
+    if (curHour < firstBookableHour - 1 || (curHour === firstBookableHour - 1 && curMin < 50)) return false
     if (myBookings.some(b => b.date === date && b.start_hour === hour)) return false
     if (building === 'annex' && (account.student_type === 'exam' || account.student_type === 'audition') && date < ANNEX_CAP_START) {
       const effectiveHour = curMin >= 50 ? curHour + 1 : curHour
@@ -282,6 +286,7 @@ export default function BookPage() {
   const isExam = account?.student_type === 'exam' || account?.student_type === 'audition' || account?.student_type === 'professional' || account?.student_type === 'admin'
   const currentHour = now.getHours()
   const isMain = building === 'main'
+  const firstBookableHour = building === 'annex' ? 9 : 11
   const operatingHours = getHours(date, building, holidays)
 
   const color = isMain
@@ -467,8 +472,8 @@ export default function BookPage() {
           <div className="px-4 py-3 rounded-xl text-xs flex items-center gap-2 border"
             style={{ background: '#eef2ff', borderColor: '#c7d2fe', color: '#6366f1' }}>
             <span style={{ fontSize: 14 }}>●</span>
-            {currentHour < 10 || (currentHour === 10 && now.getMinutes() < 50)
-              ? '10:50 이후 예약 가능'
+            {currentHour < firstBookableHour - 1 || (currentHour === firstBookableHour - 1 && now.getMinutes() < 50)
+              ? `${firstBookableHour - 1}:50 이후 예약 가능`
               : myBookings.some(b => b.date === date && b.start_hour === currentHour)
                 ? `${currentHour + 1}:00 추가 예약 가능 (하루 최대 2시간)`
                 : now.getMinutes() >= 50
