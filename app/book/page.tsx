@@ -162,14 +162,17 @@ export default function BookPage() {
       if (active) return hour === effectiveHour + 1
       return hour === effectiveHour
     }
-    const todayCount = myBookings.filter(b => b.date === date).length
+    const todaysBookings = myBookings.filter(b => b.date === date)
     const effectiveHour = curMin >= 50 ? curHour + 1 : curHour
-    const active = myBookings.find(b => b.date === date && b.start_hour === effectiveHour)
-    if (active) {
-      if (todayCount < 2) return hour === effectiveHour + 1
-      return curMin >= 50 && hour === effectiveHour + 1
-    }
-    return hour === effectiveHour
+    if (todaysBookings.length === 0) return hour === effectiveHour
+    // 연장 가능 시점은 "현재 시각+1이 우연히 예약된 시간과 같은가"가 아니라
+    // 실제로 내가 예약해둔 마지막 시간대가 끝나기 10분 전인지로 판단해야 함.
+    // 예전 로직은 예: 11·12시를 예약해둔 사람이 아직 12시 반인데도, 11시 50분
+    // 시점에 "12시가 예약돼 있음"을 우연히 감지해 13시를 미리 열어주는 버그가
+    // 있었음(실제로는 12시 50분에 열려야 함).
+    const lastEnd = Math.max(...todaysBookings.map(b => b.end_hour))
+    if (effectiveHour < lastEnd) return false
+    return hour === Math.max(effectiveHour, lastEnd)
   }
 
   function getBooking(roomId: string, hour: number) {
