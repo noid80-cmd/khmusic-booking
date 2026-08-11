@@ -219,13 +219,15 @@ export default function BookPage() {
     const { roomId, hour } = studentModal
     setStudentModal(null)
     setBooking(true)
-    for (let h = hour; h < studentEndHour; h++) {
-      const { error } = await supabase.from('bookings').insert({
-        account_id: account.id, room_id: roomId, date,
-        start_hour: h, end_hour: h + 1, booking_type: 'student',
-      })
-      if (error) { alert('예약에 실패했어요. 다른 분이 먼저 예약했을 수 있어요.'); break }
-    }
+    // 2시간 단위/만료 10분 전 연장 규칙은 DB의 book_range() 함수가 서버에서
+    // 강제함 (예전엔 이 화면의 canBook()만 믿고 있어서 API를 직접 호출하면
+    // 우회해 하루 종일 예약을 몰아넣을 수 있었음).
+    const { error } = await supabase.rpc('book_range', {
+      p_room_id: roomId, p_date: date,
+      p_start_hour: hour, p_end_hour: studentEndHour,
+      p_building: building,
+    })
+    if (error) alert(error.message || '예약에 실패했어요. 다른 분이 먼저 예약했을 수 있어요.')
     await loadData()
     setBooking(false)
   }
