@@ -302,11 +302,11 @@ export default function AdminPage() {
   }
 
   async function loadBlockedSlots(d: string) {
-    const annexRoomIds = rooms.filter(r => r.building === 'annex').map(r => r.id)
+    const allRoomIds = rooms.map(r => r.id)
     const { data } = await supabase.from('bookings').select('id,room_id,start_hour,end_hour,end_date')
       .lte('date', d)
       .or(`end_date.gte.${d},end_date.is.null`)
-      .in('room_id', annexRoomIds)
+      .in('room_id', allRoomIds)
       .eq('booking_type', 'blocked')
     setBlockedSlots(data || [])
   }
@@ -401,6 +401,7 @@ export default function AdminPage() {
   const otherMainRooms = mainRooms.filter(r => !r.name.startsWith('PIANO') || parseInt(r.name.replace('PIANO ', '')) > 13)
   const adminUserIds = new Set(admins.map(a => a.user_id).filter(Boolean))
   const mainHoursToday = getMainHours(date, holidays)
+  const mainHoursForLock = getMainHours(lockDate, holidays)
 
   const inputCls = 'w-full bg-white border border-[#e4e4ef] rounded-2xl px-5 py-4 text-[#1e1b4b] text-[15px] focus:outline-none focus:border-indigo-400 transition placeholder:text-[#c0c0d8]'
   const selectCls = inputCls + ' cursor-pointer'
@@ -850,6 +851,75 @@ export default function AdminPage() {
                 style={{ padding: '14px 14px', fontSize: 20, lineHeight: 1, background: '#ffffff', borderColor: '#e4e4ef', color: '#1e1b4b', cursor: 'pointer', flexShrink: 0 }}
               >›</button>
             </div>
+            <div style={{ borderTop: '1px solid #e8e8f2', margin: '4px 0' }} />
+
+            {/* 본관 그리드 */}
+            {mainHoursForLock === null ? (
+              <div className="py-10 text-center rounded-2xl bg-white border" style={{ borderColor: '#e8e8f2' }}>
+                <p className="text-xs font-semibold" style={{ color: '#6b6b9a' }}>본관 휴무일이에요</p>
+              </div>
+            ) : [pianoRooms, otherMainRooms].filter(g => g.length > 0).map((group, gi) => (
+              <div key={`main-${gi}`} className="overflow-x-auto">
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: `36px repeat(${group.length}, minmax(48px, 1fr))`,
+                  gap: '3px',
+                  minWidth: `${group.length * 51 + 39}px`,
+                }}>
+                  <div />
+                  {group.map(r => {
+                    const locked = isRoomLocked(r, lockDate)
+                    const hasPeriod = !r.is_locked && !!r.lock_start_date && !!r.lock_until
+                    return (
+                      <button key={`hdr-${r.id}`}
+                        onClick={() => handleRoomLockClick(r)}
+                        className="flex flex-col items-center justify-center gap-0.5 rounded-lg transition"
+                        style={{
+                          height: 52,
+                          background: locked ? '#fde8ef' : '#eef2ff',
+                          border: `1px solid ${locked ? '#fca5b8' : '#c7d2fe'}`,
+                        }}>
+                        <span className="text-[10px] font-bold" style={{ color: locked ? '#e11d48' : '#6366f1' }}>
+                          {r.name.replace('PIANO','P').replace('MIDI','M').replace('GUITAR & BASS','G&B').replace('ENSEMBLE ROOM','ENS').replace('DRUMS','DR')}
+                        </span>
+                        <span style={{ fontSize: 11 }}>{locked ? '🔒' : '🟢'}</span>
+                        {hasPeriod && (
+                          <span style={{ fontSize: 8, color: '#e11d48', lineHeight: 1 }}>
+                            ~{r.lock_until?.slice(5)}
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                  {mainHoursForLock.flatMap(h => [
+                    <div key={`t-${h}`} className="flex items-center justify-end pr-2">
+                      <span className="text-[11px] font-bold" style={{ color: '#a0a0c0' }}>{h}</span>
+                    </div>,
+                    ...group.map(r => {
+                      const isFullLocked = isRoomLocked(r, lockDate)
+                      const isHourLocked = blockedSlots.some(b => b.room_id === r.id && b.start_hour <= h && h < b.end_hour)
+                      const locked = isFullLocked || isHourLocked
+                      return (
+                        <button key={`${h}-${r.id}`}
+                          onClick={() => {
+                            if (isFullLocked) return
+                            if (isHourLocked) { removeHourLock(r.id, h) }
+                            else { setLockEndHour(h + 1); setLockUntilDate(lockDate); setLockNoEnd(false); setLockModal({ roomId: r.id, roomName: r.name, hour: h }) }
+                          }}
+                          className="h-11 rounded-lg flex items-center justify-center transition active:scale-95"
+                          style={locked
+                            ? { background: isFullLocked ? '#f3f4f6' : '#fde8ef', border: `1px solid ${isFullLocked ? '#e5e7eb' : '#fca5b8'}`, cursor: isFullLocked ? 'default' : 'pointer' }
+                            : { background: '#f8f8fc', border: '1px solid #ebebf5', cursor: 'pointer' }}>
+                          <span style={{ fontSize: locked ? 12 : 14, color: isFullLocked ? '#c0c0d8' : isHourLocked ? '#e11d48' : '#d0d0e8', fontWeight: locked ? 700 : 300 }}>
+                            {locked ? '🔒' : '+'}
+                          </span>
+                        </button>
+                      )
+                    })
+                  ])}
+                </div>
+              </div>
+            ))}
             <div style={{ borderTop: '1px solid #e8e8f2', margin: '4px 0' }} />
 
             {/* 별관 그리드 */}
